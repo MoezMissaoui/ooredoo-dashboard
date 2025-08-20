@@ -15423,3 +15423,1832 @@ Did you mean one of these?
 [2025-08-20 15:40:48] local.INFO: Données récupérées avec succès, source: database  
 [2025-08-20 15:40:48] local.INFO: Nombre de marchands: 15  
 [2025-08-20 15:40:48] local.INFO: Total transactions: 3127  
+[2025-08-20 15:45:18] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 15:45:18] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 15:45:18] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 15:45:18] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 15:45:18] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 15:45:18] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 15:45:18] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 15:45:18] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 15:45:18] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 15:45:18] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 15:45:18] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 15:45:18] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 15:45:18] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 15:45:18] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 15:45:19] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 15:45:19] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 15:45:20] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 15:45:20] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 15:45:20] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 15:45:20] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 15:45:20] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 15:45:20] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 15:45:20] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 15:45:20] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 15:45:20] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 15:45:21] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 15:45:21] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 15:45:21] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 15:45:21] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 15:45:21] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 15:45:21] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 15:45:23] local.INFO: Clients début période ALL: 101111  
+[2025-08-20 15:45:23] local.INFO: Clients retenus ALL: 55142  
+[2025-08-20 15:45:23] local.INFO: Taux de rétention ALL: 54.5%  
+[2025-08-20 15:45:24] local.INFO: Taux de rétention période comparaison ALL: 52%  
+[2025-08-20 15:45:24] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 15:45:26] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 15:45:26] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 15:45:26] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 15:45:26] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 15:45:26] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 15:45:26] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 15:45:26] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 15:45:26] local.INFO: Nombre de marchands: 15  
+[2025-08-20 15:45:26] local.INFO: Total transactions: 3127  
+[2025-08-20 15:50:17] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 15:50:18] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 15:50:18] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 15:50:18] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 15:50:18] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 15:50:18] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 15:50:18] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 15:50:18] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 15:50:18] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 15:50:18] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 15:50:18] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 15:50:18] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 15:50:18] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 15:50:18] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 15:50:19] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 15:50:19] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 15:50:19] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 15:50:19] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 15:50:19] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 15:50:19] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 15:50:19] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 15:50:20] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 15:50:20] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 15:50:20] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 15:50:20] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 15:50:20] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 15:50:20] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 15:50:20] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 15:50:21] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 15:50:21] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 15:50:21] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 15:50:22] local.INFO: Clients début période ALL: 101111  
+[2025-08-20 15:50:22] local.INFO: Clients retenus ALL: 55142  
+[2025-08-20 15:50:22] local.INFO: Taux de rétention ALL: 54.5%  
+[2025-08-20 15:50:23] local.INFO: Taux de rétention période comparaison ALL: 52%  
+[2025-08-20 15:50:23] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 15:50:25] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 15:50:25] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 15:50:25] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 15:50:25] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 15:50:25] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 15:50:25] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 15:50:25] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 15:50:25] local.INFO: Nombre de marchands: 15  
+[2025-08-20 15:50:25] local.INFO: Total transactions: 3127  
+[2025-08-20 15:55:27] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 15:55:28] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 15:55:28] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 15:55:28] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 15:55:28] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 15:55:28] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 15:55:28] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 15:55:28] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 15:55:28] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 15:55:28] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 15:55:28] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 15:55:29] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 15:55:29] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 15:55:29] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 15:55:30] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 15:55:31] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 15:55:35] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 15:55:35] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 15:56:23] local.ERROR: Maximum execution time of 60 seconds exceeded {"userId":1,"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php:65)
+[stacktrace]
+#0 {main}
+"} 
+[2025-08-20 16:00:34] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:00:35] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:00:35] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:00:35] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:00:35] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:00:35] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:00:35] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:00:35] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:00:35] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:00:35] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:00:35] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:00:35] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:00:35] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:00:35] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:00:37] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:00:37] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:00:37] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:00:37] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:00:37] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:00:38] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:00:38] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:00:38] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:00:38] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:00:38] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:00:38] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:00:39] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:00:39] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:00:39] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:00:39] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:00:39] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:00:39] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:00:40] local.INFO: Clients début période ALL: 101111  
+[2025-08-20 16:00:40] local.INFO: Clients retenus ALL: 55142  
+[2025-08-20 16:00:40] local.INFO: Taux de rétention ALL: 54.5%  
+[2025-08-20 16:00:42] local.INFO: Taux de rétention période comparaison ALL: 52%  
+[2025-08-20 16:00:42] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:01:10] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:01:10] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:01:10] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:01:10] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:01:10] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:01:10] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:01:10] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:01:10] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:01:10] local.INFO: Total transactions: 3127  
+[2025-08-20 16:05:17] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:05:17] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:05:17] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:05:17] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:05:17] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:05:17] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:05:17] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:05:17] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:05:17] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:05:17] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:05:17] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:05:17] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:05:17] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:05:17] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:05:19] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:05:19] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:05:19] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:05:19] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:05:19] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:05:19] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:05:19] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:05:19] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:05:19] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:05:20] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:05:20] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:05:20] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:05:20] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:05:20] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:05:20] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:05:20] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:05:20] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:05:22] local.INFO: Clients début période ALL: 101111  
+[2025-08-20 16:05:22] local.INFO: Clients retenus ALL: 55142  
+[2025-08-20 16:05:22] local.INFO: Taux de rétention ALL: 54.5%  
+[2025-08-20 16:05:23] local.INFO: Taux de rétention période comparaison ALL: 52%  
+[2025-08-20 16:05:23] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:05:24] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:05:24] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:05:24] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:05:24] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:05:24] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:05:25] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:05:25] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:05:25] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:05:25] local.INFO: Total transactions: 3127  
+[2025-08-20 16:07:31] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:07:31] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:07:31] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:07:31] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:07:31] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:07:31] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:07:31] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:07:31] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:07:31] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:07:31] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 16:07:31] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 16:07:31] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 16:07:31] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 16:07:31] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 16:07:31] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 16:07:32] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 16:07:32] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 16:07:32] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 16:07:32] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 16:07:32] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 16:07:32] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:07:32] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:07:32] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:07:32] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:07:32] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 16:07:33] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 16:07:33] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:07:33] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 16:07:33] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:07:33] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 16:07:33] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 16:07:33] local.INFO: Clients début période Timwe: 0  
+[2025-08-20 16:07:33] local.INFO: Clients retenus Timwe: 0  
+[2025-08-20 16:07:33] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 16:07:33] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 16:07:33] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:07:33] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 16:07:33] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 16:07:33] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:07:33] local.INFO: Calcul optimisé de la tendance de rétention Timwe...  
+[2025-08-20 16:07:33] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:07:34] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:07:34] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:07:34] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:07:34] local.INFO: Total transactions: 0  
+[2025-08-20 16:07:35] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:07:35] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:07:35] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:07:35] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:07:35] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:07:35] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:07:35] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:07:35] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:07:35] local.INFO: Total transactions: 3127  
+[2025-08-20 16:29:20] local.ERROR: SQLSTATE[HY000] [2002] Une opération a été tentée sur un réseau impossible à atteindre (Connection: mysql, SQL: select * from `users` where `id` = 1 limit 1) {"exception":"[object] (Illuminate\\Database\\QueryException(code: 2002): SQLSTATE[HY000] [2002] Une opération a été tentée sur un réseau impossible à atteindre (Connection: mysql, SQL: select * from `users` where `id` = 1 limit 1) at D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php:829)
+[stacktrace]
+#0 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(783): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#1 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(414): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#2 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2913): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#3 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2902): Illuminate\\Database\\Query\\Builder->runSelect()
+#4 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3456): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#5 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2901): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#6 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(739): Illuminate\\Database\\Query\\Builder->get(Array)
+#7 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(723): Illuminate\\Database\\Eloquent\\Builder->getModels(Array)
+#8 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(333): Illuminate\\Database\\Eloquent\\Builder->get(Array)
+#9 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\EloquentUserProvider.php(59): Illuminate\\Database\\Eloquent\\Builder->first()
+#10 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\SessionGuard.php(159): Illuminate\\Auth\\EloquentUserProvider->retrieveById(1)
+#11 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\GuardHelpers.php(56): Illuminate\\Auth\\SessionGuard->user()
+#12 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(76): Illuminate\\Auth\\SessionGuard->check()
+#13 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(55): Illuminate\\Auth\\Middleware\\Authenticate->authenticate(Object(Illuminate\\Http\\Request), Array)
+#14 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#15 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#16 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#17 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#19 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#21 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#22 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#23 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#24 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#25 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#26 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#28 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(784): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#29 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(748): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#30 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(737): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#31 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#32 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#33 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#37 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#38 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#39 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#40 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#41 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(99): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#42 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#43 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(62): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#46 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#47 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#48 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#49 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#50 D:\\Dashboard CP\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#51 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('D:\\\\Dashboard CP...')
+#52 {main}
+
+[previous exception] [object] (PDOException(code: 2002): SQLSTATE[HY000] [2002] Une opération a été tentée sur un réseau impossible à atteindre at D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php:65)
+[stacktrace]
+#0 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(65): PDO->__construct('mysql:host=51.3...', 'looker_user', Object(SensitiveParameterValue), Array)
+#1 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\Connector.php(44): Illuminate\\Database\\Connectors\\Connector->createPdoConnection('mysql:host=51.3...', 'looker_user', 'lokaszsh98@Data...', Array)
+#2 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=51.3...', Array, Array)
+#3 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connectors\\ConnectionFactory.php(184): Illuminate\\Database\\Connectors\\MySqlConnector->connect(Array)
+#4 [internal function]: Illuminate\\Database\\Connectors\\ConnectionFactory->Illuminate\\Database\\Connectors\\{closure}()
+#5 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1339): call_user_func(Object(Closure))
+#6 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(1375): Illuminate\\Database\\Connection->getPdo()
+#7 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(528): Illuminate\\Database\\Connection->getReadPdo()
+#8 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(423): Illuminate\\Database\\Connection->getPdoForSelect(true)
+#9 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(816): Illuminate\\Database\\Connection->Illuminate\\Database\\{closure}('select * from `...', Array)
+#10 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(783): Illuminate\\Database\\Connection->runQueryCallback('select * from `...', Array, Object(Closure))
+#11 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Connection.php(414): Illuminate\\Database\\Connection->run('select * from `...', Array, Object(Closure))
+#12 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2913): Illuminate\\Database\\Connection->select('select * from `...', Array, true)
+#13 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2902): Illuminate\\Database\\Query\\Builder->runSelect()
+#14 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(3456): Illuminate\\Database\\Query\\Builder->Illuminate\\Database\\Query\\{closure}()
+#15 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Query\\Builder.php(2901): Illuminate\\Database\\Query\\Builder->onceWithColumns(Array, Object(Closure))
+#16 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(739): Illuminate\\Database\\Query\\Builder->get(Array)
+#17 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Eloquent\\Builder.php(723): Illuminate\\Database\\Eloquent\\Builder->getModels(Array)
+#18 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Concerns\\BuildsQueries.php(333): Illuminate\\Database\\Eloquent\\Builder->get(Array)
+#19 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\EloquentUserProvider.php(59): Illuminate\\Database\\Eloquent\\Builder->first()
+#20 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\SessionGuard.php(159): Illuminate\\Auth\\EloquentUserProvider->retrieveById(1)
+#21 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\GuardHelpers.php(56): Illuminate\\Auth\\SessionGuard->user()
+#22 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(76): Illuminate\\Auth\\SessionGuard->check()
+#23 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(55): Illuminate\\Auth\\Middleware\\Authenticate->authenticate(Object(Illuminate\\Http\\Request), Array)
+#24 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#25 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken.php(78): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#26 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\VerifyCsrfToken->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#27 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#28 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#29 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#30 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#31 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#32 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#33 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#34 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#35 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#37 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#38 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(784): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#39 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(748): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#40 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(737): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#41 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#42 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#43 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#44 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#45 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#46 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#47 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#48 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#49 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#50 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#51 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(99): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#52 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#53 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(62): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#54 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#55 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#56 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#57 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#58 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#59 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#60 D:\\Dashboard CP\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#61 D:\\Dashboard CP\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('D:\\\\Dashboard CP...')
+#62 {main}
+"} 
+[2025-08-20 16:32:29] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:32:29] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:32:29] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:32:29] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:32:29] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:32:29] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:32:29] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:32:29] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:32:29] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:32:29] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:32:29] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:32:29] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:32:29] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:32:29] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:32:30] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:32:30] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:32:31] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:32:31] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:32:31] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:32:31] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:32:31] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:32:31] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:32:31] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:32:31] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:32:32] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:32:32] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:32:32] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:32:32] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:32:32] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:32:32] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:32:32] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:32:34] local.INFO: Clients début période ALL: 101111  
+[2025-08-20 16:32:34] local.INFO: Clients retenus ALL: 55142  
+[2025-08-20 16:32:34] local.INFO: Taux de rétention ALL: 54.5%  
+[2025-08-20 16:32:36] local.INFO: Taux de rétention période comparaison ALL: 52%  
+[2025-08-20 16:32:36] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:32:37] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:32:37] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:32:37] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:32:38] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:32:38] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:32:38] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:32:38] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:32:38] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:32:38] local.INFO: Total transactions: 3127  
+[2025-08-20 16:36:09] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:36:10] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-17  
+[2025-08-20 16:36:10] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:36:10] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:36:10] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:36:10] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:36:10] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:36:10] local.INFO: Période principale: 2025-08-07 à 2025-08-17  
+[2025-08-20 16:36:10] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:36:10] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:36:10] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:36:10] local.INFO: Abonnements activés ALL (principal): 9402  
+[2025-08-20 16:36:10] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:36:10] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:36:11] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:36:11] local.INFO: Total transactions ALL (principal): 3011  
+[2025-08-20 16:36:11] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:36:11] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:36:11] local.INFO: Utilisateurs ALL avec transactions (principal): 1821  
+[2025-08-20 16:36:11] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:36:11] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:36:12] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:36:12] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:36:12] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:36:12] local.INFO: Marchands actifs période principale: 177  
+[2025-08-20 16:36:12] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:36:12] local.INFO: Total transactions toutes catégories (période principale): 3011  
+[2025-08-20 16:36:13] local.INFO: Transactions opérateur chez marchands (période principale): 3011  
+[2025-08-20 16:36:13] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:36:13] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:36:13] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:36:13] local.INFO: Abonnements activés ALL: 9402  
+[2025-08-20 16:36:13] local.INFO: Abonnements actifs ALL: 7677  
+[2025-08-20 16:36:13] local.INFO: Taux de rétention ALL: 81.7%  
+[2025-08-20 16:36:13] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:36:13] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:36:14] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:36:14] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:36:14] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3011  
+[2025-08-20 16:36:15] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:36:15] local.INFO: Tendance de rétention calculée: 11 points de données  
+[2025-08-20 16:36:15] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:36:15] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:36:15] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:36:15] local.INFO: Total transactions: 3011  
+[2025-08-20 16:36:43] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:36:44] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-17  
+[2025-08-20 16:36:44] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-13  
+[2025-08-20 16:36:44] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:36:44] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:36:44] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:36:44] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:36:44] local.INFO: Période principale: 2025-08-07 à 2025-08-17  
+[2025-08-20 16:36:44] local.INFO: Période comparaison: 2025-07-24 à 2025-08-13  
+[2025-08-20 16:36:44] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:36:44] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:36:44] local.INFO: Abonnements activés ALL (principal): 9402  
+[2025-08-20 16:36:44] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:36:44] local.INFO: Abonnements activés ALL (comparaison): 16111  
+[2025-08-20 16:36:45] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:36:45] local.INFO: Total transactions ALL (principal): 3011  
+[2025-08-20 16:36:45] local.INFO: Total transactions ALL (comparaison): 5923  
+[2025-08-20 16:36:45] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:36:45] local.INFO: Utilisateurs ALL avec transactions (principal): 1821  
+[2025-08-20 16:36:45] local.INFO: Utilisateurs ALL avec transactions (comparaison): 3107  
+[2025-08-20 16:36:45] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:36:46] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:36:46] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:36:46] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:36:46] local.INFO: Marchands actifs période principale: 177  
+[2025-08-20 16:36:46] local.INFO: Marchands actifs période comparaison: 222  
+[2025-08-20 16:36:46] local.INFO: Total transactions toutes catégories (période principale): 3011  
+[2025-08-20 16:36:47] local.INFO: Transactions opérateur chez marchands (période principale): 3011  
+[2025-08-20 16:36:47] local.INFO: Total transactions toutes catégories (période comparaison): 5923  
+[2025-08-20 16:36:47] local.INFO: Transactions opérateur chez marchands (période comparaison): 5923  
+[2025-08-20 16:36:47] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:36:47] local.INFO: Abonnements activés ALL: 9402  
+[2025-08-20 16:36:47] local.INFO: Abonnements actifs ALL: 7677  
+[2025-08-20 16:36:47] local.INFO: Taux de rétention ALL: 81.7%  
+[2025-08-20 16:36:47] local.INFO: Taux de rétention période comparaison ALL: 78%  
+[2025-08-20 16:36:47] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:36:48] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:36:48] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:36:48] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3011  
+[2025-08-20 16:36:49] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:36:49] local.INFO: Tendance de rétention calculée: 11 points de données  
+[2025-08-20 16:36:49] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:36:49] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:36:49] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:36:49] local.INFO: Total transactions: 3011  
+[2025-08-20 16:37:29] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:37:29] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-17  
+[2025-08-20 16:37:29] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-13  
+[2025-08-20 16:37:29] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:37:29] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:37:29] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:37:29] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:37:29] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:37:29] local.INFO: Total transactions: 3011  
+[2025-08-20 16:37:53] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:37:53] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:37:53] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:37:53] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:37:53] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:37:53] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:37:53] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:37:53] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:37:53] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:37:53] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 16:37:53] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 16:37:53] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 16:37:53] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 16:37:54] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 16:37:54] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 16:37:54] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 16:37:54] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 16:37:54] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 16:37:54] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 16:37:54] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 16:37:54] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:37:54] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:37:54] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:37:55] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:37:55] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 16:37:55] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 16:37:55] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:37:55] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 16:37:55] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:37:55] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 16:37:55] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 16:37:55] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 16:37:55] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 16:37:55] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 16:37:55] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 16:37:55] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:37:55] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 16:37:55] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 16:37:55] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:37:55] local.INFO: Calcul optimisé de la tendance de rétention Timwe...  
+[2025-08-20 16:37:55] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:37:55] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:37:55] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:37:55] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:37:55] local.INFO: Total transactions: 0  
+[2025-08-20 16:37:57] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:37:57] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:37:57] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:37:57] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:37:57] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:37:57] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:37:57] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:37:57] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:37:57] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:37:57] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:37:57] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:37:57] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:37:57] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:37:57] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:37:59] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:37:59] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:37:59] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:37:59] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:37:59] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:37:59] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:37:59] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:37:59] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:38:00] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:38:00] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:38:00] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:38:00] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:38:00] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:38:00] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:38:00] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:38:01] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:38:01] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:38:01] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 16:38:01] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 16:38:01] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 16:38:01] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:38:01] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:38:02] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:38:02] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:38:02] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:38:03] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:38:03] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:38:03] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:38:03] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:38:03] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:38:03] local.INFO: Total transactions: 3127  
+[2025-08-20 16:38:15] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:38:15] local.INFO: Dates reçues: start_date=2025-08-14, end_date=2025-08-20  
+[2025-08-20 16:38:15] local.INFO: Dates comparaison: comparison_start_date=2025-08-07, comparison_end_date=2025-08-13  
+[2025-08-20 16:38:15] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:38:15] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:38:15] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:38:15] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:38:15] local.INFO: Période principale: 2025-08-14 à 2025-08-20  
+[2025-08-20 16:38:15] local.INFO: Période comparaison: 2025-08-07 à 2025-08-13  
+[2025-08-20 16:38:15] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:38:15] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:38:16] local.INFO: Abonnements activés ALL (principal): 2975  
+[2025-08-20 16:38:16] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:38:16] local.INFO: Abonnements activés ALL (comparaison): 6606  
+[2025-08-20 16:38:17] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:38:17] local.INFO: Total transactions ALL (principal): 1119  
+[2025-08-20 16:38:17] local.INFO: Total transactions ALL (comparaison): 2008  
+[2025-08-20 16:38:17] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:38:17] local.INFO: Utilisateurs ALL avec transactions (principal): 808  
+[2025-08-20 16:38:17] local.INFO: Utilisateurs ALL avec transactions (comparaison): 1296  
+[2025-08-20 16:38:17] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:38:17] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:38:18] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:38:18] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:38:18] local.INFO: Marchands actifs période principale: 125  
+[2025-08-20 16:38:18] local.INFO: Marchands actifs période comparaison: 158  
+[2025-08-20 16:38:18] local.INFO: Total transactions toutes catégories (période principale): 1121  
+[2025-08-20 16:38:18] local.INFO: Transactions opérateur chez marchands (période principale): 1119  
+[2025-08-20 16:38:19] local.INFO: Total transactions toutes catégories (période comparaison): 2008  
+[2025-08-20 16:38:19] local.INFO: Transactions opérateur chez marchands (période comparaison): 2008  
+[2025-08-20 16:38:19] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:38:19] local.INFO: Abonnements activés ALL: 2975  
+[2025-08-20 16:38:19] local.INFO: Abonnements actifs ALL: 2363  
+[2025-08-20 16:38:19] local.INFO: Taux de rétention ALL: 79.4%  
+[2025-08-20 16:38:19] local.INFO: Taux de rétention période comparaison ALL: 81.9%  
+[2025-08-20 16:38:19] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:38:20] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:38:20] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:38:20] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 1121  
+[2025-08-20 16:38:21] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:38:21] local.INFO: Tendance de rétention calculée: 7 points de données  
+[2025-08-20 16:38:21] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:38:21] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:38:21] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:38:21] local.INFO: Total transactions: 1119  
+[2025-08-20 16:38:22] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:38:22] local.INFO: Dates reçues: start_date=2025-08-14, end_date=2025-08-20  
+[2025-08-20 16:38:22] local.INFO: Dates comparaison: comparison_start_date=2025-08-07, comparison_end_date=2025-08-13  
+[2025-08-20 16:38:22] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:38:22] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:38:22] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:38:22] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:38:22] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:38:22] local.INFO: Total transactions: 1119  
+[2025-08-20 16:41:24] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:41:24] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:41:24] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:41:24] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:41:24] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:41:24] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:41:24] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:41:24] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:41:24] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:41:24] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 16:41:24] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 16:41:24] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 16:41:24] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 16:41:24] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 16:41:25] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 16:41:25] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 16:41:25] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 16:41:25] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 16:41:25] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 16:41:25] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 16:41:25] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:41:25] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:41:25] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:41:25] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:41:25] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 16:41:25] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 16:41:25] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:41:25] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 16:41:26] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:41:26] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 16:41:26] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 16:41:26] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 16:41:26] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 16:41:26] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 16:41:26] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 16:41:26] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:41:26] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 16:41:26] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 16:41:26] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:41:26] local.INFO: Calcul optimisé de la tendance de rétention Timwe...  
+[2025-08-20 16:41:26] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:41:26] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:41:26] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:41:26] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:41:26] local.INFO: Total transactions: 0  
+[2025-08-20 16:41:27] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:41:27] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:41:27] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:41:27] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:41:27] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:41:27] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:41:27] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:41:27] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:41:27] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:41:27] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:41:27] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:41:28] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:41:28] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:41:28] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:41:29] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:41:29] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:41:29] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:41:29] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:41:29] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:41:30] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:41:30] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:41:30] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:41:30] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:41:30] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:41:30] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:41:30] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:41:30] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:41:31] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:41:31] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:41:31] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:41:31] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:41:31] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 16:41:31] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 16:41:31] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 16:41:31] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:41:31] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:41:32] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:41:32] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:41:32] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:41:33] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 16:41:33] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:41:33] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:41:33] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:41:33] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:41:33] local.INFO: Total transactions: 3127  
+[2025-08-20 16:43:29] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:43:30] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:43:30] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:43:30] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:43:30] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:43:30] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:43:30] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:43:30] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:43:30] local.INFO: Total transactions: 0  
+[2025-08-20 16:43:30] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:43:30] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:43:30] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:43:30] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:43:30] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:43:30] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:43:30] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:43:30] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:43:30] local.INFO: Total transactions: 3127  
+[2025-08-20 16:43:45] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:43:45] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:43:45] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:43:45] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:43:45] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:43:45] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:43:45] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:43:45] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:43:45] local.INFO: Total transactions: 0  
+[2025-08-20 16:43:46] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:43:46] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:43:46] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:43:46] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:43:46] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:43:46] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:43:46] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:43:46] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:43:46] local.INFO: Total transactions: 3127  
+[2025-08-20 16:44:04] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:44:04] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:44:04] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:44:04] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:44:04] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:44:04] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:44:04] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:44:04] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:44:04] local.INFO: Total transactions: 0  
+[2025-08-20 16:44:05] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:44:05] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:44:05] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:44:05] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:44:05] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:44:05] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:44:05] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:44:05] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:44:05] local.INFO: Total transactions: 3127  
+[2025-08-20 16:47:37] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:47:37] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:47:37] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:47:37] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:47:37] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:47:37] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:47:37] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:47:37] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:47:37] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:47:37] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 16:47:37] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 16:47:37] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 16:47:37] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 16:47:37] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 16:47:37] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 16:47:37] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 16:47:37] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 16:47:37] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 16:47:37] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 16:47:38] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 16:47:38] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:47:38] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:47:38] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:47:38] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:47:38] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 16:47:38] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 16:47:38] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:47:38] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 16:47:39] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:47:39] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 16:47:39] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 16:47:39] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 16:47:39] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 16:47:39] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 16:47:39] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 16:47:39] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:47:39] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 16:47:39] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 16:47:39] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:47:39] local.INFO: Calcul de la tendance de rétention quotidienne Timwe...  
+[2025-08-20 16:47:41] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:47:41] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:47:41] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:47:41] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:47:41] local.INFO: Total transactions: 0  
+[2025-08-20 16:47:42] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:47:42] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:47:42] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:47:42] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:47:42] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:47:42] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:47:42] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:47:42] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:47:42] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:47:42] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:47:42] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:47:42] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:47:42] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:47:42] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:47:43] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:47:43] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:47:43] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:47:43] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:47:44] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:47:44] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:47:44] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:47:44] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:47:44] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:47:44] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:47:44] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:47:45] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:47:45] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:47:45] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:47:45] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:47:45] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:47:45] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:47:45] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 16:47:45] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 16:47:45] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 16:47:45] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:47:45] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:47:47] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:47:47] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:47:47] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:47:47] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 16:47:52] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:47:52] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:47:52] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:47:52] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:47:52] local.INFO: Total transactions: 3127  
+[2025-08-20 16:48:54] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:48:54] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-11  
+[2025-08-20 16:48:54] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:48:54] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:48:54] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:48:54] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:48:54] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:48:54] local.INFO: Période principale: 2025-08-07 à 2025-08-11  
+[2025-08-20 16:48:54] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:48:54] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:48:54] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:48:55] local.INFO: Abonnements activés ALL (principal): 3711  
+[2025-08-20 16:48:55] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:48:55] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:48:55] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:48:56] local.INFO: Total transactions ALL (principal): 1489  
+[2025-08-20 16:48:56] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:48:56] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:48:56] local.INFO: Utilisateurs ALL avec transactions (principal): 997  
+[2025-08-20 16:48:56] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:48:56] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:48:56] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:48:56] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:48:56] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:48:57] local.INFO: Marchands actifs période principale: 138  
+[2025-08-20 16:48:57] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:48:57] local.INFO: Total transactions toutes catégories (période principale): 1489  
+[2025-08-20 16:48:57] local.INFO: Transactions opérateur chez marchands (période principale): 1489  
+[2025-08-20 16:48:57] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:48:57] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:48:57] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:48:57] local.INFO: Abonnements activés ALL: 3711  
+[2025-08-20 16:48:57] local.INFO: Abonnements actifs ALL: 2937  
+[2025-08-20 16:48:57] local.INFO: Taux de rétention ALL: 79.1%  
+[2025-08-20 16:48:57] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:48:57] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:48:59] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:48:59] local.INFO: Distribution par catégories calculée: 4  
+[2025-08-20 16:48:59] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 1489  
+[2025-08-20 16:48:59] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 16:49:01] local.INFO: Tendance de rétention calculée: 5 points de données  
+[2025-08-20 16:49:01] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:49:01] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:49:01] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:49:01] local.INFO: Total transactions: 1489  
+[2025-08-20 16:52:02] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:52:02] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-19  
+[2025-08-20 16:52:02] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:52:02] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:52:02] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:52:02] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:52:02] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:52:02] local.INFO: Période principale: 2025-08-07 à 2025-08-19  
+[2025-08-20 16:52:02] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:52:02] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:52:02] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:52:03] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:52:03] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:52:03] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:52:04] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:52:04] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:52:04] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:52:04] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:52:04] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:52:04] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:52:04] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:52:04] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:52:04] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:52:05] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:52:05] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:52:05] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:52:05] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:52:05] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:52:05] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:52:06] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:52:06] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:52:06] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 16:52:06] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 16:52:06] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 16:52:06] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:52:06] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:52:07] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:52:07] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:52:07] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:52:07] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 16:52:12] local.INFO: Tendance de rétention calculée: 13 points de données  
+[2025-08-20 16:52:12] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:52:12] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:52:12] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:52:12] local.INFO: Total transactions: 3127  
+[2025-08-20 16:52:36] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:52:36] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-19  
+[2025-08-20 16:52:36] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:52:36] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:52:36] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:52:36] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:52:36] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:52:36] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:52:36] local.INFO: Total transactions: 3127  
+[2025-08-20 16:55:06] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:55:06] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:55:06] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:55:06] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 16:55:06] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:55:06] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:55:06] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:55:06] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:55:06] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:55:06] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 16:55:06] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 16:55:06] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 16:55:06] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 16:55:06] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 16:55:06] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 16:55:06] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 16:55:06] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 16:55:06] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 16:55:06] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 16:55:06] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 16:55:06] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:55:07] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:55:07] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:55:07] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:55:07] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 16:55:07] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 16:55:07] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:55:07] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 16:55:07] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:55:07] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 16:55:07] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 16:55:07] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 16:55:07] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 16:55:07] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 16:55:07] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 16:55:07] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:55:07] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 16:55:07] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 16:55:07] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:55:08] local.INFO: Calcul de la tendance de rétention quotidienne Timwe...  
+[2025-08-20 16:55:10] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:55:10] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:55:10] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:55:10] local.INFO: Nombre de marchands: 0  
+[2025-08-20 16:55:10] local.INFO: Total transactions: 0  
+[2025-08-20 16:55:10] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 16:55:10] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 16:55:10] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 16:55:10] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 16:55:10] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 16:55:10] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 16:55:10] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 16:55:10] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 16:55:10] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 16:55:10] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 16:55:10] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 16:55:11] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 16:55:11] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 16:55:11] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 16:55:12] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 16:55:12] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 16:55:12] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 16:55:12] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 16:55:12] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 16:55:13] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 16:55:13] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 16:55:13] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 16:55:13] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 16:55:14] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 16:55:15] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 16:55:15] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 16:55:16] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 16:55:16] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 16:55:17] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 16:55:17] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 16:55:17] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 16:55:17] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 16:55:17] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 16:55:17] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 16:55:17] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 16:55:17] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 16:55:20] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 16:55:20] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 16:55:20] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 16:55:20] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 16:55:26] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 16:55:26] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 16:55:26] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 16:55:26] local.INFO: Nombre de marchands: 15  
+[2025-08-20 16:55:26] local.INFO: Total transactions: 3127  
+[2025-08-20 17:00:06] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:00:06] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:00:06] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:00:06] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:00:06] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:00:06] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:00:06] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:00:06] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:00:06] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:00:06] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:00:06] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:00:06] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:00:06] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:00:06] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:00:07] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:00:07] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:00:07] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:00:07] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:00:07] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:00:07] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:00:07] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:00:08] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:00:08] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:00:08] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:00:08] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:00:08] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:00:08] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:00:09] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:00:09] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:00:09] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:00:09] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:00:09] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:00:09] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:00:09] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:00:09] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:00:09] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:00:10] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:00:10] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:00:10] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:00:11] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 17:00:15] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 17:00:15] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:00:15] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:00:15] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:00:15] local.INFO: Total transactions: 3127  
+[2025-08-20 17:00:27] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:00:27] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:00:27] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:00:27] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:00:27] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:00:27] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:00:27] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:00:27] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:00:27] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:00:27] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 17:00:27] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 17:00:27] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 17:00:27] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 17:00:27] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 17:00:28] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 17:00:28] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 17:00:28] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 17:00:28] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 17:00:28] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 17:00:28] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 17:00:28] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:00:28] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:00:28] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:00:28] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:00:28] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 17:00:28] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 17:00:28] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:00:29] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 17:00:29] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:00:29] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 17:00:29] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 17:00:29] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 17:00:29] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 17:00:29] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 17:00:29] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 17:00:29] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:00:29] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 17:00:29] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 17:00:29] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:00:29] local.INFO: Calcul de la tendance de rétention quotidienne Timwe...  
+[2025-08-20 17:00:31] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 17:00:31] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:00:31] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:00:31] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:00:31] local.INFO: Total transactions: 0  
+[2025-08-20 17:00:32] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:00:32] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:00:32] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:00:32] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:00:32] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:00:32] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:00:32] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:00:32] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:00:32] local.INFO: Total transactions: 3127  
+[2025-08-20 17:00:58] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:00:59] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-11  
+[2025-08-20 17:00:59] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-07-31  
+[2025-08-20 17:00:59] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:00:59] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:00:59] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:00:59] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:00:59] local.INFO: Période principale: 2025-08-07 à 2025-08-11  
+[2025-08-20 17:00:59] local.INFO: Période comparaison: 2025-07-24 à 2025-07-31  
+[2025-08-20 17:00:59] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:00:59] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:00:59] local.INFO: Abonnements activés ALL (principal): 3711  
+[2025-08-20 17:00:59] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:00:59] local.INFO: Abonnements activés ALL (comparaison): 2476  
+[2025-08-20 17:01:00] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:01:00] local.INFO: Total transactions ALL (principal): 1489  
+[2025-08-20 17:01:00] local.INFO: Total transactions ALL (comparaison): 2259  
+[2025-08-20 17:01:00] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:01:00] local.INFO: Utilisateurs ALL avec transactions (principal): 997  
+[2025-08-20 17:01:00] local.INFO: Utilisateurs ALL avec transactions (comparaison): 1429  
+[2025-08-20 17:01:00] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:01:00] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:01:00] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:01:00] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:01:01] local.INFO: Marchands actifs période principale: 138  
+[2025-08-20 17:01:01] local.INFO: Marchands actifs période comparaison: 158  
+[2025-08-20 17:01:01] local.INFO: Total transactions toutes catégories (période principale): 1489  
+[2025-08-20 17:01:01] local.INFO: Transactions opérateur chez marchands (période principale): 1489  
+[2025-08-20 17:01:01] local.INFO: Total transactions toutes catégories (période comparaison): 2259  
+[2025-08-20 17:01:02] local.INFO: Transactions opérateur chez marchands (période comparaison): 2259  
+[2025-08-20 17:01:02] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:01:02] local.INFO: Abonnements activés ALL: 3711  
+[2025-08-20 17:01:02] local.INFO: Abonnements actifs ALL: 2937  
+[2025-08-20 17:01:02] local.INFO: Taux de rétention ALL: 79.1%  
+[2025-08-20 17:01:02] local.INFO: Taux de rétention période comparaison ALL: 52.3%  
+[2025-08-20 17:01:02] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:01:03] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:01:03] local.INFO: Distribution par catégories calculée: 4  
+[2025-08-20 17:01:03] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 1489  
+[2025-08-20 17:01:03] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 17:01:05] local.INFO: Tendance de rétention calculée: 5 points de données  
+[2025-08-20 17:01:05] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:01:05] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:01:05] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:01:05] local.INFO: Total transactions: 1489  
+[2025-08-20 17:02:01] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:02:01] local.INFO: Dates reçues: start_date=2025-07-01, end_date=2025-07-31  
+[2025-08-20 17:02:01] local.INFO: Dates comparaison: comparison_start_date=2025-06-01, comparison_end_date=2025-06-30  
+[2025-08-20 17:02:01] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:02:01] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:02:01] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:02:01] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:02:01] local.INFO: Période principale: 2025-07-01 à 2025-07-31  
+[2025-08-20 17:02:01] local.INFO: Période comparaison: 2025-06-01 à 2025-06-30  
+[2025-08-20 17:02:01] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:02:01] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:02:02] local.INFO: Abonnements activés ALL (principal): 9682  
+[2025-08-20 17:02:02] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:02:02] local.INFO: Abonnements activés ALL (comparaison): 10027  
+[2025-08-20 17:02:04] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:02:04] local.INFO: Total transactions ALL (principal): 9636  
+[2025-08-20 17:02:04] local.INFO: Total transactions ALL (comparaison): 9632  
+[2025-08-20 17:02:04] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:02:04] local.INFO: Utilisateurs ALL avec transactions (principal): 4409  
+[2025-08-20 17:02:05] local.INFO: Utilisateurs ALL avec transactions (comparaison): 4277  
+[2025-08-20 17:02:05] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:02:05] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:02:05] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:02:05] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:02:05] local.INFO: Marchands actifs période principale: 241  
+[2025-08-20 17:02:06] local.INFO: Marchands actifs période comparaison: 255  
+[2025-08-20 17:02:06] local.INFO: Total transactions toutes catégories (période principale): 9636  
+[2025-08-20 17:02:06] local.INFO: Transactions opérateur chez marchands (période principale): 9636  
+[2025-08-20 17:02:06] local.INFO: Total transactions toutes catégories (période comparaison): 9632  
+[2025-08-20 17:02:06] local.INFO: Transactions opérateur chez marchands (période comparaison): 9632  
+[2025-08-20 17:02:06] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:02:06] local.INFO: Abonnements activés ALL: 9682  
+[2025-08-20 17:02:06] local.INFO: Abonnements actifs ALL: 4046  
+[2025-08-20 17:02:06] local.INFO: Taux de rétention ALL: 41.8%  
+[2025-08-20 17:02:06] local.INFO: Taux de rétention période comparaison ALL: 19.8%  
+[2025-08-20 17:02:06] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:02:08] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:02:08] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:02:08] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 9636  
+[2025-08-20 17:02:08] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 17:02:19] local.INFO: Tendance de rétention calculée: 31 points de données  
+[2025-08-20 17:02:19] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:02:19] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:02:19] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:02:19] local.INFO: Total transactions: 9636  
+[2025-08-20 17:05:26] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:05:26] local.INFO: Dates reçues: start_date=2025-07-01, end_date=2025-07-31  
+[2025-08-20 17:05:26] local.INFO: Dates comparaison: comparison_start_date=2025-06-01, comparison_end_date=2025-06-30  
+[2025-08-20 17:05:26] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:05:26] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:05:26] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:05:26] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:05:26] local.INFO: Période principale: 2025-07-01 à 2025-07-31  
+[2025-08-20 17:05:26] local.INFO: Période comparaison: 2025-06-01 à 2025-06-30  
+[2025-08-20 17:05:26] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:05:26] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:05:27] local.INFO: Abonnements activés ALL (principal): 9682  
+[2025-08-20 17:05:27] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:05:27] local.INFO: Abonnements activés ALL (comparaison): 10027  
+[2025-08-20 17:05:28] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:05:28] local.INFO: Total transactions ALL (principal): 9636  
+[2025-08-20 17:05:28] local.INFO: Total transactions ALL (comparaison): 9632  
+[2025-08-20 17:05:28] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:05:29] local.INFO: Utilisateurs ALL avec transactions (principal): 4409  
+[2025-08-20 17:05:29] local.INFO: Utilisateurs ALL avec transactions (comparaison): 4277  
+[2025-08-20 17:05:29] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:05:29] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:05:30] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:05:30] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:05:30] local.INFO: Marchands actifs période principale: 241  
+[2025-08-20 17:05:30] local.INFO: Marchands actifs période comparaison: 255  
+[2025-08-20 17:05:31] local.INFO: Total transactions toutes catégories (période principale): 9636  
+[2025-08-20 17:05:31] local.INFO: Transactions opérateur chez marchands (période principale): 9636  
+[2025-08-20 17:05:31] local.INFO: Total transactions toutes catégories (période comparaison): 9632  
+[2025-08-20 17:05:32] local.INFO: Transactions opérateur chez marchands (période comparaison): 9632  
+[2025-08-20 17:05:32] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:05:32] local.INFO: Abonnements activés ALL: 9682  
+[2025-08-20 17:05:32] local.INFO: Abonnements actifs ALL: 4046  
+[2025-08-20 17:05:32] local.INFO: Taux de rétention ALL: 41.8%  
+[2025-08-20 17:05:32] local.INFO: Taux de rétention période comparaison ALL: 19.8%  
+[2025-08-20 17:05:32] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:05:34] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:05:34] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:05:34] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 9636  
+[2025-08-20 17:05:34] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 17:05:46] local.INFO: Tendance de rétention calculée: 31 points de données  
+[2025-08-20 17:05:46] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:05:46] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:05:46] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:05:46] local.INFO: Total transactions: 9636  
+[2025-08-20 17:06:03] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:06:03] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:06:03] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:06:03] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:06:03] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:06:03] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:06:03] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:06:03] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:06:03] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:06:03] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 17:06:03] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 17:06:03] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 17:06:03] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 17:06:03] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 17:06:03] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 17:06:03] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 17:06:03] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 17:06:03] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 17:06:03] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 17:06:03] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 17:06:03] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:06:03] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:06:04] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:06:04] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:06:04] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 17:06:04] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 17:06:04] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:06:04] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 17:06:04] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:06:04] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 17:06:04] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 17:06:04] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 17:06:04] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 17:06:04] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 17:06:04] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 17:06:04] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:06:04] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 17:06:04] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 17:06:04] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:06:04] local.INFO: Calcul de la tendance de rétention quotidienne Timwe...  
+[2025-08-20 17:06:07] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 17:06:07] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:06:07] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:06:07] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:06:07] local.INFO: Total transactions: 0  
+[2025-08-20 17:06:08] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:06:08] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:06:08] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:06:08] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:06:08] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:06:08] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:06:08] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:06:08] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:06:08] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:06:08] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:06:08] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:06:08] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:06:08] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:06:08] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:06:09] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:06:09] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:06:09] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:06:09] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:06:09] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:06:10] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:06:10] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:06:10] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:06:10] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:06:10] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:06:10] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:06:10] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:06:10] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:06:11] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:06:11] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:06:11] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:06:11] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:06:11] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:06:11] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:06:11] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:06:11] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:06:11] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:06:12] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:06:12] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:06:12] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:06:13] local.INFO: Calcul de la tendance de rétention quotidienne ALL...  
+[2025-08-20 17:06:17] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 17:06:17] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:06:17] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:06:17] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:06:17] local.INFO: Total transactions: 3127  
+[2025-08-20 17:06:33] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:06:33] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:06:33] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:06:33] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:06:33] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:06:33] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:06:33] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:06:33] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:06:33] local.INFO: Total transactions: 0  
+[2025-08-20 17:06:34] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:06:34] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:06:34] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:06:34] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:06:34] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:06:34] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:06:34] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:06:34] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:06:34] local.INFO: Total transactions: 3127  
+[2025-08-20 17:10:41] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:10:41] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:10:41] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:10:41] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:10:41] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:10:41] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:10:41] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:10:41] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:10:41] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:10:41] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:10:41] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:10:41] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:10:41] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:10:42] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:10:42] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:10:43] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:10:43] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:10:43] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:10:43] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:10:43] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:10:43] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:10:43] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:10:43] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:10:43] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:10:44] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:10:44] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:10:44] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:10:44] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:10:44] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:10:44] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:10:44] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:10:44] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:10:44] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:10:44] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:10:44] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:10:44] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:10:47] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:10:47] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:10:47] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:10:47] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 17:10:47] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:10:47] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:10:47] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:10:47] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:10:47] local.INFO: Total transactions: 3127  
+[2025-08-20 17:11:32] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:11:33] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:11:33] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:11:33] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:11:33] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:11:33] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:11:33] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:11:33] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:11:33] local.INFO: Total transactions: 3127  
+[2025-08-20 17:14:32] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:14:32] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:14:32] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:14:32] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:14:32] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:14:32] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:14:32] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:14:32] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:14:32] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:14:32] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:14:32] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:14:33] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:14:33] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:14:33] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:14:36] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:14:36] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:14:36] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:14:36] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:14:37] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:14:37] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:14:37] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:14:37] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:14:37] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:14:37] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:14:37] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:14:38] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:14:38] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:14:38] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:14:38] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:14:38] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:14:38] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:14:38] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:14:38] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:14:38] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:14:38] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:14:38] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:14:41] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:14:41] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:14:41] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:14:42] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 17:14:42] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:14:42] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:14:42] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:14:42] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:14:42] local.INFO: Total transactions: 3127  
+[2025-08-20 17:15:11] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:15:11] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:15:11] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:15:11] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:15:11] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:15:11] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:15:11] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:15:11] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:15:11] local.INFO: Total transactions: 3127  
+[2025-08-20 17:16:20] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:16:20] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:16:20] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:16:20] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:16:20] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:16:20] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:16:20] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:16:20] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:16:20] local.INFO: Total transactions: 3127  
+[2025-08-20 17:20:23] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:20:23] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:20:23] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:20:23] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:20:23] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:20:23] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:20:23] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:20:23] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:20:23] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:20:23] local.INFO: Opérateur filtré: Timwe  
+[2025-08-20 17:20:23] local.INFO: 1. Calcul des KPIs période principale (Timwe uniquement)...  
+[2025-08-20 17:20:23] local.INFO: Abonnements activés Timwe (principal): 0  
+[2025-08-20 17:20:23] local.INFO: 2. Calcul des KPIs période de comparaison (Timwe uniquement)...  
+[2025-08-20 17:20:23] local.INFO: Abonnements activés Timwe (comparaison): 0  
+[2025-08-20 17:20:24] local.INFO: 3. Calcul des transactions totales Timwe (table history)...  
+[2025-08-20 17:20:24] local.INFO: Total transactions Timwe (principal): 0  
+[2025-08-20 17:20:24] local.INFO: Total transactions Timwe (comparaison): 0  
+[2025-08-20 17:20:24] local.INFO: 4. Calcul des utilisateurs Timwe avec transactions...  
+[2025-08-20 17:20:24] local.INFO: Utilisateurs Timwe avec transactions (principal): 0  
+[2025-08-20 17:20:25] local.INFO: Utilisateurs Timwe avec transactions (comparaison): 0  
+[2025-08-20 17:20:25] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:20:25] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:20:25] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:20:25] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:20:25] local.INFO: Marchands actifs période principale: 0  
+[2025-08-20 17:20:26] local.INFO: Marchands actifs période comparaison: 0  
+[2025-08-20 17:20:26] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:20:26] local.INFO: Transactions opérateur chez marchands (période principale): 0  
+[2025-08-20 17:20:26] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:20:26] local.INFO: Transactions opérateur chez marchands (période comparaison): 0  
+[2025-08-20 17:20:26] local.INFO: 7. Calcul du taux de rétention Timwe...  
+[2025-08-20 17:20:26] local.INFO: Abonnements activés Timwe: 0  
+[2025-08-20 17:20:26] local.INFO: Abonnements actifs Timwe: 0  
+[2025-08-20 17:20:26] local.INFO: Taux de rétention Timwe: 0%  
+[2025-08-20 17:20:26] local.INFO: Taux de rétention période comparaison Timwe: 0%  
+[2025-08-20 17:20:26] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:20:26] local.INFO: Top merchants enrichis: 0  
+[2025-08-20 17:20:26] local.INFO: Distribution par catégories calculée: 0  
+[2025-08-20 17:20:26] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:20:26] local.INFO: Calcul optimisé de la tendance de rétention Timwe...  
+[2025-08-20 17:20:26] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:20:26] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:20:26] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:20:26] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:20:26] local.INFO: Total transactions: 0  
+[2025-08-20 17:20:59] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:21:00] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:21:00] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:21:00] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:21:00] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:21:00] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:21:00] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:21:00] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:21:00] local.INFO: Total transactions: 0  
+[2025-08-20 17:21:06] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:21:06] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:21:06] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:21:06] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:21:06] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:21:06] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:21:06] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:21:06] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:21:06] local.INFO: Total transactions: 0  
+[2025-08-20 17:22:06] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:22:06] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:22:06] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:22:06] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:22:06] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:22:06] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:22:06] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:22:06] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:22:06] local.INFO: Total transactions: 0  
+[2025-08-20 17:22:15] local.INFO: Déconnexion de l'utilisateur: superadmin@ooredoo.tn  
+[2025-08-20 17:22:46] local.INFO: Connexion réussie pour l'utilisateur: superadmin@ooredoo.tn  
+[2025-08-20 17:22:50] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:22:50] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:22:50] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:22:50] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:22:50] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:22:50] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:22:50] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:22:50] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:22:50] local.INFO: Total transactions: 0  
+[2025-08-20 17:23:22] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:23:22] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:23:22] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:23:22] local.INFO: Opérateur sélectionné: Timwe  
+[2025-08-20 17:23:22] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:23:22] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:23:22] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:23:22] local.INFO: Nombre de marchands: 0  
+[2025-08-20 17:23:22] local.INFO: Total transactions: 0  
+[2025-08-20 17:26:23] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:26:23] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:26:23] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:26:23] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:26:23] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:26:23] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:26:23] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:26:23] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:26:23] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:26:23] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:26:23] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:26:23] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:26:23] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:26:23] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:26:24] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:26:24] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:26:24] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:26:24] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:26:24] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:26:24] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:26:24] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:26:24] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:26:25] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:26:25] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:26:25] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:26:25] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:26:25] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:26:25] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:26:25] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:26:26] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:26:26] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:26:26] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:26:26] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:26:26] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:26:26] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:26:26] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:26:27] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:26:27] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:26:27] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:26:27] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 17:26:27] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:26:27] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:26:27] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:26:27] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:26:27] local.INFO: Total transactions: 3127  
+[2025-08-20 17:27:30] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:27:30] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:27:30] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:27:30] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:27:30] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:27:30] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:27:30] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:27:30] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:27:30] local.INFO: Total transactions: 3127  
+[2025-08-20 17:30:38] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:30:38] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:30:38] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:30:38] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:30:38] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:30:38] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:30:38] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:30:38] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:30:38] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:30:38] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:30:38] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:30:38] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:30:38] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:30:39] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:30:39] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:30:40] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:30:40] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:30:40] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:30:40] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:30:40] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:30:40] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:30:40] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:30:40] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:30:41] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:30:41] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:30:41] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:30:41] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:30:41] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:30:41] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:30:42] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:30:42] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:30:42] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:30:42] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:30:42] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:30:42] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:30:42] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:30:43] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:30:43] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:30:43] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:30:43] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 17:30:43] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:30:43] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:30:43] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:30:43] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:30:43] local.INFO: Total transactions: 3127  
+[2025-08-20 17:33:59] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:33:59] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:33:59] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:33:59] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:33:59] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:33:59] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:33:59] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:33:59] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:33:59] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:33:59] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:33:59] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:33:59] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:33:59] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:33:59] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:34:00] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:34:00] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:34:01] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:34:01] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:34:01] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:34:01] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:34:01] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:34:01] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:34:02] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:34:02] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:34:02] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:34:02] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:34:03] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:34:03] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:34:03] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:34:03] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:34:03] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:34:03] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:34:03] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:34:03] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:34:03] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:34:03] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:34:05] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:34:05] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:34:05] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:34:05] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 17:34:05] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:34:05] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:34:05] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:34:05] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:34:05] local.INFO: Total transactions: 3127  
+[2025-08-20 17:37:15] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 17:37:15] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 17:37:15] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 17:37:15] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 17:37:15] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 17:37:15] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 17:37:15] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 17:37:15] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 17:37:15] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 17:37:15] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 17:37:15] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 17:37:16] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 17:37:16] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 17:37:16] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 17:37:17] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 17:37:17] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 17:37:18] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 17:37:18] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 17:37:18] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 17:37:18] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 17:37:18] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 17:37:18] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 17:37:18] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 17:37:18] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 17:37:19] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 17:37:19] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 17:37:19] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 17:37:19] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 17:37:19] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 17:37:20] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 17:37:20] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 17:37:20] local.INFO: Abonnements activés ALL: 9581  
+[2025-08-20 17:37:20] local.INFO: Abonnements actifs ALL: 7775  
+[2025-08-20 17:37:20] local.INFO: Taux de rétention ALL: 81.2%  
+[2025-08-20 17:37:20] local.INFO: Taux de rétention période comparaison ALL: 75.3%  
+[2025-08-20 17:37:20] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 17:37:22] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 17:37:22] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 17:37:22] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 17:37:23] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 17:37:23] local.INFO: Période longue (13 jours), utilisation du calcul simplifié  
+[2025-08-20 17:37:23] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 17:37:23] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 17:37:23] local.INFO: Nombre de marchands: 15  
+[2025-08-20 17:37:23] local.INFO: Total transactions: 3127  

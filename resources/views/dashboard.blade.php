@@ -488,6 +488,34 @@
       100% { transform: rotate(360deg); }
     }
     
+    /* Skeleton loading styles */
+    .skeleton-text {
+      height: 24px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 4px;
+      width: 80%;
+    }
+    
+    .skeleton-text-small {
+      height: 16px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 4px;
+      width: 60%;
+    }
+    
+    @keyframes skeleton-loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+    
     .notification {
       position: fixed;
       top: 20px;
@@ -1070,7 +1098,7 @@
       <button class="nav-tab" onclick="showTab('transactions')">Transactions</button>
       <button class="nav-tab" onclick="showTab('merchants')">Merchants</button>
       <button class="nav-tab" onclick="showTab('comparison')">Comparison</button>
-      <button class="nav-tab" onclick="showTab('insights')">Insights</button>
+      <!-- <button class="nav-tab" onclick="showTab('insights')">Insights</button> -->
     </div>
 
     <!-- Enhanced Date & Filters Bar -->
@@ -1133,7 +1161,8 @@
             <span>Opérateur</span>
           </div>
           <select id="operator-select" class="enhanced-select" onchange="handleOperatorChange()">
-            <!-- Les opérateurs seront chargés dynamiquement -->
+            <option value="ALL">📱 Tous les opérateurs (Vue Globale)</option>
+            <!-- Les autres opérateurs seront chargés dynamiquement -->
           </select>
           <div id="operator-info" class="control-info">
             Chargement des opérateurs...
@@ -1197,7 +1226,10 @@
         <div class="card kpi-card">
           <div class="kpi-title">Conversion Rate</div>
           <div class="kpi-value" id="conversionRate">Loading...</div>
-          <div class="kpi-delta delta-negative">vs 30% benchmark</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="overview-conversionProgress" style="width: 0%"></div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Target: 30%</div>
         </div>
 
         <!-- Overview Chart -->
@@ -1442,10 +1474,10 @@
       </div>
     </div>
 
-    <!-- Tab 6: Insights -->
+    <!-- Tab 6: Insights (Hidden) -->
+    <!--
     <div id="insights" class="tab-content">
       <div class="insights-grid">
-        <!-- Positive Insights -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--success);">✅</span>
@@ -1459,7 +1491,6 @@
           </ul>
         </div>
 
-        <!-- Challenges -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--warning);">⚠️</span>
@@ -1473,7 +1504,6 @@
           </ul>
         </div>
 
-        <!-- Strategic Recommendations -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--accent);">🎯</span>
@@ -1487,7 +1517,6 @@
           </ul>
         </div>
 
-        <!-- Next Steps -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--brand-red);">🚀</span>
@@ -1502,6 +1531,7 @@
         </div>
       </div>
     </div>
+    -->
   </div>
 
   <script>
@@ -1660,16 +1690,103 @@
       });
     }
 
-    // Initialize dashboard in correct order
+    // Initialize dashboard in correct order - optimized for speed
     async function initializeDashboard() {
       try {
-        // 1. Load operators first
-        await loadOperators();
-        // 2. Then load dashboard data with the correct operator
-        await loadDashboardData();
+        // Show immediate loading state for KPIs (skeleton)
+        showKPISkeleton();
+        
+        // Start loading dashboard data immediately (most important)
+        loadDashboardData();
+        
+        // Load operators in parallel (non-blocking)
+        loadOperators().catch(error => {
+          console.warn('Operators loading failed, using fallback:', error);
+          setupFallbackOperators();
+        });
+        
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
+        hideKPISkeleton();
         showNotification('Erreur lors de l\'initialisation du dashboard', 'error');
+      }
+    }
+    
+    // Setup fallback operators if API fails
+    function setupFallbackOperators() {
+      const operatorInfo = document.getElementById('operator-info');
+      
+      if (operatorInfo) {
+        operatorInfo.textContent = 'Mode hors ligne - Vue globale activée';
+      }
+      
+      // L'option par défaut est déjà dans le HTML, pas besoin de la recréer
+      console.log('🔄 Fallback: Using default operators');
+    }
+    
+    // Show skeleton loading for KPIs immediately
+    function showKPISkeleton() {
+      const kpiValues = document.querySelectorAll('.kpi-value');
+      kpiValues.forEach(el => {
+        el.innerHTML = '<div class="skeleton-text"></div>';
+      });
+      
+      const kpiDeltas = document.querySelectorAll('.kpi-delta');
+      kpiDeltas.forEach(el => {
+        el.innerHTML = '<div class="skeleton-text-small"></div>';
+      });
+      
+      // Reset progress bars to 0
+      const progressBars = document.querySelectorAll('.progress-fill');
+      progressBars.forEach(bar => {
+        bar.style.width = '0%';
+      });
+    }
+    
+    // Hide skeleton loading
+    function hideKPISkeleton() {
+      // This will be replaced by real values when updateKPIs is called
+    }
+    
+    // Progress bar issue resolved: height was 0px
+    
+    // Update Overview conversion progress bar safely
+    function updateOverviewConversionProgressBar(conversionRateData) {
+      const conversionProgress = document.getElementById('overview-conversionProgress');
+      
+      if (conversionProgress && conversionRateData && typeof conversionRateData.current !== 'undefined') {
+        const percentage = Math.min(100, Math.max(0, (conversionRateData.current / 30) * 100));
+        
+        conversionProgress.style.width = `${percentage}%`;
+        conversionProgress.style.transition = 'width 0.5s ease-in-out';
+        conversionProgress.style.backgroundColor = '#E30613';
+        conversionProgress.style.height = '8px'; // Fixed: same as transactions
+        conversionProgress.style.display = 'block';
+        
+      } else if (conversionProgress) {
+        // Fallback: set to 0% if no data
+        conversionProgress.style.width = '0%';
+        conversionProgress.style.height = '8px';
+      }
+    }
+    
+    // Update conversion progress bar safely
+    function updateConversionProgressBar(conversionRateData) {
+      const conversionProgress = document.getElementById('trans-conversionProgress');
+      
+      if (conversionProgress && conversionRateData && typeof conversionRateData.current !== 'undefined') {
+        const percentage = Math.min(100, Math.max(0, (conversionRateData.current / 30) * 100));
+        
+        conversionProgress.style.width = `${percentage}%`;
+        conversionProgress.style.transition = 'width 0.5s ease-in-out';
+        conversionProgress.style.backgroundColor = '#E30613';
+        conversionProgress.style.height = '8px'; // Fixed: was 0px height
+        conversionProgress.style.display = 'block';
+        
+      } else if (conversionProgress) {
+        // Fallback: set to 0% if no data
+        conversionProgress.style.width = '0%';
+        conversionProgress.style.height = '8px';
       }
     }
 
@@ -1712,7 +1829,10 @@
         const endDate = document.getElementById('end-date').value;
         const comparisonStartDate = document.getElementById('comparison-start-date').value;
         const comparisonEndDate = document.getElementById('comparison-end-date').value;
-        const selectedOperator = document.getElementById('operator-select').value;
+        
+        // Get selected operator with fallback
+        const operatorSelect = document.getElementById('operator-select');
+        const selectedOperator = operatorSelect?.value || 'ALL';
         
         // Build API URL with date parameters
         let apiUrl = '/api/dashboard/data';
@@ -1737,7 +1857,21 @@
         }
         
         const startTime = performance.now();
-        const response = await fetch(apiUrl);
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
+        const response = await fetch(apiUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -1745,23 +1879,46 @@
         const data = await response.json();
         const loadTime = performance.now() - startTime;
         
-        console.log('Dashboard data loaded:', data);
-        console.log(`Load time: ${loadTime.toFixed(0)}ms`);
+        console.log('✅ Dashboard data loaded successfully:', {
+          operator: selectedOperator,
+          hasKPIs: !!data.kpis,
+          hasCharts: !!data.subscriptions,
+          loadTime: `${loadTime.toFixed(0)}ms`
+        });
         
         // Show performance indicator if fast load (likely from cache)
         updatePerformanceIndicator(loadTime);
         
+        // Show immediate notification
+        const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
+        
+        // Update dashboard and hide loading simultaneously
         updateDashboard(data);
         hideLoading();
         
-        // Show appropriate notification based on operator
-        const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
-        showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
+        // Progress bar now working correctly
+        
+        // Show success notification after everything is updated
+        setTimeout(() => {
+          showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
+        }, 100);
         
       } catch (error) {
+        clearTimeout(timeoutId); // Clean up timeout
         console.error('Error loading dashboard data:', error);
         hideLoading();
-        showNotification('Erreur de connexion: ' + error.message, 'error');
+        
+        // Try to show fallback data instead of complete failure
+        if (error.name === 'AbortError') {
+          showNotification('⏱️ Délai d\'attente dépassé - Chargement des données de démonstration', 'warning');
+          loadFallbackData();
+          updateDashboard(dashboardData);
+        } else {
+          showNotification('❌ Erreur de connexion: ' + error.message, 'error');
+          // Still try fallback
+          loadFallbackData();
+          updateDashboard(dashboardData);
+        }
       }
     }
     
@@ -1952,17 +2109,33 @@
       }
     }
     
-    // Load available operators
+    // Load available operators with timeout and fallback
     async function loadOperators() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      
       try {
-        const response = await fetch('/api/operators');
+        const response = await fetch('/api/operators', {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.operators && data.operators.length > 0) {
           const select = document.getElementById('operator-select');
           const operatorInfo = document.getElementById('operator-info');
           
-          // Clear existing options
+          // Clear existing options (keep default structure)
           select.innerHTML = '';
           
           // Add operators to select
@@ -1970,7 +2143,6 @@
             const option = document.createElement('option');
             option.value = operator.value;
             option.textContent = `📱 ${operator.label}`;
-            // Use the default_operator from API response
             if (operator.value === data.default_operator) {
               option.selected = true;
             }
@@ -1984,17 +2156,16 @@
             operatorInfo.textContent = `${data.operators.length} opérateur(s) assigné(s)`;
           }
           
-          console.log('Opérateurs chargés:', data.operators.length, 'Défaut:', data.default_operator);
+          console.log('✅ Opérateurs chargés:', data.operators.length);
           
         } else {
-          console.warn('Aucun opérateur disponible');
-          document.getElementById('operator-info').textContent = 'Aucun opérateur disponible';
+          throw new Error('No operators data');
         }
         
       } catch (error) {
-        console.error('Erreur lors du chargement des opérateurs:', error);
-        document.getElementById('operator-info').textContent = 'Erreur de chargement';
-        throw error; // Re-throw to handle in initialization
+        clearTimeout(timeoutId);
+        console.warn('⚠️ Operators loading failed:', error.message);
+        throw error;
       }
     }
     
@@ -2090,12 +2261,7 @@
       alert(message);
     }
 
-    // Initialize dashboard
-    document.addEventListener('DOMContentLoaded', function() {
-      setDefaultDates();
-      updateDateRange();
-      loadDashboardData();
-    });
+    // Duplicate DOMContentLoaded removed - initialization handled by main DOMContentLoaded above
 
     // Load fallback data (static data for demo)
     function loadFallbackData() {
@@ -2151,9 +2317,9 @@
       updateDashboard(dashboardData);
     }
 
-    // Update dashboard with data
+    // Update dashboard with data - optimized for performance
     function updateDashboard(data) {
-      // Update periods
+      // Update periods immediately
       const primaryPeriodEl = document.getElementById('primaryPeriod');
       if (primaryPeriodEl) {
         primaryPeriodEl.textContent = data.periods.primary;
@@ -2164,20 +2330,18 @@
         comparisonPeriodEl.textContent = data.periods.comparison;
       }
       
-      // Update KPIs
+      // Update KPIs first (most important)
       updateKPIs(data.kpis);
       
-      // Update charts
-      updateCharts(data);
-      
-      // Update tables
-      updateTables(data);
-      
-      // Update merchant KPI info with real merchants data
-      updateMerchantKPIs(data.merchants, data.kpis);
-      
-      // Update insights
-      updateInsights(data.insights);
+      // Update other components with small delays to avoid blocking
+      requestAnimationFrame(() => {
+        updateCharts(data);
+        
+        requestAnimationFrame(() => {
+          updateTables(data);
+          updateMerchantKPIs(data.merchants, data.kpis);
+        });
+      });
     }
 
     // Update KPI values
@@ -2187,6 +2351,9 @@
       updateKPI('activeSubscriptions', kpis.activeSubscriptions);
       updateKPI('totalTransactions', kpis.totalTransactions);
       updateKPI('conversionRate', kpis.conversionRate, '%');
+      
+      // Update Overview conversion progress bar
+      updateOverviewConversionProgressBar(kpis.conversionRate);
       
       // Subscription KPIs
       updateKPI('sub-activatedSubscriptions', kpis.activatedSubscriptions);
@@ -2200,11 +2367,8 @@
       updateKPI('trans-transactionsPerUser', kpis.transactionsPerUser);
       updateKPI('trans-conversionRate', kpis.conversionRate, '%');
       
-      // Update conversion progress bar
-      const conversionProgress = document.getElementById('trans-conversionProgress');
-      if (conversionProgress) {
-        conversionProgress.style.width = `${(kpis.conversionRate.current / 30) * 100}%`;
-      }
+      // Update conversion progress bar immediately and safely
+      updateConversionProgressBar(kpis.conversionRate);
       
       // Merchant KPIs
       updateKPI('merch-totalActivePartnersDB', kpis.totalActivePartnersDB);
@@ -2382,11 +2546,10 @@
         charts.subscriptionTrend.destroy();
       }
       
-      // Generate sample daily data
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const dailyData = Array.from({length: 14}, (_, i) => 
-        Math.floor(data.kpis.activatedSubscriptions.current / 14 * (0.5 + Math.random()))
-      );
+      // Use real daily activations data from backend
+      const dailyActivations = data.subscriptions?.daily_activations || [];
+      const days = dailyActivations.map((item, index) => `Day ${index + 1}`);
+      const dailyData = dailyActivations.map(item => item.activations || 0);
       
       charts.subscriptionTrend = new Chart(ctx, {
         type: 'line',
@@ -2427,10 +2590,10 @@
         charts.retention.destroy();
       }
       
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const retentionData = Array.from({length: 14}, (_, i) => 
-        90 + Math.random() * 8
-      );
+      // Use real retention trend data from backend
+      const retentionTrend = data.subscriptions?.retention_trend || [];
+      const days = retentionTrend.map((item, index) => `Day ${index + 1}`);
+      const retentionData = retentionTrend.map(item => item.rate || 0);
       
       charts.retention = new Chart(ctx, {
         type: 'line',
@@ -2455,8 +2618,13 @@
           },
           scales: {
             y: {
-              min: 85,
-              max: 100
+              min: 0,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
             }
           }
         }
@@ -2472,10 +2640,10 @@
         charts.transactionVolume.destroy();
       }
       
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const transactionData = Array.from({length: 14}, (_, i) => 
-        Math.floor(data.kpis.totalTransactions.current / 14 * (0.3 + Math.random() * 1.4))
-      );
+      // Use real daily transactions data from backend
+      const dailyTransactions = data.transactions?.daily_volume || [];
+      const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
+      const transactionData = dailyTransactions.map(item => item.transactions || 0);
       
       charts.transactionVolume = new Chart(ctx, {
         type: 'bar',
@@ -2514,10 +2682,10 @@
         charts.transactingUsers.destroy();
       }
       
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const userData = Array.from({length: 14}, (_, i) => 
-        Math.floor(data.kpis.transactingUsers.current / 14 * (0.3 + Math.random() * 1.4))
-      );
+      // Use real daily transactions data from backend to extract users
+      const dailyTransactions = data.transactions?.daily_volume || [];
+      const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
+      const userData = dailyTransactions.map(item => item.users || 0);
       
       charts.transactingUsers = new Chart(ctx, {
         type: 'line',
@@ -2908,13 +3076,15 @@
       }).join('');
     }
 
-    // Update insights
+    // Update insights (disabled)
+    /*
     function updateInsights(insights) {
       updateInsightList('positiveInsights', insights.positive);
       updateInsightList('challenges', insights.challenges);
       updateInsightList('recommendations', insights.recommendations);
       updateInsightList('nextSteps', insights.nextSteps);
     }
+    */
 
     // Update individual insight list
     function updateInsightList(elementId, items) {
