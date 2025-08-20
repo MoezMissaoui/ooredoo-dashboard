@@ -15378,3 +15378,48 @@ Did you mean one of these?
 [2025-08-20 15:36:15] local.INFO: Données récupérées avec succès, source: database  
 [2025-08-20 15:36:15] local.INFO: Nombre de marchands: 15  
 [2025-08-20 15:36:15] local.INFO: Total transactions: 3127  
+[2025-08-20 15:40:40] local.INFO: === DÉBUT API getDashboardData ===  
+[2025-08-20 15:40:40] local.INFO: Dates reçues: start_date=2025-08-07, end_date=2025-08-20  
+[2025-08-20 15:40:40] local.INFO: Dates comparaison: comparison_start_date=2025-07-24, comparison_end_date=2025-08-06  
+[2025-08-20 15:40:40] local.INFO: Opérateur sélectionné: ALL  
+[2025-08-20 15:40:40] local.INFO: Utilisateur: superadmin@ooredoo.tn (Rôle: super_admin)  
+[2025-08-20 15:40:40] local.INFO: Cache MISS - Récupération depuis la base de données  
+[2025-08-20 15:40:40] local.INFO: === DÉBUT fetchDashboardDataFromDatabase ===  
+[2025-08-20 15:40:40] local.INFO: Période principale: 2025-08-07 à 2025-08-20  
+[2025-08-20 15:40:40] local.INFO: Période comparaison: 2025-07-24 à 2025-08-06  
+[2025-08-20 15:40:40] local.INFO: Opérateur filtré: ALL  
+[2025-08-20 15:40:40] local.INFO: 1. Calcul des KPIs période principale (ALL uniquement)...  
+[2025-08-20 15:40:40] local.INFO: Abonnements activés ALL (principal): 9581  
+[2025-08-20 15:40:40] local.INFO: 2. Calcul des KPIs période de comparaison (ALL uniquement)...  
+[2025-08-20 15:40:40] local.INFO: Abonnements activés ALL (comparaison): 9505  
+[2025-08-20 15:40:41] local.INFO: 3. Calcul des transactions totales ALL (table history)...  
+[2025-08-20 15:40:41] local.INFO: Total transactions ALL (principal): 3127  
+[2025-08-20 15:40:42] local.INFO: Total transactions ALL (comparaison): 3915  
+[2025-08-20 15:40:42] local.INFO: 4. Calcul des utilisateurs ALL avec transactions...  
+[2025-08-20 15:40:42] local.INFO: Utilisateurs ALL avec transactions (principal): 1875  
+[2025-08-20 15:40:42] local.INFO: Utilisateurs ALL avec transactions (comparaison): 2297  
+[2025-08-20 15:40:42] local.INFO: 5. Calcul des marchands avec nouvelles métriques...  
+[2025-08-20 15:40:42] local.INFO: Total marchands ayant déjà eu des transactions: 1078  
+[2025-08-20 15:40:42] local.INFO: Colonnes partner détectées {"columns":["partner_id","partner_name","partner_desc","partner_logo","partner_qrCode","partner_manager_name","partner_manager_poste","prefix_manager_phone","partner_manager_phone","partner_location_images","partner_mail","partner_category_id","partener_active","partner_login","partner_password","partner_featured","welcome_sended","partner_website","partner_facebook","partner_phone","partner_instagram","created_at","updated_at","entry_by","stock_min","partner_id_facebook","use_marchant_app","use_code_barre","partner_slug","partner_type","partner_guide_speciality","tarif","time_to_delivery","languages","is_connect","meta_title","meta_description","meta_keywords","background","responses"]} 
+[2025-08-20 15:40:42] local.INFO: Total partenaires actifs (DB): 572 (colonne: partener_active)  
+[2025-08-20 15:40:42] local.INFO: Marchands actifs période principale: 181  
+[2025-08-20 15:40:43] local.INFO: Marchands actifs période comparaison: 193  
+[2025-08-20 15:40:43] local.INFO: Total transactions toutes catégories (période principale): 3129  
+[2025-08-20 15:40:43] local.INFO: Transactions opérateur chez marchands (période principale): 3127  
+[2025-08-20 15:40:43] local.INFO: Total transactions toutes catégories (période comparaison): 3915  
+[2025-08-20 15:40:43] local.INFO: Transactions opérateur chez marchands (période comparaison): 3915  
+[2025-08-20 15:40:43] local.INFO: 7. Calcul du taux de rétention ALL...  
+[2025-08-20 15:40:45] local.INFO: Clients début période ALL: 101111  
+[2025-08-20 15:40:45] local.INFO: Clients retenus ALL: 55142  
+[2025-08-20 15:40:45] local.INFO: Taux de rétention ALL: 54.5%  
+[2025-08-20 15:40:46] local.INFO: Taux de rétention période comparaison ALL: 52%  
+[2025-08-20 15:40:46] local.INFO: 6. Récupération TOP MERCHANTS avec catégories...  
+[2025-08-20 15:40:48] local.INFO: Top merchants enrichis: 15  
+[2025-08-20 15:40:48] local.INFO: Distribution par catégories calculée: 3  
+[2025-08-20 15:40:48] local.INFO: totalMerchantsEverActive: 1078, allTransactionsPeriod: 3129  
+[2025-08-20 15:40:48] local.INFO: Calcul optimisé de la tendance de rétention ALL...  
+[2025-08-20 15:40:48] local.INFO: Tendance de rétention calculée: 14 points de données  
+[2025-08-20 15:40:48] local.INFO: Cache HIT - Données servies depuis le cache  
+[2025-08-20 15:40:48] local.INFO: Données récupérées avec succès, source: database  
+[2025-08-20 15:40:48] local.INFO: Nombre de marchands: 15  
+[2025-08-20 15:40:48] local.INFO: Total transactions: 3127  
