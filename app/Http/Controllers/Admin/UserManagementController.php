@@ -273,6 +273,68 @@ class UserManagementController extends Controller
     }
 
     /**
+     * Réinitialiser le mot de passe d'un utilisateur
+     */
+    public function resetPassword(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Seuls les super administrateurs peuvent réinitialiser les mots de passe.');
+        }
+
+        // Générer un nouveau mot de passe temporaire
+        $newPassword = 'Temp' . rand(1000, 9999) . '!';
+        
+        $user->update([
+            'password' => Hash::make($newPassword),
+            'password_changed_at' => now(),
+            'must_change_password' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'new_password' => $newPassword,
+            'message' => 'Mot de passe réinitialisé avec succès'
+        ]);
+    }
+
+    /**
+     * Suspendre un utilisateur
+     */
+    public function suspend(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Seuls les super administrateurs peuvent suspendre des comptes.');
+        }
+
+        $user->update(['status' => 'suspended']);
+
+        // Invalider toutes les sessions de l'utilisateur
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Utilisateur suspendu avec succès'
+        ]);
+    }
+
+    /**
+     * Réactiver un utilisateur suspendu
+     */
+    public function unsuspend(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Seuls les super administrateurs peuvent réactiver des comptes.');
+        }
+
+        $user->update(['status' => 'active']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Utilisateur réactivé avec succès'
+        ]);
+    }
+
+    /**
      * Récupérer tous les opérateurs disponibles
      */
     private function getAllOperators(): array

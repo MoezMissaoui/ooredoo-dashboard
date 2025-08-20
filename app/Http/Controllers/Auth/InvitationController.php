@@ -244,7 +244,10 @@ class InvitationController extends Controller
 
             Log::info("Invitation acceptée avec succès pour: " . $user->email);
 
-            return redirect()->route('dashboard')
+            // Redirection intelligente selon le rôle et les permissions
+            $preferredDashboard = $user->getPreferredDashboard();
+
+            return redirect($preferredDashboard)
                            ->with('success', 'Bienvenue ! Votre compte a été créé avec succès.');
 
         } catch (\Exception $e) {

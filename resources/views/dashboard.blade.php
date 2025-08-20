@@ -826,6 +826,39 @@
       transform: translateY(-1px);
     }
 
+    .btn-info {
+      background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: linear-gradient(135deg, #2bbac6 0%, #4a75d3 100%);
+      transform: translateY(-1px);
+    }
+
+    .performance-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #059669;
+      animation: pulse 2s infinite;
+    }
+
+    .performance-icon {
+      font-size: 14px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
     /* Merchants Section Styles */
     .merchants-kpis-row {
       display: grid;
@@ -1016,6 +1049,10 @@
             <a href="{{ route('admin.invitations.index') }}" class="admin-btn">Invitations</a>
           @endif
           
+          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
+            🏪 Sub-Stores
+          </a>
+          
           <form action="{{ route('auth.logout') }}" method="POST" style="display: inline;">
             @csrf
             <button type="submit" class="logout-btn" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
@@ -1111,20 +1148,30 @@
           <div class="status-badge active">Launch Phase</div>
         </div>
 
-        <div class="action-buttons">
-          <button class="btn-primary enhanced-btn" onclick="loadDashboardData()" id="refresh-btn">
-            <span id="refresh-text">📊 Actualiser</span>
-            <span id="refresh-loading" style="display: none;">⏳ Chargement...</span>
-          </button>
-          
-          <button class="btn-secondary enhanced-btn" onclick="setSmartComparison()">
-            🔄 Comparaison Auto
-          </button>
-          
-          <button class="btn-accent enhanced-btn" onclick="toggleDatePickerMode()">
-            📆 Raccourcis
-          </button>
-        </div>
+                        <div class="action-buttons">
+                  <button class="btn-primary enhanced-btn" onclick="loadDashboardData()" id="refresh-btn">
+                    <span id="refresh-text">📊 Actualiser</span>
+                    <span id="refresh-loading" style="display: none;">⏳ Chargement...</span>
+                  </button>
+                  
+                  <button class="btn-secondary enhanced-btn" onclick="setSmartComparison()">
+                    🔄 Comparaison Auto
+                  </button>
+                  
+                  <button class="btn-accent enhanced-btn" onclick="toggleDatePickerMode()">
+                    📆 Raccourcis
+                  </button>
+                  
+                  <button class="btn-info enhanced-btn" onclick="showKeyboardShortcutsHelp()">
+                    ⌨️ Aide
+                  </button>
+                  
+                  <!-- Performance indicator -->
+                  <div class="performance-indicator" id="performance-indicator" style="display: none;">
+                    <span class="performance-icon">⚡</span>
+                    <span class="performance-text">Cache</span>
+                  </div>
+                </div>
       </div>
     </div>
 
@@ -1470,7 +1517,148 @@
       
       // Auto-refresh every 5 minutes
       setInterval(loadDashboardData, 5 * 60 * 1000);
+      
+      // Initialize keyboard shortcuts
+      initializeKeyboardShortcuts();
     });
+    
+    // Advanced keyboard shortcuts for power users
+    function initializeKeyboardShortcuts() {
+      document.addEventListener('keydown', function(e) {
+        // Only trigger shortcuts when no input is focused
+        if (document.activeElement.tagName === 'INPUT' || 
+            document.activeElement.tagName === 'SELECT' || 
+            document.activeElement.tagName === 'TEXTAREA') {
+          return;
+        }
+        
+        // Ctrl/Cmd + R - Refresh dashboard
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+          e.preventDefault();
+          loadDashboardData();
+          showNotification('🔄 Dashboard actualisé via raccourci clavier', 'info', 2000);
+        }
+        
+        // Tab navigation: 1-4 for tabs
+        if (['1', '2', '3', '4'].includes(e.key)) {
+          e.preventDefault();
+          const tabs = ['overview', 'subscriptions', 'transactions', 'merchants'];
+          const tabName = tabs[parseInt(e.key) - 1];
+          if (tabName) {
+            showTab(tabName);
+            // Update visual feedback
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            showNotification(`📊 Onglet ${tabName} activé`, 'info', 1500);
+          }
+        }
+        
+        // E for Export (if on merchants tab)
+        if (e.key === 'e' || e.key === 'E') {
+          const activeTab = document.querySelector('.tab-content.active');
+          if (activeTab && activeTab.id === 'merchants') {
+            e.preventDefault();
+            exportMerchantsData();
+            showNotification('📥 Export des données marchands lancé', 'success', 2000);
+          }
+        }
+        
+        // D for Date shortcuts modal
+        if (e.key === 'd' || e.key === 'D') {
+          e.preventDefault();
+          toggleDatePickerMode();
+          showNotification('📅 Raccourcis de dates', 'info', 1500);
+        }
+        
+        // H for Help (show shortcuts)
+        if (e.key === 'h' || e.key === 'H' || e.key === '?') {
+          e.preventDefault();
+          showKeyboardShortcutsHelp();
+        }
+        
+        // Escape to close modals/notifications
+        if (e.key === 'Escape') {
+          // Close date shortcuts modal if open
+          const modal = document.getElementById('date-shortcuts-modal');
+          if (modal && modal.style.display !== 'none') {
+            modal.style.display = 'none';
+          }
+          
+          // Close help modal if open
+          const helpModal = document.getElementById('shortcuts-help-modal');
+          if (helpModal && helpModal.style.display !== 'none') {
+            helpModal.style.display = 'none';
+          }
+          
+          // Close all notifications
+          document.querySelectorAll('.notification').forEach(n => n.remove());
+        }
+      });
+    }
+    
+    function showKeyboardShortcutsHelp() {
+      // Remove existing help modal
+      const existing = document.getElementById('shortcuts-help-modal');
+      if (existing) existing.remove();
+      
+      const modal = document.createElement('div');
+      modal.id = 'shortcuts-help-modal';
+      modal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; display: flex; align-items: center; justify-content: center;">
+          <div style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+              <h3 style="margin: 0; color: var(--brand-red); font-size: 20px;">⌨️ Raccourcis Clavier</h3>
+              <button onclick="document.getElementById('shortcuts-help-modal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; margin-left: auto;">×</button>
+            </div>
+            
+            <div style="space-y: 12px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">Ctrl+R</kbd></span>
+                <span>Actualiser le dashboard</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">1-4</kbd></span>
+                <span>Naviguer entre les onglets</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">E</kbd></span>
+                <span>Exporter (onglet Marchands)</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">D</kbd></span>
+                <span>Raccourcis de dates</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">H / ?</kbd></span>
+                <span>Afficher cette aide</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">Esc</kbd></span>
+                <span>Fermer modales/notifications</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #6c757d;">
+              💡 <strong>Astuce :</strong> Ces raccourcis fonctionnent uniquement quand aucun champ de saisie n'est actif.
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Close on background click
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+    }
 
     // Initialize dashboard in correct order
     async function initializeDashboard() {
@@ -1513,9 +1701,10 @@
       }, 100);
     }
 
-    // Load dashboard data
+    // Load dashboard data with simple loading
     async function loadDashboardData() {
       try {
+        // Show simple loading
         showLoading();
         
         // Get date values for both periods
@@ -1547,20 +1736,28 @@
           apiUrl += '?' + params.toString();
         }
         
+        const startTime = performance.now();
         const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
+        const loadTime = performance.now() - startTime;
+        
         console.log('Dashboard data loaded:', data);
+        console.log(`Load time: ${loadTime.toFixed(0)}ms`);
+        
+        // Show performance indicator if fast load (likely from cache)
+        updatePerformanceIndicator(loadTime);
         
         updateDashboard(data);
         hideLoading();
         
         // Show appropriate notification based on operator
         const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
-        showNotification(`✅ Données ${operatorLabel} mises à jour avec succès!`, 'success');
+        showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
+        
       } catch (error) {
         console.error('Error loading dashboard data:', error);
         hideLoading();
@@ -1568,8 +1765,8 @@
       }
     }
     
-    // Enhanced loading state management
-    function showLoadingState() {
+    // Simple loading management
+    function showLoading() {
       // Update button state
       const refreshBtn = document.getElementById('refresh-btn');
       const refreshText = document.getElementById('refresh-text');
@@ -1579,11 +1776,31 @@
       if (refreshText) refreshText.style.display = 'none';
       if (refreshLoading) refreshLoading.style.display = 'inline';
       
-      // Show main loading indicator
-      showLoading();
+      // Simple overlay
+      showSimpleOverlay();
+    }
+
+    function showSimpleOverlay() {
+      // Remove existing overlay
+      const existingOverlay = document.getElementById('loading-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
+      const overlay = document.createElement('div');
+      overlay.id = 'loading-overlay';
+      overlay.className = 'loading-overlay';
+      overlay.innerHTML = `
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <div style="margin-top: 15px; font-weight: 500;">Chargement des données...</div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
     }
     
-    function hideLoadingState() {
+    function hideLoading() {
       // Reset button state
       const refreshBtn = document.getElementById('refresh-btn');
       const refreshText = document.getElementById('refresh-text');
@@ -1593,39 +1810,146 @@
       if (refreshText) refreshText.style.display = 'inline';
       if (refreshLoading) refreshLoading.style.display = 'none';
       
-      // Hide main loading indicator
-      hideLoading();
+      // Remove simple overlay
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.remove();
+      }
     }
     
-    // Enhanced notification system
-    function showNotification(message, type = 'info') {
-      // Remove existing notifications
-      const existing = document.querySelectorAll('.notification');
+    // Enhanced notification system with better UX
+    function showNotification(message, type = 'info', duration = 4000) {
+      // Remove existing notifications of same type
+      const existing = document.querySelectorAll(`.notification.${type}`);
       existing.forEach(n => n.remove());
       
-      // Create new notification
+      // Create new notification with enhanced features
       const notification = document.createElement('div');
       notification.className = `notification ${type}`;
       notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
-          <span>${message}</span>
+        <div style="display: flex; align-items: center; gap: 10px; position: relative;">
+          <span style="font-size: 16px;">${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+          <span style="flex: 1; font-weight: 500;">${message}</span>
+          <button onclick="closeNotification(this)" style="background: none; border: none; font-size: 18px; cursor: pointer; color: inherit; opacity: 0.7;">×</button>
+        </div>
+        <div class="notification-progress" style="position: absolute; bottom: 0; left: 0; height: 3px; background: rgba(255,255,255,0.3); width: 100%; overflow: hidden;">
+          <div class="notification-progress-bar" style="height: 100%; background: rgba(255,255,255,0.8); width: 100%; animation: progressShrink ${duration}ms linear;"></div>
         </div>
       `;
       
+      // Improve positioning and stacking
+      notification.style.position = 'fixed';
+      notification.style.zIndex = '10000';
+      notification.style.marginBottom = '10px';
+      
+      // Stack notifications
+      const existingNotifications = document.querySelectorAll('.notification');
+      const offset = existingNotifications.length * 80; // 80px per notification
+      notification.style.top = (20 + offset) + 'px';
+      
       document.body.appendChild(notification);
       
-      // Auto-remove after 4 seconds
+      // Add progress animation style if not exists
+      if (!document.getElementById('progress-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'progress-animation-style';
+        style.textContent = `
+          @keyframes progressShrink {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+          
+          .notification {
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+          }
+          
+          .notification:hover .notification-progress-bar {
+            animation-play-state: paused;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // Auto-remove with smooth animation
       setTimeout(() => {
         if (document.body.contains(notification)) {
           notification.style.animation = 'slideIn 0.3s ease reverse';
+          notification.style.transform = 'translateX(100%)';
           setTimeout(() => {
             if (document.body.contains(notification)) {
               document.body.removeChild(notification);
+              // Reposition remaining notifications
+              repositionNotifications();
             }
           }, 300);
         }
-      }, 4000);
+      }, duration);
+    }
+    
+    function closeNotification(button) {
+      const notification = button.closest('.notification');
+      if (notification) {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+            repositionNotifications();
+          }
+        }, 300);
+      }
+    }
+    
+    function repositionNotifications() {
+      const notifications = document.querySelectorAll('.notification');
+      notifications.forEach((notification, index) => {
+        notification.style.top = (20 + index * 80) + 'px';
+      });
+    }
+
+    function updatePerformanceIndicator(loadTime) {
+      const indicator = document.getElementById('performance-indicator');
+      if (!indicator) return;
+      
+      if (loadTime < 500) {
+        // Fast load - likely from cache
+        indicator.style.display = 'flex';
+        indicator.querySelector('.performance-text').textContent = 'Cache ⚡';
+        indicator.style.background = 'rgba(16, 185, 129, 0.1)';
+        indicator.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        indicator.style.color = '#059669';
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 3000);
+      } else if (loadTime < 2000) {
+        // Medium load
+        indicator.style.display = 'flex';
+        indicator.querySelector('.performance-text').textContent = `${Math.round(loadTime)}ms`;
+        indicator.style.background = 'rgba(245, 158, 11, 0.1)';
+        indicator.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+        indicator.style.color = '#d97706';
+        
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 2000);
+      } else {
+        // Slow load
+        indicator.style.display = 'flex';
+        indicator.querySelector('.performance-text').textContent = 'Lent';
+        indicator.style.background = 'rgba(239, 68, 68, 0.1)';
+        indicator.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        indicator.style.color = '#dc2626';
+        
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 4000);
+      }
     }
     
     // Load available operators

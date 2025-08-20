@@ -47,7 +47,10 @@ class LoginController extends Controller
                 'role' => Auth::user()->role ?? 'user'
             ]);
 
-            return redirect()->intended(route('dashboard'));
+            // Redirection intelligente selon le rôle et les permissions
+            $preferredDashboard = Auth::user()->getPreferredDashboard();
+            
+            return redirect()->intended($preferredDashboard);
         }
 
         // Log failed login attempt

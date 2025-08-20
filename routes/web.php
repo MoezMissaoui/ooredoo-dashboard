@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\SubStoreController;
 use App\Http\Controllers\Api\DataController;
 
 /*
@@ -55,6 +56,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/dashboard/transactions', [DataController::class, 'getTransactions'])->name('api.dashboard.transactions');
         Route::get('/api/dashboard/subscriptions', [DataController::class, 'getSubscriptions'])->name('api.dashboard.subscriptions');
     
+    // Dashboard Sub-Stores (tous les utilisateurs authentifiés)
+    Route::middleware(['auth'])->prefix('sub-stores')->name('sub-stores.')->group(function () {
+        Route::get('/', [SubStoreController::class, 'index'])->name('dashboard');
+        Route::get('/api/sub-stores', [SubStoreController::class, 'getSubStores'])->name('api.sub-stores');
+        Route::get('/api/dashboard/data', [SubStoreController::class, 'getDashboardData'])->name('api.dashboard.data');
+    });
+
     // Routes d'administration (Super Admin et Admin uniquement)
     Route::middleware(['auth', 'role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
@@ -63,6 +71,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+        
+        // Actions supplémentaires pour les utilisateurs
+        Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/suspend', [UserManagementController::class, 'suspend'])->name('users.suspend');
+        Route::post('/users/{user}/unsuspend', [UserManagementController::class, 'unsuspend'])->name('users.unsuspend');
         
         // Invitations
         Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');
