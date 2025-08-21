@@ -337,8 +337,10 @@ class User extends Authenticatable
         
         // Liste des opérateurs "classiques" (non sub-store)
         $operatorTypes = [
+            'S\'abonner via Timwe', 'S\'abonner via Orange', 'S\'abonner via TT',
             'Timwe', 'Ooredoo', 'MTN', 'Orange', 'Moov', 'Wave', 'PayPal',
-            'Visa', 'Mastercard', 'Mobile Money', 'Bank Transfer'
+            'Visa', 'Mastercard', 'Mobile Money', 'Bank Transfer',
+            'Paiement par carte bancaire', 'Carte cadeaux'
         ];
         
         return in_array($primaryOperator->operator_name, $operatorTypes);

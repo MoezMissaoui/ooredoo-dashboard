@@ -2213,6 +2213,12 @@
         
         const data = await response.json();
         
+        console.log('🔍 DEBUG API Response:', {
+          operators: data.operators,
+          default_operator: data.default_operator,
+          user_role: data.user_role
+        });
+        
         if (data.operators && data.operators.length > 0) {
           const select = document.getElementById('operator-select');
           const operatorInfo = document.getElementById('operator-info');
@@ -2225,8 +2231,12 @@
             const option = document.createElement('option');
             option.value = operator.value;
             option.textContent = `📱 ${operator.label}`;
+            
+            console.log(`🔍 Comparaison: "${operator.value}" === "${data.default_operator}" ? ${operator.value === data.default_operator}`);
+            
             if (operator.value === data.default_operator) {
               option.selected = true;
+              console.log('✅ Opérateur sélectionné par défaut:', operator.label);
             }
             select.appendChild(option);
           });
