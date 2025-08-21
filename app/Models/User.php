@@ -33,7 +33,8 @@ class User extends Authenticatable
         'preferences',
         'is_otp_enabled',
         'password_changed_at',
-        'created_by'
+        'created_by',
+        'platform_type'
     ];
 
     /**
@@ -110,6 +111,16 @@ class User extends Authenticatable
     public function isCollaborator(): bool
     {
         return $this->role && $this->role->isCollaborator();
+    }
+
+    public function isClubPrivilegesUser(): bool
+    {
+        return $this->platform_type === 'club_privileges';
+    }
+
+    public function isTimweOoredooUser(): bool
+    {
+        return $this->platform_type === 'timwe_ooredoo';
     }
 
     public function hasPermission(string $permission): bool
@@ -218,9 +229,16 @@ class User extends Authenticatable
      */
     public function getPreferredDashboard(): string
     {
+        // Dispatching selon le type de plateforme
+        if ($this->isTimweOoredooUser()) {
+            // Utilisateurs Timwe/Ooredoo : Dashboard avec thème Ooredoo
+            return route('dashboard', ['theme' => 'ooredoo']);
+        }
+
+        // Utilisateurs Club Privilèges : Logique existante
         // Super Admin : Dashboard principal avec vue globale
         if ($this->isSuperAdmin()) {
-            return route('dashboard');
+            return route('dashboard', ['theme' => 'club_privileges']);
         }
 
         // Admin : Vérifier si orienté sub-stores ou dashboard principal
@@ -229,11 +247,11 @@ class User extends Authenticatable
             
             // Si l'admin est orienté sub-stores, rediriger vers sub-stores dashboard
             if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership'])) {
-                return route('sub-stores.dashboard');
+                return route('sub-stores.dashboard', ['theme' => 'club_privileges']);
             }
             
             // Sinon, dashboard principal avec vue filtrée par opérateur
-            return route('dashboard');
+            return route('dashboard', ['theme' => 'club_privileges']);
         }
 
         // Collaborator : Selon les permissions et le contexte
@@ -243,15 +261,15 @@ class User extends Authenticatable
             
             // Si l'opérateur principal est lié aux sub-stores, rediriger vers sub-stores dashboard
             if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership'])) {
-                return route('sub-stores.dashboard');
+                return route('sub-stores.dashboard', ['theme' => 'club_privileges']);
             }
             
             // Sinon, dashboard principal
-            return route('dashboard');
+            return route('dashboard', ['theme' => 'club_privileges']);
         }
 
-        // Par défaut, dashboard principal
-        return route('dashboard');
+        // Par défaut, dashboard principal Club Privilèges
+        return route('dashboard', ['theme' => 'club_privileges']);
     }
 
     /**
@@ -279,6 +297,187 @@ class User extends Authenticatable
         ];
 
         return in_array($primaryOperator->operator_name, $subStoreOperators);
+    }
+
+    /**
+     * Définir les 5 types d'utilisateurs selon les spécifications :
+     * 1. Super Admin Club Privilèges (all access)
+     * 2. Admin Club Privilèges (peut voir tous opérateurs et sub-stores)
+     * 3. Admin Opérateur (ne voit que son opérateur)
+     * 4. Admin Sub Store (ne voit que son sub-store)
+     * 5. Collaborateur (selon son contexte)
+     */
+
+    /**
+     * Type 1: Super Admin Club Privilèges - Accès total
+     */
+    public function isSuperAdminClubPrivileges(): bool
+    {
+        return $this->isSuperAdmin() && $this->isClubPrivilegesUser();
+    }
+
+    /**
+     * Type 2: Admin Club Privilèges - Voit tous opérateurs et sub-stores
+     */
+    public function isAdminClubPrivileges(): bool
+    {
+        return $this->isAdmin() && $this->isClubPrivilegesUser();
+    }
+
+    /**
+     * Type 3: Admin Opérateur - Ne voit que son opérateur
+     */
+    public function isAdminOperator(): bool
+    {
+        if (!$this->isAdmin()) return false;
+        
+        // Admin avec un opérateur spécifique (pas sub-store)
+        $primaryOperator = $this->primaryOperator();
+        if (!$primaryOperator) return false;
+        
+        // Liste des opérateurs "classiques" (non sub-store)
+        $operatorTypes = [
+            'Timwe', 'Ooredoo', 'MTN', 'Orange', 'Moov', 'Wave', 'PayPal',
+            'Visa', 'Mastercard', 'Mobile Money', 'Bank Transfer'
+        ];
+        
+        return in_array($primaryOperator->operator_name, $operatorTypes);
+    }
+
+    /**
+     * Type 4: Admin Sub Store - Ne voit que son sub-store
+     */
+    public function isAdminSubStore(): bool
+    {
+        if (!$this->isAdmin()) return false;
+        
+        // Admin avec un opérateur de type "sub-store"
+        $primaryOperator = $this->primaryOperator();
+        if (!$primaryOperator) return false;
+        
+        // Liste des opérateurs considérés comme "sub-stores"
+        $subStoreOperators = [
+            'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
+            'Magasins', 'Boutiques', 'Points de Vente'
+        ];
+        
+        return in_array($primaryOperator->operator_name, $subStoreOperators);
+    }
+
+    /**
+     * Type 5: Collaborateur - Selon son contexte (opérateur ou sub-store)
+     */
+    public function isCollaboratorWithContext(): bool
+    {
+        return $this->isCollaborator();
+    }
+
+    /**
+     * Obtenir le type d'utilisateur (pour affichage et logique)
+     * IMPORTANT: L'ordre des tests est crucial !
+     */
+    public function getUserType(): string
+    {
+        if ($this->isSuperAdminClubPrivileges()) {
+            return 'super_admin_club_privileges';
+        }
+        
+        // Tester les types spécifiques d'admin AVANT le type général
+        if ($this->isAdminOperator()) {
+            return 'admin_operator';
+        }
+        
+        if ($this->isAdminSubStore()) {
+            return 'admin_sub_store';
+        }
+        
+        // Admin Club Privilèges générique (pour les admins sans opérateur spécifique)
+        if ($this->isAdminClubPrivileges()) {
+            return 'admin_club_privileges';
+        }
+        
+        if ($this->isCollaboratorWithContext()) {
+            return 'collaborator';
+        }
+        
+        return 'unknown';
+    }
+
+    /**
+     * Obtenir le nom d'affichage du type d'utilisateur
+     */
+    public function getUserTypeLabel(): string
+    {
+        switch ($this->getUserType()) {
+            case 'super_admin_club_privileges':
+                return 'Super Admin Club Privilèges';
+            case 'admin_club_privileges':
+                return 'Admin Club Privilèges';
+            case 'admin_operator':
+                $operator = $this->getPrimaryOperatorName();
+                return "Admin {$operator}";
+            case 'admin_sub_store':
+                $subStore = $this->getPrimaryOperatorName();
+                return "Admin {$subStore}";
+            case 'collaborator':
+                $context = $this->getPrimaryOperatorName();
+                return "Collaborateur {$context}";
+            default:
+                return 'Utilisateur';
+        }
+    }
+
+    /**
+     * Vérifier si l'admin peut accéder aux Sub-Stores
+     * Selon la nouvelle logique des 5 types
+     */
+    public function canAccessSubStoresDashboard(): bool
+    {
+        switch ($this->getUserType()) {
+            case 'super_admin_club_privileges':
+                return true; // Accès total
+                
+            case 'admin_club_privileges':
+                return true; // Peut voir tous opérateurs et sub-stores
+                
+            case 'admin_sub_store':
+                return true; // Spécifiquement pour sub-stores
+                
+            case 'collaborator':
+                // Collaborateur sub-store uniquement
+                return $this->isPrimarySubStoreUser();
+                
+            default:
+                return false; // Admin opérateur et autres : pas d'accès sub-stores
+        }
+    }
+
+    /**
+     * Vérifier si l'utilisateur peut accéder au Dashboard Opérateurs
+     * Admin sub-store ne devrait voir QUE les sub-stores
+     */
+    public function canAccessOperatorsDashboard(): bool
+    {
+        switch ($this->getUserType()) {
+            case 'super_admin_club_privileges':
+                return true; // Accès total
+                
+            case 'admin_club_privileges':
+                return true; // Peut voir tous opérateurs et sub-stores
+                
+            case 'admin_operator':
+                return true; // Peut voir son opérateur
+                
+            case 'collaborator':
+                // Collaborateur opérateur uniquement (pas sub-store)
+                return !$this->isPrimarySubStoreUser();
+                
+            case 'admin_sub_store':
+                return false; // Admin sub-store ne voit QUE les sub-stores
+                
+            default:
+                return false;
+        }
     }
 
     // Méthodes privées

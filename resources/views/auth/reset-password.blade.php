@@ -1,9 +1,14 @@
+@php
+    $theme = 'club_privileges';
+    $isOoredoo = false;
+    $isClubPrivileges = true;
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - Club Privilèges Dashboard</title>
+    <title>Réinitialisation du mot de passe - Club Privilèges</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
@@ -11,7 +16,6 @@
             --club-primary: #6B46C1;
             --club-secondary: #8B5CF6;
             --club-accent: #F59E0B;
-            --club-bg: linear-gradient(135deg, #6B46C1 0%, #8B5CF6 100%);
             --brand-dark: #1f2937;
             --card: #ffffff;
             --muted: #64748b;
@@ -25,7 +29,7 @@
         html, body { 
             margin: 0; 
             padding: 0; 
-            background: var(--club-bg);
+            background: linear-gradient(135deg, var(--club-primary) 0%, var(--club-secondary) 100%);
             color: var(--brand-dark); 
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             line-height: 1.5;
@@ -37,12 +41,10 @@
             overflow-x: hidden;
         }
         
-
-        
         .login-container {
             background: var(--card);
             border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             backdrop-filter: blur(10px);
             padding: 48px;
             width: 100%;
@@ -50,7 +52,6 @@
             margin: 20px;
             position: relative;
             z-index: 1;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .logo {
@@ -63,7 +64,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             margin: 0;
             letter-spacing: -0.5px;
@@ -74,7 +75,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             margin: 8px 0 0 0;
             font-style: italic;
@@ -133,29 +134,10 @@
             overflow: hidden;
         }
         
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
-        }
-        
         .btn:hover {
             background: linear-gradient(45deg, #553C9A, var(--club-primary));
             transform: translateY(-2px);
             box-shadow: 0 15px 35px rgba(107, 70, 193, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
         }
         
         .btn:disabled {
@@ -184,21 +166,16 @@
             border: 1px solid #bbf7d0;
         }
         
-        .otp-link {
-            text-align: center;
-            margin-top: 24px;
+        .password-requirements {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+            line-height: 1.4;
         }
         
-        .otp-link a {
-            color: var(--club-primary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        
-        .otp-link a:hover {
-            text-decoration: underline;
+        .password-requirements ul {
+            margin: 4px 0 0 0;
+            padding-left: 16px;
         }
         
         .loading {
@@ -223,8 +200,8 @@
     <div class="login-container">
         <div class="logo">
             <h1 class="club-logo">Club Privilèges</h1>
-            <p class="club-subtitle">Profitez de remises exclusives et permanentes</p>
-            <p class="welcome-text">Connectez-vous à votre tableau de bord administrateur<br>pour gérer +1251 commerces partenaires</p>
+            <p class="club-subtitle">Nouveau mot de passe</p>
+            <p class="welcome-text">Définissez votre nouveau mot de passe<br>sécurisé pour votre compte</p>
         </div>
         
         @if(session('error'))
@@ -233,34 +210,12 @@
             </div>
         @endif
         
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
-        
-        <form id="loginForm" action="{{ route('auth.login') }}" method="POST">
+        <form id="resetForm" action="{{ route('password.reset') }}" method="POST">
             @csrf
-            <div class="form-group">
-                <label for="email" class="form-label">Adresse e-mail</label>
-                <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    class="form-input" 
-                    required 
-                    value="{{ old('email') }}"
-                    placeholder="admin@exemple.com"
-                >
-                @error('email')
-                    <div class="alert alert-danger" style="margin-top: 8px; margin-bottom: 0;">
-                        {{ $message }}
-                    </div>
-                @enderror
-            </div>
+            <input type="hidden" name="token" value="{{ $token }}">
             
             <div class="form-group">
-                <label for="password" class="form-label">Mot de passe</label>
+                <label for="password" class="form-label">Nouveau mot de passe</label>
                 <input 
                     type="password" 
                     id="password" 
@@ -274,31 +229,46 @@
                         {{ $message }}
                     </div>
                 @enderror
+                <div class="password-requirements">
+                    <strong>Exigences du mot de passe :</strong>
+                    <ul>
+                        <li>Au moins 8 caractères</li>
+                        <li>Au moins une majuscule et une minuscule</li>
+                        <li>Au moins un chiffre</li>
+                    </ul>
+                </div>
             </div>
             
-            <button type="submit" class="btn" id="loginBtn">
+            <div class="form-group">
+                <label for="password_confirmation" class="form-label">Confirmer le mot de passe</label>
+                <input 
+                    type="password" 
+                    id="password_confirmation" 
+                    name="password_confirmation" 
+                    class="form-input" 
+                    required
+                    placeholder="••••••••"
+                >
+            </div>
+            
+            <button type="submit" class="btn" id="resetBtn">
                 <span class="loading hidden"></span>
-                <span id="loginText">Se connecter</span>
+                <span id="resetText">Réinitialiser</span>
             </button>
         </form>
-        
-        <div class="otp-link">
-            <a href="{{ route('auth.otp.request') }}">Connexion par code OTP</a>
-            <br><br>
-            <a href="{{ route('password.forgot') }}">Mot de passe oublié ?</a>
-        </div>
     </div>
     
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function() {
-            const btn = document.getElementById('loginBtn');
+        document.getElementById('resetForm').addEventListener('submit', function() {
+            const btn = document.getElementById('resetBtn');
             const loading = btn.querySelector('.loading');
-            const text = document.getElementById('loginText');
+            const text = document.getElementById('resetText');
             
             btn.disabled = true;
             loading.classList.remove('hidden');
-            text.textContent = 'Connexion...';
+            text.textContent = 'Traitement...';
         });
     </script>
 </body>
 </html>
+

@@ -683,9 +683,11 @@
                     <div class="user-role">{{ Auth::user()->role->display_name ?? 'Utilisateur' }}</div>
                 </div>
                 
-                <a href="{{ route('dashboard') }}" class="nav-btn">
-                    📊 Dashboard Opérateurs
-                </a>
+                @if(Auth::user()->canAccessOperatorsDashboard())
+                    <a href="{{ route('dashboard') }}" class="nav-btn">
+                        📊 Dashboard Opérateurs
+                    </a>
+                @endif
                 
                 @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
                     <a href="{{ route('admin.users.index') }}" class="nav-btn">

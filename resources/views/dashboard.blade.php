@@ -1,15 +1,28 @@
+@php
+    $theme = $theme ?? 'club_privileges';
+    $isOoredoo = $theme === 'ooredoo';
+    $isClubPrivileges = $theme === 'club_privileges';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ooredoo Privileges - Comprehensive Performance Dashboard</title>
+  <title>{{ $isOoredoo ? 'Ooredoo Privileges' : 'Club Privilèges' }} - Comprehensive Performance Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <style>
     :root {
-      --brand-red: #E30613;
+      @if($isOoredoo)
+      --brand-primary: #E30613;
+      --brand-secondary: #DC2626;
+      --theme-name: 'Ooredoo';
+      @else
+      --brand-primary: #6B46C1;
+      --brand-secondary: #8B5CF6;
+      --theme-name: 'Club Privilèges';
+      @endif
       --brand-dark: #1f2937;
       --bg: #f8fafc;
       --card: #ffffff;
@@ -19,6 +32,8 @@
       --danger: #ef4444;
       --accent: #3b82f6;
       --border: #e2e8f0;
+      /* Backward compatibility */
+      --brand-red: var(--brand-primary);
     }
     
     * { box-sizing: border-box; }
@@ -1055,12 +1070,27 @@
     <!-- Header -->
     <div class="header">
       <div class="header-left">
+        @if($isOoredoo)
         <img src="{{ asset('images/ooredoo-logo.png') }}" alt="Ooredoo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <svg class="logo" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-          <rect width="200" height="60" fill="#E30613"/>
+          <rect width="200" height="60" fill="var(--brand-primary)"/>
           <text x="20" y="35" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">ooredoo</text>
         </svg>
         <h1>Ooredoo Privileges - Performance Dashboard</h1>
+        @else
+        <svg class="logo" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="clubGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:var(--brand-primary);stop-opacity:1" />
+              <stop offset="100%" style="stop-color:var(--brand-secondary);stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect width="200" height="60" fill="url(#clubGradient)" rx="8"/>
+          <text x="20" y="25" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Club</text>
+          <text x="20" y="45" fill="#F59E0B" font-family="Arial, sans-serif" font-size="14" font-weight="600" font-style="italic">Privilèges</text>
+        </svg>
+        <h1>Club Privilèges - Performance Dashboard</h1>
+        @endif
       </div>
       <div class="header-right">
         <span>📊</span>
@@ -1077,9 +1107,13 @@
             <a href="{{ route('admin.invitations.index') }}" class="admin-btn">Invitations</a>
           @endif
           
-          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
-            🏪 Sub-Stores
-          </a>
+          <a href="{{ route('password.change') }}" class="admin-btn" title="Changer mon mot de passe">🔒 Mot de passe</a>
+          
+          @if(Auth::user()->canAccessSubStoresDashboard())
+            <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
+              🏪 Sub-Stores
+            </a>
+          @endif
           
           <form action="{{ route('auth.logout') }}" method="POST" style="display: inline;">
             @csrf
@@ -1404,6 +1438,12 @@
           <div class="table-header">
             <div class="table-title">📋 Performance Détaillée des Marchands</div>
             <div class="table-actions">
+              <select id="merchantsPerPage" onchange="changeMerchantsPerPage()" style="margin-right: 10px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px;">
+                <option value="10">10 par page</option>
+                <option value="25" selected>25 par page</option>
+                <option value="50">50 par page</option>
+                <option value="100">100 par page</option>
+              </select>
               <button class="btn-secondary" onclick="exportMerchantsData()">📥 Exporter</button>
             </div>
           </div>
@@ -1429,6 +1469,22 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--border);">
+            <div class="pagination-info">
+              <span id="merchantsPaginationInfo">Affichage de 1-25 sur 0 marchands</span>
+            </div>
+            <div class="pagination-buttons">
+              <button id="merchantsPrevBtn" onclick="previousMerchantsPage()" style="padding: 8px 12px; margin-right: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--card); cursor: pointer;" disabled>
+                ← Précédent
+              </button>
+              <span id="merchantsPageNumbers" style="margin: 0 16px; font-weight: 500;"></span>
+              <button id="merchantsNextBtn" onclick="nextMerchantsPage()" style="padding: 8px 12px; margin-left: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--card); cursor: pointer;" disabled>
+                Suivant →
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1538,6 +1594,32 @@
     // Global variables for charts and data
     let dashboardData = null;
     let charts = {};
+    
+    // Pagination variables
+    let allMerchants = [];
+    let currentMerchantsPage = 1;
+    let merchantsPerPage = 25;
+
+    // Couleurs dynamiques selon le thème
+    const THEME_COLORS = {
+      @if($isOoredoo)
+      primary: '#E30613',
+      primaryRgba: 'rgba(227, 6, 19, 0.1)',
+      secondary: '#DC2626',
+      accent: '#3b82f6',
+      success: '#10b981',
+      warning: '#f59e0b',
+      @else
+      primary: '#6B46C1',
+      primaryRgba: 'rgba(107, 70, 193, 0.1)',
+      secondary: '#8B5CF6',
+      accent: '#F59E0B',
+      success: '#10b981',
+      warning: '#3b82f6',
+      @endif
+      muted: '#64748b',
+      mutedRgba: 'rgba(100, 116, 139, 0.2)'
+    };
 
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
@@ -1759,7 +1841,7 @@
         
         conversionProgress.style.width = `${percentage}%`;
         conversionProgress.style.transition = 'width 0.5s ease-in-out';
-        conversionProgress.style.backgroundColor = '#E30613';
+        conversionProgress.style.backgroundColor = THEME_COLORS.primary;
         conversionProgress.style.height = '8px'; // Fixed: same as transactions
         conversionProgress.style.display = 'block';
         
@@ -1779,7 +1861,7 @@
         
         conversionProgress.style.width = `${percentage}%`;
         conversionProgress.style.transition = 'width 0.5s ease-in-out';
-        conversionProgress.style.backgroundColor = '#E30613';
+        conversionProgress.style.backgroundColor = THEME_COLORS.primary;
         conversionProgress.style.height = '8px'; // Fixed: was 0px height
         conversionProgress.style.display = 'block';
         
@@ -2504,7 +2586,7 @@
                 data.kpis.totalTransactions.current,
                 data.kpis.activeMerchants.current
               ],
-              backgroundColor: '#E30613',
+              backgroundColor: THEME_COLORS.primary,
               borderRadius: 4
             },
             {
@@ -2558,8 +2640,8 @@
           datasets: [{
             label: 'Daily Activated Subscriptions',
             data: dailyData,
-            borderColor: '#E30613',
-            backgroundColor: 'rgba(227, 6, 19, 0.1)',
+            borderColor: THEME_COLORS.primary,
+            backgroundColor: THEME_COLORS.primaryRgba,
             fill: true,
             tension: 0.4
           }]
@@ -2652,7 +2734,7 @@
           datasets: [{
             label: 'Daily Transactions',
             data: transactionData,
-            backgroundColor: '#3b82f6',
+            backgroundColor: THEME_COLORS.accent,
             borderRadius: 4
           }]
         },
@@ -2694,8 +2776,8 @@
           datasets: [{
             label: 'Daily Transacting Users',
             data: userData,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderColor: THEME_COLORS.warning,
+            backgroundColor: THEME_COLORS.warning === '#3b82f6' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
             fill: true,
             tension: 0.4
           }]
@@ -2736,10 +2818,10 @@
           datasets: [{
             data: merchantValues,
             backgroundColor: [
-              '#E30613',
-              '#3b82f6',
-              '#10b981',
-              '#f59e0b'
+              THEME_COLORS.primary,
+              THEME_COLORS.accent,
+              THEME_COLORS.success,
+              THEME_COLORS.warning
             ],
             borderWidth: 2,
             borderColor: '#ffffff'
@@ -2817,9 +2899,9 @@
             {
               label: 'Current Period',
               data: [100, 20, 80, 1, 94],
-              borderColor: '#E30613',
-              backgroundColor: 'rgba(227, 6, 19, 0.2)',
-              pointBackgroundColor: '#E30613'
+              borderColor: THEME_COLORS.primary,
+              backgroundColor: THEME_COLORS.primaryRgba.replace('0.1', '0.2'),
+              pointBackgroundColor: THEME_COLORS.primary
             },
             {
               label: 'Previous Period',
@@ -2854,12 +2936,23 @@
       updateComparisonTable(data.kpis);
     }
 
-    // Update merchants table with enhanced data
+    // Update merchants table with enhanced data and pagination
     function updateMerchantsTable(merchants) {
+      allMerchants = merchants || [];
+      currentMerchantsPage = 1;
+      renderMerchantsPage();
+    }
+    
+    function renderMerchantsPage() {
       const tbody = document.getElementById('merchantsTableBody');
       if (!tbody) return;
       
-      tbody.innerHTML = merchants.map((merchant, index) => {
+      const startIndex = (currentMerchantsPage - 1) * merchantsPerPage;
+      const endIndex = startIndex + merchantsPerPage;
+      const pageData = allMerchants.slice(startIndex, endIndex);
+      
+      tbody.innerHTML = pageData.map((merchant, index) => {
+        const globalIndex = startIndex + index;
         // Calcul du changement plus robuste
         let change = 0;
         let badgeClass = 'badge-info';
@@ -2889,8 +2982,8 @@
           statusText = 'En croissance';
         }
         
-        // Icône basée sur la position
-        const positionIcon = index < 3 ? '🏆' : index < 10 ? '⭐' : '📊';
+        // Icône basée sur la position globale
+        const positionIcon = globalIndex < 3 ? '🏆' : globalIndex < 10 ? '⭐' : '📊';
         
         return `
           <tr>
@@ -2900,7 +2993,7 @@
                 <div>
                   <strong>${merchant.name}</strong>
                   <div style="font-size: 12px; color: #666; margin-top: 2px;">
-                    Position: #${index + 1}
+                    Position: #${globalIndex + 1}
                   </div>
                 </div>
               </div>
@@ -2933,6 +3026,65 @@
           </tr>
         `;
       }).join('');
+      
+      updateMerchantsPagination();
+    }
+    
+    function updateMerchantsPagination() {
+      const totalMerchants = allMerchants.length;
+      const totalPages = Math.ceil(totalMerchants / merchantsPerPage);
+      const startIndex = (currentMerchantsPage - 1) * merchantsPerPage + 1;
+      const endIndex = Math.min(currentMerchantsPage * merchantsPerPage, totalMerchants);
+      
+      // Update pagination info
+      const infoEl = document.getElementById('merchantsPaginationInfo');
+      if (infoEl) {
+        infoEl.textContent = `Affichage de ${startIndex}-${endIndex} sur ${totalMerchants} marchands`;
+      }
+      
+      // Update page numbers
+      const pageNumbersEl = document.getElementById('merchantsPageNumbers');
+      if (pageNumbersEl) {
+        pageNumbersEl.textContent = `Page ${currentMerchantsPage} sur ${totalPages}`;
+      }
+      
+      // Update button states
+      const prevBtn = document.getElementById('merchantsPrevBtn');
+      const nextBtn = document.getElementById('merchantsNextBtn');
+      
+      if (prevBtn) {
+        prevBtn.disabled = currentMerchantsPage <= 1;
+        prevBtn.style.opacity = currentMerchantsPage <= 1 ? '0.5' : '1';
+        prevBtn.style.cursor = currentMerchantsPage <= 1 ? 'not-allowed' : 'pointer';
+      }
+      
+      if (nextBtn) {
+        nextBtn.disabled = currentMerchantsPage >= totalPages;
+        nextBtn.style.opacity = currentMerchantsPage >= totalPages ? '0.5' : '1';
+        nextBtn.style.cursor = currentMerchantsPage >= totalPages ? 'not-allowed' : 'pointer';
+      }
+    }
+    
+    function changeMerchantsPerPage() {
+      const select = document.getElementById('merchantsPerPage');
+      merchantsPerPage = parseInt(select.value);
+      currentMerchantsPage = 1;
+      renderMerchantsPage();
+    }
+    
+    function previousMerchantsPage() {
+      if (currentMerchantsPage > 1) {
+        currentMerchantsPage--;
+        renderMerchantsPage();
+      }
+    }
+    
+    function nextMerchantsPage() {
+      const totalPages = Math.ceil(allMerchants.length / merchantsPerPage);
+      if (currentMerchantsPage < totalPages) {
+        currentMerchantsPage++;
+        renderMerchantsPage();
+      }
     }
 
     // Add export function for merchants data

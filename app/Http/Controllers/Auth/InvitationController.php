@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOperator;
 use App\Models\UserOtpCode;
+use App\Models\PasswordResetRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,23 +27,42 @@ class InvitationController extends Controller
     {
         $user = auth()->user();
         
-        if ($user->isSuperAdmin()) {
-            $invitations = Invitation::with(['invitedBy', 'role'])->orderBy('created_at', 'desc')->paginate(20);
-        } else {
-            // Un admin ne voit que les invitations pour ses opérateurs
-            $userOperators = $user->operators->pluck('operator_name')->toArray();
-            $invitations = Invitation::where(function($query) use ($user, $userOperators) {
-                // Ses propres invitations
-                $query->where('invited_by', $user->id)
-                // OU invitations pour ses opérateurs (même si créées par un super admin)
-                ->orWhereIn('operator_name', $userOperators);
-            })
-            ->with(['invitedBy', 'role'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        // Logique selon les 5 types d'utilisateurs
+        switch ($user->getUserType()) {
+            case 'super_admin_club_privileges':
+                // Super Admin voit TOUTES les invitations
+                $invitations = Invitation::with(['invitedBy', 'role'])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(20);
+                break;
+                
+            case 'admin_club_privileges':
+                // Admin CP voit toutes les invitations Club Privilèges
+                $invitations = Invitation::whereHas('invitedBy', function($query) {
+                    $query->where('platform_type', 'club_privileges');
+                })
+                ->with(['invitedBy', 'role'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+                break;
+                
+            case 'admin_operator':
+            case 'admin_sub_store':
+            case 'collaborator':
+            default:
+                // Tous les autres : SEULEMENT leurs propres invitations
+                $invitations = Invitation::where('invited_by', $user->id)
+                    ->with(['invitedBy', 'role'])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(20);
+                break;
         }
         
-        return view('admin.invitations.index', compact('invitations'));
+        // Déterminer le thème selon l'utilisateur connecté
+        $theme = $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges';
+        $isOoredoo = $theme === 'ooredoo';
+        
+        return view('admin.invitations.index', compact('invitations', 'theme', 'isOoredoo'));
     }
 
     /**
@@ -62,7 +82,11 @@ class InvitationController extends Controller
             $operators = $user->operators->pluck('operator_name', 'operator_name');
         }
         
-        return view('admin.invitations.create', compact('roles', 'operators'));
+        // Déterminer le thème selon l'utilisateur connecté
+        $theme = $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges';
+        $isOoredoo = $theme === 'ooredoo';
+        
+        return view('admin.invitations.create', compact('roles', 'operators', 'theme', 'isOoredoo'));
     }
 
     /**
@@ -120,16 +144,43 @@ class InvitationController extends Controller
                 ]
             ]);
 
-            // Envoyer l'email d'invitation
-            $invitationUrl = route('auth.invitation', $invitation->token);
+            // Créer directement l'utilisateur avec un mot de passe temporaire
+            $newUser = User::create([
+                'name' => $invitation->first_name . ' ' . $invitation->last_name,
+                'first_name' => $invitation->first_name,
+                'last_name' => $invitation->last_name,
+                'email' => $invitation->email,
+                'password' => Hash::make(Str::random(32)), // Mot de passe temporaire très fort
+                'role_id' => $invitation->role_id,
+                'status' => 'active',
+                'is_otp_enabled' => true, // Sera désactivé après première connexion
+                'created_by' => $invitation->invited_by,
+                'platform_type' => 'club_privileges' // Par défaut Club Privilèges
+            ]);
+
+            // Assigner l'opérateur
+            UserOperator::create([
+                'user_id' => $newUser->id,
+                'operator_name' => $invitation->operator_name,
+                'is_primary' => true,
+                'assigned_by' => $invitation->invited_by
+            ]);
+
+            // Marquer l'invitation comme acceptée
+            $invitation->accept();
+
+            // Créer un token de première connexion
+            $firstLoginRequest = PasswordResetRequest::createForFirstLogin($invitation->email);
+            $firstLoginUrl = route('password.first-login', $firstLoginRequest->token);
             
             try {
-                Mail::to($invitation->email)->send(new InvitationMail($invitation, $invitationUrl));
+                // Envoyer l'email avec le lien de première connexion
+                Mail::to($invitation->email)->send(new InvitationMail($invitation, $firstLoginUrl));
                 
                 Log::info("=== INVITATION ENVOYÉE ===");
                 Log::info("Email: {$invitation->email}");
                 Log::info("Invité par: {$user->name}");
-                Log::info("Lien d'invitation: {$invitationUrl}");
+                Log::info("Lien de première connexion: {$firstLoginUrl}");
                 
                 return redirect()->route('admin.invitations.index')
                                ->with('success', "Invitation envoyée avec succès à {$invitation->email}.");

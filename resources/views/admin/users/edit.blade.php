@@ -1,23 +1,49 @@
+@php
+    $isOoredoo = isset($isOoredoo) ? $isOoredoo : false;
+    $theme = isset($theme) ? $theme : 'club_privileges';
+@endphp
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier l'Utilisateur - Ooredoo Club Privilèges</title>
+    <title>Modifier l'Utilisateur - {{ $isOoredoo ? 'Ooredoo' : 'Club Privilèges' }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         :root {
-            --brand-red: #E30613;
-            --brand-dark: #1f2937;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --muted: #64748b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --accent: #3b82f6;
-            --border: #e2e8f0;
+            @if($isOoredoo)
+                --brand-primary: #E30613;
+                --brand-secondary: #B91C1C;
+                --brand-accent: #FBBF24;
+                --brand-dark: #1f2937;
+                --bg: #f8fafc;
+                --card: #ffffff;
+                --muted: #64748b;
+                --success: #10b981;
+                --warning: #f59e0b;
+                --danger: #ef4444;
+                --accent: #3b82f6;
+                --border: #e2e8f0;
+                /* Backward compatibility */
+                --brand-red: var(--brand-primary);
+            @else
+                --brand-primary: #6B46C1;
+                --brand-secondary: #8B5CF6;
+                --brand-accent: #F59E0B;
+                --brand-dark: #1f2937;
+                --bg: #f8fafc;
+                --card: #ffffff;
+                --muted: #64748b;
+                --success: #10b981;
+                --warning: #f59e0b;
+                --danger: #ef4444;
+                --accent: #3b82f6;
+                --border: #e2e8f0;
+                /* Backward compatibility */
+                --brand-red: var(--brand-primary);
+            @endif
         }
         
         * { box-sizing: border-box; }
@@ -219,8 +245,13 @@
 <body>
     <div class="container">
         <div class="breadcrumb">
-            <a href="{{ route('dashboard') }}">Dashboard</a>
-            <span>→</span>
+            @if(Auth::user()->canAccessOperatorsDashboard())
+                <a href="{{ route('dashboard') }}">Dashboard</a>
+                <span>→</span>
+            @else
+                <a href="{{ route('sub-stores.dashboard') }}">Sub-Stores Dashboard</a>
+                <span>→</span>
+            @endif
             <a href="{{ route('admin.users.index') }}">Utilisateurs</a>
             <span>→</span>
             <span>Modifier</span>
@@ -372,6 +403,40 @@
                 </div>
             </form>
         </div>
+
+        <!-- Section Réinitialisation Mot de Passe (Super Admin uniquement) -->
+        @if(Auth::user()->isSuperAdmin())
+        <div class="info-card" style="border-left: 4px solid var(--warning);">
+            <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--warning);">
+                🔐 Gestion du Mot de Passe
+            </h3>
+            
+            <div style="background: #fffbeb; padding: 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fed7aa;">
+                <p style="margin: 0; font-size: 14px; color: #92400e;">
+                    <strong>⚠️ Attention :</strong> Cette action va générer un nouveau lien de réinitialisation pour cet utilisateur. 
+                    Un email sera envoyé à <strong>{{ $user->email }}</strong> avec un lien valide 1 heure.
+                </p>
+            </div>
+            
+            <form action="{{ route('admin.users.reset-password', $user->id) }}" method="POST" 
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir envoyer un lien de réinitialisation à {{ $user->email }} ?')">
+                @csrf
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button type="submit" class="btn" 
+                            style="background: linear-gradient(45deg, var(--warning), #fbbf24); 
+                                   color: white; border: none; flex: 1;">
+                        📧 Envoyer un Lien de Réinitialisation
+                    </button>
+                    
+                    <div style="font-size: 12px; color: var(--muted); line-height: 1.4;">
+                        L'utilisateur recevra un email<br>
+                        pour configurer un nouveau<br>
+                        mot de passe sécurisé.
+                    </div>
+                </div>
+            </form>
+        </div>
+        @endif
 
         <!-- Informations supplémentaires -->
         <div class="info-card">

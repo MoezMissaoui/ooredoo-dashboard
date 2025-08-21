@@ -1,9 +1,14 @@
+@php
+    $theme = 'club_privileges';
+    $isOoredoo = false;
+    $isClubPrivileges = true;
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion - Club Privilèges Dashboard</title>
+    <title>Mot de passe oublié - Club Privilèges</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
@@ -11,7 +16,6 @@
             --club-primary: #6B46C1;
             --club-secondary: #8B5CF6;
             --club-accent: #F59E0B;
-            --club-bg: linear-gradient(135deg, #6B46C1 0%, #8B5CF6 100%);
             --brand-dark: #1f2937;
             --card: #ffffff;
             --muted: #64748b;
@@ -25,7 +29,7 @@
         html, body { 
             margin: 0; 
             padding: 0; 
-            background: var(--club-bg);
+            background: linear-gradient(135deg, var(--club-primary) 0%, var(--club-secondary) 100%);
             color: var(--brand-dark); 
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             line-height: 1.5;
@@ -36,8 +40,6 @@
             position: relative;
             overflow-x: hidden;
         }
-        
-
         
         .login-container {
             background: var(--card);
@@ -63,7 +65,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             margin: 0;
             letter-spacing: -0.5px;
@@ -74,7 +76,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             margin: 8px 0 0 0;
             font-style: italic;
@@ -184,12 +186,12 @@
             border: 1px solid #bbf7d0;
         }
         
-        .otp-link {
+        .back-link {
             text-align: center;
             margin-top: 24px;
         }
         
-        .otp-link a {
+        .back-link a {
             color: var(--club-primary);
             text-decoration: none;
             font-size: 14px;
@@ -197,7 +199,7 @@
             transition: all 0.2s ease;
         }
         
-        .otp-link a:hover {
+        .back-link a:hover {
             text-decoration: underline;
         }
         
@@ -223,8 +225,8 @@
     <div class="login-container">
         <div class="logo">
             <h1 class="club-logo">Club Privilèges</h1>
-            <p class="club-subtitle">Profitez de remises exclusives et permanentes</p>
-            <p class="welcome-text">Connectez-vous à votre tableau de bord administrateur<br>pour gérer +1251 commerces partenaires</p>
+            <p class="club-subtitle">Mot de passe oublié</p>
+            <p class="welcome-text">Saisissez votre adresse e-mail pour recevoir<br>un lien de réinitialisation</p>
         </div>
         
         @if(session('error'))
@@ -239,7 +241,7 @@
             </div>
         @endif
         
-        <form id="loginForm" action="{{ route('auth.login') }}" method="POST">
+        <form id="forgotForm" action="{{ route('password.send-reset') }}" method="POST">
             @csrf
             <div class="form-group">
                 <label for="email" class="form-label">Adresse e-mail</label>
@@ -259,46 +261,28 @@
                 @enderror
             </div>
             
-            <div class="form-group">
-                <label for="password" class="form-label">Mot de passe</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    class="form-input" 
-                    required
-                    placeholder="••••••••"
-                >
-                @error('password')
-                    <div class="alert alert-danger" style="margin-top: 8px; margin-bottom: 0;">
-                        {{ $message }}
-                    </div>
-                @enderror
-            </div>
-            
-            <button type="submit" class="btn" id="loginBtn">
+            <button type="submit" class="btn" id="submitBtn">
                 <span class="loading hidden"></span>
-                <span id="loginText">Se connecter</span>
+                <span id="submitText">Envoyer le lien</span>
             </button>
         </form>
         
-        <div class="otp-link">
-            <a href="{{ route('auth.otp.request') }}">Connexion par code OTP</a>
-            <br><br>
-            <a href="{{ route('password.forgot') }}">Mot de passe oublié ?</a>
+        <div class="back-link">
+            <a href="{{ route('auth.login') }}">← Retour à la connexion</a>
         </div>
     </div>
     
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function() {
-            const btn = document.getElementById('loginBtn');
+        document.getElementById('forgotForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
             const loading = btn.querySelector('.loading');
-            const text = document.getElementById('loginText');
+            const text = document.getElementById('submitText');
             
             btn.disabled = true;
             loading.classList.remove('hidden');
-            text.textContent = 'Connexion...';
+            text.textContent = 'Envoi en cours...';
         });
     </script>
 </body>
 </html>
+

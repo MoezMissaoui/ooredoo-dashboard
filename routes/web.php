@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\InvitationController;
+use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\SubStoreController;
 use App\Http\Controllers\Api\DataController;
@@ -30,6 +31,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
     Route::post('/otp/resend', [AuthController::class, 'resendOtp'])->name('auth.otp.resend');
     
+    // Routes de gestion des mots de passe
+    Route::get('/password/forgot', [PasswordController::class, 'showForgotPasswordForm'])->name('password.forgot');
+    Route::post('/password/send-reset', [PasswordController::class, 'sendResetLink'])->name('password.send-reset');
+    Route::get('/password/reset/{token}', [PasswordController::class, 'showResetForm'])->name('password.reset.form');
+    Route::post('/password/reset', [PasswordController::class, 'resetPassword'])->name('password.reset');
+    Route::get('/password/first-login/{token}', [PasswordController::class, 'showFirstLoginForm'])->name('password.first-login');
+    Route::post('/password/first-login', [PasswordController::class, 'processFirstLogin'])->name('password.first-login.process');
 
 });
 
@@ -45,6 +53,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.view');
             Route::get('/dashboard/config', [DashboardController::class, 'getConfig'])->name('dashboard.config');
+    
+    // Routes de gestion des mots de passe (utilisateur connecté)
+    Route::get('/password/change', [PasswordController::class, 'showChangePasswordForm'])->name('password.change');
+    Route::post('/password/change', [PasswordController::class, 'changePassword']);
         
         // API routes pour données dashboard
         Route::get('/api/operators', [DataController::class, 'getUserOperators'])->name('api.user.operators');
