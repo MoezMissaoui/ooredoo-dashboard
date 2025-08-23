@@ -1203,14 +1203,6 @@
           </div>
         </div>
 
-        <div class="control-group">
-          <div class="control-label">
-            <span class="control-icon">⚡</span>
-            <span>Status</span>
-          </div>
-          <div class="status-badge active">Launch Phase</div>
-        </div>
-
                         <div class="action-buttons">
                   <button class="btn-primary enhanced-btn" onclick="loadDashboardData()" id="refresh-btn">
                     <span id="refresh-text">📊 Actualiser</span>
@@ -1316,6 +1308,86 @@
           </div>
         </div>
       </div>
+
+      <!-- Nouveaux KPIs Avancés -->
+      <div class="grid" style="margin-top: 20px;">
+        <h3 style="grid-column: 1 / -1; margin-bottom: 15px; color: var(--text); font-size: 18px; font-weight: 600;">📊 Analyses Avancées</h3>
+        
+        <!-- Activations par Canal -->
+        <div class="card kpi-card">
+          <div class="kpi-title">Activations CB</div>
+          <div class="kpi-value" id="sub-activationsCB">Loading...</div>
+          <div class="kpi-delta" id="sub-activationsCBDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Activations Recharge</div>
+          <div class="kpi-value" id="sub-activationsRecharge">Loading...</div>
+          <div class="kpi-delta" id="sub-activationsRechargeDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Activations Solde Tél.</div>
+          <div class="kpi-value" id="sub-activationsPhone">Loading...</div>
+          <div class="kpi-delta" id="sub-activationsPhoneDelta">Loading...</div>
+        </div>
+
+        <!-- Répartition par Plan -->
+        <div class="card kpi-card">
+          <div class="kpi-title">Plans Journaliers</div>
+          <div class="kpi-value" id="sub-plansDaily">Loading...</div>
+          <div class="kpi-delta" id="sub-plansDailyDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Plans Mensuels</div>
+          <div class="kpi-value" id="sub-plansMonthly">Loading...</div>
+          <div class="kpi-delta" id="sub-plansMonthlyDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Plans Annuels</div>
+          <div class="kpi-value" id="sub-plansAnnual">Loading...</div>
+          <div class="kpi-delta" id="sub-plansAnnualDelta">Loading...</div>
+        </div>
+
+        <!-- Métriques de Performance -->
+        <div class="card kpi-card">
+          <div class="kpi-title">Taux de Renouvellement</div>
+          <div class="kpi-value" id="sub-renewalRate">Loading...</div>
+          <div class="kpi-delta" id="sub-renewalRateDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Durée de Vie Moyenne</div>
+          <div class="kpi-value" id="sub-averageLifespan">Loading...</div>
+          <div class="kpi-delta" id="sub-averageLifespanDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Taux de Réactivation</div>
+          <div class="kpi-value" id="sub-reactivationRate">Loading...</div>
+          <div class="kpi-delta" id="sub-reactivationRateDelta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Graphiques Avancés -->
+      <div class="grid" style="margin-top: 20px;">
+        <div class="card chart-card">
+          <div class="chart-title">Répartition des Activations par Canal</div>
+          <div class="chart-container">
+            <canvas id="activationsByChannelChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">Distribution des Plans d'Abonnement</div>
+          <div class="chart-container">
+            <canvas id="planDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">Analyse de Cohortes - Survie J+30/J+60</div>
+          <div class="chart-container">
+            <canvas id="cohortsAnalysisChart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Tab 3: Detailed Transaction Analysis -->
@@ -1360,6 +1432,21 @@
             <canvas id="transactingUsersChart"></canvas>
           </div>
         </div>
+
+        <!-- Cumulative Charts (separated) -->
+        <div class="card chart-card">
+          <div class="chart-title">Cumulative Transactions</div>
+          <div class="chart-container">
+            <canvas id="transactionVolumeCumulativeChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">Cumulative Transacting Users</div>
+          <div class="chart-container">
+            <canvas id="transactingUsersCumulativeChart"></canvas>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1381,6 +1468,14 @@
             <div class="kpi-title">Active Merchants</div>
             <div class="kpi-value" id="merch-activeMerchants">Loading...</div>
             <div class="kpi-delta" id="merch-activeMerchantsDelta">Loading...</div>
+          </div>
+        </div>
+        <div class="card kpi-card merchants-kpi">
+          <div class="kpi-icon">% </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Active Merchant Ratio</div>
+            <div class="kpi-value" id="merch-activeMerchantRatio">Loading...</div>
+            <div class="kpi-delta" id="merch-activeMerchantRatioDelta">Loading...</div>
           </div>
         </div>
         <div class="card kpi-card merchants-kpi">
@@ -1902,6 +1997,8 @@
 
     // Load dashboard data with simple loading
     async function loadDashboardData() {
+      let timeoutId = null;
+      
       try {
         // Show simple loading
         showLoading();
@@ -1942,7 +2039,7 @@
         
         // Add timeout to prevent hanging
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
         
         const response = await fetch(apiUrl, {
           signal: controller.signal,
@@ -2193,8 +2290,10 @@
     
     // Load available operators with timeout and fallback
     async function loadOperators() {
+      let timeoutId = null;
+      
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
       
       try {
         const response = await fetch('/api/operators', {
@@ -2411,6 +2510,9 @@
 
     // Update dashboard with data - optimized for performance
     function updateDashboard(data) {
+      // Store globally FIRST so dependent functions can safely read it
+      dashboardData = data;
+
       // Update periods immediately
       const primaryPeriodEl = document.getElementById('primaryPeriod');
       if (primaryPeriodEl) {
@@ -2453,6 +2555,29 @@
       updateKPI('sub-deactivatedSubscriptions', kpis.deactivatedSubscriptions);
       updateKPI('sub-retentionRate', kpis.retentionRate, '%');
       
+      // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
+      if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.activations_by_channel) {
+        const activations = dashboardData.subscriptions.activations_by_channel;
+        updateKPI('sub-activationsCB', activations.cb);
+        updateKPI('sub-activationsRecharge', activations.recharge);
+        updateKPI('sub-activationsPhone', activations.phone_balance);
+      }
+      
+      // Nouveaux KPIs Avancés - Plans (avec comparaison)
+      if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.plan_distribution) {
+        const plans = dashboardData.subscriptions.plan_distribution;
+        updateKPI('sub-plansDaily', plans.daily);
+        updateKPI('sub-plansMonthly', plans.monthly);
+        updateKPI('sub-plansAnnual', plans.annual);
+      }
+      
+      // Nouveaux KPIs Avancés - Métriques (avec comparaison)
+      if (dashboardData && dashboardData.subscriptions) {
+        updateKPI('sub-renewalRate', dashboardData.subscriptions.renewal_rate, '%');
+        updateKPI('sub-averageLifespan', dashboardData.subscriptions.average_lifespan, ' jours');
+        updateKPI('sub-reactivationRate', dashboardData.subscriptions.reactivation_rate, '%');
+      }
+      
       // Transaction KPIs
       updateKPI('trans-totalTransactions', kpis.totalTransactions);
       updateKPI('trans-transactingUsers', kpis.transactingUsers);
@@ -2466,6 +2591,9 @@
       updateKPI('merch-totalActivePartnersDB', kpis.totalActivePartnersDB);
       updateKPI('merch-activeMerchants', kpis.activeMerchants);
       updateKPI('merch-transactionsPerMerchant', kpis.transactionsPerMerchant);
+      if (kpis.activeMerchantRatio) {
+        updateKPI('merch-activeMerchantRatio', kpis.activeMerchantRatio, '%');
+      }
       
       // Top merchant info sera mis à jour dans updateTables() avec les nouvelles données
     }
@@ -2539,9 +2667,22 @@
         const change = Number.isFinite(safe.change) ? safe.change : 0;
         const isPositive = change > 0;
         const isNegative = change < 0;
+
+        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated)
+        const inverse = elementId.includes('deactivated');
+        const positiveClass = inverse ? 'delta-negative' : 'delta-positive';
+        const negativeClass = inverse ? 'delta-positive' : 'delta-negative';
         
         deltaElement.textContent = `${isPositive ? '↗' : isNegative ? '↘' : '→'} ${isPositive ? '+' : ''}${change.toFixed(1)}%`;
-        deltaElement.className = `kpi-delta ${isPositive ? 'delta-positive' : isNegative ? 'delta-negative' : 'delta-neutral'}`;
+        deltaElement.className = `kpi-delta ${isPositive ? positiveClass : isNegative ? negativeClass : 'delta-neutral'}`;
+      }
+    }
+
+    // Helper function to update KPI value only (for new KPIs without comparison)
+    function updateKPIValue(id, value, suffix = '') {
+      const element = document.getElementById(id);
+      if (element && value !== undefined && value !== null) {
+        element.textContent = formatNumber(value) + suffix;
       }
     }
 
@@ -2561,6 +2702,11 @@
       // Subscription Charts
       createSubscriptionTrendChart(data);
       createRetentionChart(data);
+      
+      // Nouveaux graphiques de subscription
+      createActivationsByChannelChart(data);
+      createPlanDistributionChart(data);
+      createCohortsAnalysisChart(data);
       
       // Transaction Charts
       createTransactionVolumeChart(data);
@@ -2737,6 +2883,12 @@
       const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
       const transactionData = dailyTransactions.map(item => item.transactions || 0);
       
+      // Build cumulative series
+      const cumulativeTransactions = transactionData.reduce((acc, val, idx) => {
+        acc.push((acc[idx - 1] || 0) + val);
+        return acc;
+      }, []);
+
       charts.transactionVolume = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -2745,24 +2897,31 @@
             label: 'Daily Transactions',
             data: transactionData,
             backgroundColor: THEME_COLORS.accent,
-            borderRadius: 4
+            borderRadius: 4,
+            
+          },{
+            type: 'line',
+            label: 'Cumulative (preview)',
+            data: new Array(transactionData.length).fill(null) // hidden in this chart
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
         }
       });
+
+      const cumCtx = document.getElementById('transactionVolumeCumulativeChart');
+      if (cumCtx) {
+        if (charts.transactionVolumeCumulative) charts.transactionVolumeCumulative.destroy();
+        charts.transactionVolumeCumulative = new Chart(cumCtx, {
+          type: 'line',
+          data: { labels: days, datasets: [{ label: 'Cumulative Transactions', data: cumulativeTransactions, borderColor: THEME_COLORS.primary, backgroundColor: THEME_COLORS.primaryRgba, fill: false, tension: 0.3 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
     }
 
     // Create transacting users chart
@@ -2779,6 +2938,11 @@
       const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
       const userData = dailyTransactions.map(item => item.users || 0);
       
+      const cumulativeUsers = userData.reduce((acc, val, idx) => {
+        acc.push((acc[idx - 1] || 0) + val);
+        return acc;
+      }, []);
+
       charts.transactingUsers = new Chart(ctx, {
         type: 'line',
         data: {
@@ -2790,23 +2954,29 @@
             backgroundColor: THEME_COLORS.warning === '#3b82f6' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
             fill: true,
             tension: 0.4
+          },{
+            type: 'line',
+            label: 'Cumulative (preview)',
+            data: new Array(userData.length).fill(null)
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
         }
       });
+
+      const cumUsersCtx = document.getElementById('transactingUsersCumulativeChart');
+      if (cumUsersCtx) {
+        if (charts.transactingUsersCumulative) charts.transactingUsersCumulative.destroy();
+        charts.transactingUsersCumulative = new Chart(cumUsersCtx, {
+          type: 'line',
+          data: { labels: days, datasets: [{ label: 'Cumulative Users', data: cumulativeUsers, borderColor: THEME_COLORS.primary, backgroundColor: THEME_COLORS.primaryRgba, fill: false, tension: 0.3 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
     }
 
     // Create top merchants chart
@@ -2934,6 +3104,160 @@
             r: {
               beginAtZero: true,
               max: 100
+            }
+          }
+        }
+      });
+    }
+
+    // Nouveaux graphiques pour les KPIs avancés
+
+    // Graphique des activations par canal
+    function createActivationsByChannelChart(data) {
+      const ctx = document.getElementById('activationsByChannelChart');
+      if (!ctx) return;
+      
+      if (charts.activationsByChannel) {
+        charts.activationsByChannel.destroy();
+      }
+      
+      const activations = data.subscriptions?.activations_by_channel || {};
+      // Support both old (numbers) and new (objects with current/previous/change) shapes
+      const cbVal = (activations.cb && typeof activations.cb === 'object') ? (activations.cb.current ?? 0) : (activations.cb ?? 0);
+      const rechargeVal = (activations.recharge && typeof activations.recharge === 'object') ? (activations.recharge.current ?? 0) : (activations.recharge ?? 0);
+      const phoneVal = (activations.phone_balance && typeof activations.phone_balance === 'object') ? (activations.phone_balance.current ?? 0) : (activations.phone_balance ?? 0);
+      const otherVal = (activations.other && typeof activations.other === 'object') ? (activations.other.current ?? 0) : (activations.other ?? 0);
+
+      charts.activationsByChannel = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Carte Bancaire', 'Recharge', 'Solde Téléphonique', 'Autres'],
+          datasets: [{
+            data: [cbVal, rechargeVal, phoneVal, otherVal],
+            backgroundColor: [
+              THEME_COLORS.primary,
+              '#10b981',
+              '#f59e0b',
+              '#6b7280'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique de distribution des plans
+    function createPlanDistributionChart(data) {
+      const ctx = document.getElementById('planDistributionChart');
+      if (!ctx) return;
+      
+      if (charts.planDistribution) {
+        charts.planDistribution.destroy();
+      }
+      
+      const plans = data.subscriptions?.plan_distribution || {};
+      const dailyVal = (plans.daily && typeof plans.daily === 'object') ? (plans.daily.current ?? 0) : (plans.daily ?? 0);
+      const monthlyVal = (plans.monthly && typeof plans.monthly === 'object') ? (plans.monthly.current ?? 0) : (plans.monthly ?? 0);
+      const annualVal = (plans.annual && typeof plans.annual === 'object') ? (plans.annual.current ?? 0) : (plans.annual ?? 0);
+      const otherPlanVal = (plans.other && typeof plans.other === 'object') ? (plans.other.current ?? 0) : (plans.other ?? 0);
+      
+      charts.planDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Journalier', 'Mensuel', 'Annuel', 'Autres'],
+          datasets: [{
+            label: 'Nombre d\'abonnements',
+            data: [dailyVal, monthlyVal, annualVal, otherPlanVal],
+            backgroundColor: [
+              THEME_COLORS.primary,
+              '#10b981',
+              '#f59e0b',
+              '#6b7280'
+            ],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique d'analyse de cohortes
+    function createCohortsAnalysisChart(data) {
+      const ctx = document.getElementById('cohortsAnalysisChart');
+      if (!ctx) return;
+      
+      if (charts.cohortsAnalysis) {
+        charts.cohortsAnalysis.destroy();
+      }
+      
+      const cohorts = data.subscriptions?.cohorts || [];
+      const months = cohorts.map(c => c.month);
+      const survivalD30 = cohorts.map(c => c.survival_d30 || 0);
+      const survivalD60 = cohorts.map(c => c.survival_d60 || 0);
+      
+      charts.cohortsAnalysis = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Survie J+30 (%)',
+              data: survivalD30,
+              borderColor: THEME_COLORS.primary,
+              backgroundColor: THEME_COLORS.primaryRgba,
+              fill: false,
+              tension: 0.4
+            },
+            {
+              label: 'Survie J+60 (%)',
+              data: survivalD60,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: false,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
             }
           }
         }

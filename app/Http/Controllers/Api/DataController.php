@@ -307,6 +307,10 @@ class DataController extends Controller
             // Get merchants data - CALCULS AMÉLIORÉS
             Log::info("5. Calcul des marchands avec nouvelles métriques...");
             
+            // A0. Total marchands en base
+            $totalPartners = DB::table('partner')->count();
+            Log::info("Total partenaires (toutes périodes): $totalPartners");
+
             // A. Total marchands ayant déjà eu des transactions (toute période) via promotion -> partner
             $totalMerchantsEverActive = DB::table('history')
                 ->join('promotion', 'history.promotion_id', '=', 'promotion.promotion_id')
@@ -362,6 +366,8 @@ class DataController extends Controller
             Log::info("Marchands actifs période comparaison: $activeMerchantsComparison");
 
             // Calculs dérivés pour la période principale
+            // Conversion: Transacting users / Active users
+            $conversionRate = $activeSubscriptions > 0 ? round(($transactingUsers / $activeSubscriptions) * 100, 2) : 0;
             $transactionsPerUser = $transactingUsers > 0 ? round($totalTransactions / $transactingUsers, 1) : 0;
             
             // NOUVELLE LOGIQUE: Transactions/Merchant basé sur les transactions de l'opérateur sélectionné
@@ -376,9 +382,9 @@ class DataController extends Controller
 
             // Utiliser ces transactions pour le ratio Transactions/Merchant
             $transactionsPerMerchant = $activeMerchants > 0 ? round($operatorMerchantTransactions / $activeMerchants, 1) : 0;
-            $conversionRate = $activatedSubscriptions > 0 ? round(($totalTransactions / $activatedSubscriptions) * 100, 2) : 0;
             
             // Calculs dérivés pour la période de comparaison
+            $conversionRateComparison = $activeSubscriptionsComparison > 0 ? round(($transactingUsersComparison / $activeSubscriptionsComparison) * 100, 2) : 0;
             $transactionsPerUserComparison = $transactingUsersComparison > 0 ? round($totalTransactionsComparison / $transactingUsersComparison, 1) : 0;
             
             $allTransactionsPeriodComparison = DB::table('history')
@@ -390,7 +396,6 @@ class DataController extends Controller
             Log::info("Transactions opérateur chez marchands (période comparaison): $operatorMerchantTransactionsComparison");
 
             $transactionsPerMerchantComparison = $activeMerchantsComparison > 0 ? round($operatorMerchantTransactionsComparison / $activeMerchantsComparison, 1) : 0;
-            $conversionRateComparison = $activatedSubscriptionsComparison > 0 ? round(($totalTransactionsComparison / $activatedSubscriptionsComparison) * 100, 2) : 0;
 
             // Calculate retention rate (corrected formula: Active Subscriptions / Activated Subscriptions)
             Log::info("7. Calcul du taux de rétention $selectedOperator...");
@@ -413,7 +418,6 @@ class DataController extends Controller
                 ->select('partner.partner_name as name', 'partner.partner_id', DB::raw('COUNT(*) as current'))
                 ->groupBy('partner.partner_name', 'partner.partner_id')
                 ->orderBy('current', 'DESC')
-                ->limit(15)
                 ->get();
             
             // Enrichir avec données période comparaison et catégories
@@ -509,6 +513,22 @@ class DataController extends Controller
                 $currentDate->addDay();
             }
 
+            // === KPIs avancés comparatifs (période courante vs comparaison) ===
+            $activationsCurrent = $this->calculateActivationsByPaymentMethod($startDate, $endDate, $selectedOperator);
+            $activationsPrevious = $this->calculateActivationsByPaymentMethod($comparisonStartDate, $comparisonEndDate, $selectedOperator);
+
+            $plansCurrent = $this->calculatePlanDistribution($startDate, $endDate, $selectedOperator);
+            $plansPrevious = $this->calculatePlanDistribution($comparisonStartDate, $comparisonEndDate, $selectedOperator);
+
+            $renewalCurrent = $this->calculateRenewalRate($startDate, $endDate, $selectedOperator);
+            $renewalPrevious = $this->calculateRenewalRate($comparisonStartDate, $comparisonEndDate, $selectedOperator);
+
+            $lifespanCurrent = $this->calculateAverageLifespan($startDate, $endDate, $selectedOperator);
+            $lifespanPrevious = $this->calculateAverageLifespan($comparisonStartDate, $comparisonEndDate, $selectedOperator);
+
+            $reactivationCurrent = $this->calculateReactivationRate($startDate, $endDate, $selectedOperator);
+            $reactivationPrevious = $this->calculateReactivationRate($comparisonStartDate, $comparisonEndDate, $selectedOperator);
+
             return [
                 "periods" => [
                     "primary" => Carbon::parse($startDate)->format("M j, Y") . " - " . Carbon::parse($endDate)->format("M j, Y"),
@@ -550,6 +570,15 @@ class DataController extends Controller
                         "previous" => $activeMerchantsComparison, 
                         "change" => $this->calculatePercentageChange($activeMerchants, $activeMerchantsComparison)
                     ],
+                    // KPI additionnel: Active merchant ratio (actifs / total)
+                    "activeMerchantRatio" => [
+                        "current" => $totalPartners > 0 ? round(($activeMerchants / $totalPartners) * 100, 1) : 0,
+                        "previous" => $totalPartners > 0 ? round(($activeMerchantsComparison / $totalPartners) * 100, 1) : 0,
+                        "change" => $this->calculatePercentageChange(
+                            $totalPartners > 0 ? round(($activeMerchants / $totalPartners) * 100, 1) : 0,
+                            $totalPartners > 0 ? round(($activeMerchantsComparison / $totalPartners) * 100, 1) : 0
+                        )
+                    ],
                     // Nouveau KPI: total des partenaires actifs selon la DB (flag partner.active = 1)
                     "totalActivePartnersDB" => [
                         "current" => $totalActivePartnersDB,
@@ -582,7 +611,69 @@ class DataController extends Controller
                 ],
                 "subscriptions" => [
                     "daily_activations" => $subscriptionsDailyActivations,
-                    "retention_trend" => $this->calculateRetentionTrend($startDate, $endDate, $selectedOperator)
+                    "retention_trend" => $this->calculateRetentionTrend($startDate, $endDate, $selectedOperator),
+                    // Activations par canal (comparatif par catégorie)
+                    "activations_by_channel" => [
+                        "cb" => [
+                            "current" => $activationsCurrent['cb'] ?? 0,
+                            "previous" => $activationsPrevious['cb'] ?? 0,
+                            "change" => $this->calculatePercentageChange($activationsCurrent['cb'] ?? 0, $activationsPrevious['cb'] ?? 0)
+                        ],
+                        "recharge" => [
+                            "current" => $activationsCurrent['recharge'] ?? 0,
+                            "previous" => $activationsPrevious['recharge'] ?? 0,
+                            "change" => $this->calculatePercentageChange($activationsCurrent['recharge'] ?? 0, $activationsPrevious['recharge'] ?? 0)
+                        ],
+                        "phone_balance" => [
+                            "current" => $activationsCurrent['phone_balance'] ?? 0,
+                            "previous" => $activationsPrevious['phone_balance'] ?? 0,
+                            "change" => $this->calculatePercentageChange($activationsCurrent['phone_balance'] ?? 0, $activationsPrevious['phone_balance'] ?? 0)
+                        ],
+                        "other" => [
+                            "current" => $activationsCurrent['other'] ?? 0,
+                            "previous" => $activationsPrevious['other'] ?? 0,
+                            "change" => $this->calculatePercentageChange($activationsCurrent['other'] ?? 0, $activationsPrevious['other'] ?? 0)
+                        ],
+                    ],
+                    // Répartition des plans (comparatif par catégorie)
+                    "plan_distribution" => [
+                        "daily" => [
+                            "current" => $plansCurrent['daily'] ?? 0,
+                            "previous" => $plansPrevious['daily'] ?? 0,
+                            "change" => $this->calculatePercentageChange($plansCurrent['daily'] ?? 0, $plansPrevious['daily'] ?? 0)
+                        ],
+                        "monthly" => [
+                            "current" => $plansCurrent['monthly'] ?? 0,
+                            "previous" => $plansPrevious['monthly'] ?? 0,
+                            "change" => $this->calculatePercentageChange($plansCurrent['monthly'] ?? 0, $plansPrevious['monthly'] ?? 0)
+                        ],
+                        "annual" => [
+                            "current" => $plansCurrent['annual'] ?? 0,
+                            "previous" => $plansPrevious['annual'] ?? 0,
+                            "change" => $this->calculatePercentageChange($plansCurrent['annual'] ?? 0, $plansPrevious['annual'] ?? 0)
+                        ],
+                        "other" => [
+                            "current" => $plansCurrent['other'] ?? 0,
+                            "previous" => $plansPrevious['other'] ?? 0,
+                            "change" => $this->calculatePercentageChange($plansCurrent['other'] ?? 0, $plansPrevious['other'] ?? 0)
+                        ],
+                    ],
+                    "cohorts" => $this->calculateCohorts($startDate, $endDate, $selectedOperator),
+                    "renewal_rate" => [
+                        "current" => $renewalCurrent,
+                        "previous" => $renewalPrevious,
+                        "change" => $this->calculatePercentageChange($renewalCurrent, $renewalPrevious)
+                    ],
+                    "average_lifespan" => [
+                        "current" => $lifespanCurrent,
+                        "previous" => $lifespanPrevious,
+                        "change" => $this->calculatePercentageChange($lifespanCurrent, $lifespanPrevious)
+                    ],
+                    "reactivation_rate" => [
+                        "current" => $reactivationCurrent,
+                        "previous" => $reactivationPrevious,
+                        "change" => $this->calculatePercentageChange($reactivationCurrent, $reactivationPrevious)
+                    ]
                 ],
                 "insights" => $this->generateRealInsights($activatedSubscriptions, $totalTransactions, $transactingUsers, $activeMerchants, $conversionRate, $retentionRate, $selectedOperator),
                 "last_updated" => now()->toISOString(),
@@ -1359,6 +1450,286 @@ class DataController extends Controller
                 'default_operator' => 'S\'abonner via Timwe',
                 'user_role' => 'guest'
             ], 500);
+        }
+    }
+
+    /**
+     * Calculer les activations par canal de paiement
+     */
+    private function calculateActivationsByPaymentMethod($startDate, $endDate, $operatorFilter = null)
+    {
+        try {
+            $query = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $query->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $rows = $query->select('country_payments_methods.country_payments_methods_name as cpm_name', DB::raw('COUNT(*) as cnt'))
+                ->groupBy('country_payments_methods.country_payments_methods_name')
+                ->get();
+
+            $totals = ['cb' => 0, 'recharge' => 0, 'phone_balance' => 0, 'other' => 0];
+
+            foreach ($rows as $row) {
+                $name = mb_strtolower($row->cpm_name);
+
+                // CB: cibler explicitement la carte bancaire
+                if (str_contains($name, 'banc') || str_contains($name, 'cb')) {
+                    $totals['cb'] += (int) $row->cnt;
+
+                // Recharge: cartes cadeaux / vouchers / recharge
+                } elseif (str_contains($name, 'cadeau') || str_contains($name, 'voucher') || str_contains($name, 'recharg')) {
+                    $totals['recharge'] += (int) $row->cnt;
+
+                // Solde téléphonique / opérateurs (agrégateurs)
+                } elseif (
+                    str_contains($name, 'solde') ||
+                    str_contains($name, 'téléphon') || str_contains($name, 'teleph') ||
+                    str_contains($name, 'orange') || str_contains($name, " tt") || str_contains($name, 'timwe')
+                ) {
+                    $totals['phone_balance'] += (int) $row->cnt;
+                } else {
+                    $totals['other'] += (int) $row->cnt;
+                }
+            }
+
+            return $totals;
+        } catch (\Exception $e) {
+            Log::error("Erreur calcul activations par méthode de paiement: " . $e->getMessage());
+            return ['cb' => 0, 'recharge' => 0, 'phone_balance' => 0, 'other' => 0];
+        }
+    }
+
+    /**
+     * Calculer la répartition par plan d'abonnement
+     */
+    private function calculatePlanDistribution($startDate, $endDate, $operatorFilter = null)
+    {
+        try {
+            // Pas de table plan explicite: déduire la durée via expiration - création
+            // NOTE: Les activations SANS expiration (solde téléphonique quotidien) seront classées en "Journalier"
+            $query = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $query->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $subs = $query->select('client_abonnement_creation', 'client_abonnement_expiration', 'country_payments_methods.country_payments_methods_name as cpm_name')->get();
+
+            $totals = ['daily' => 0, 'monthly' => 0, 'annual' => 0, 'other' => 0];
+            foreach ($subs as $s) {
+                $name = mb_strtolower($s->cpm_name ?? '');
+                $isPhoneBalance = (
+                    str_contains($name, 'solde') ||
+                    str_contains($name, 'téléphon') || str_contains($name, 'teleph') ||
+                    str_contains($name, 'orange') || str_contains($name, ' tt') || str_contains($name, 'timwe')
+                );
+
+                // Si pas d'expiration: classer en Journalier pour le solde téléphonique
+                if (empty($s->client_abonnement_expiration)) {
+                    if ($isPhoneBalance) {
+                        $totals['daily']++;
+                    } else {
+                        $totals['other']++;
+                    }
+                    continue;
+                }
+
+                $days = Carbon::parse($s->client_abonnement_creation)->diffInDays(Carbon::parse($s->client_abonnement_expiration));
+                if ($days <= 2) {
+                    $totals['daily']++;
+                } elseif ($days >= 20 && $days <= 40) {
+                    $totals['monthly']++;
+                } elseif ($days >= 330) {
+                    $totals['annual']++;
+                } else {
+                    $totals['other']++;
+                }
+            }
+
+            return $totals;
+        } catch (\Exception $e) {
+            Log::error("Erreur calcul répartition par plan: " . $e->getMessage());
+            return ['daily' => 0, 'monthly' => 0, 'annual' => 0, 'other' => 0];
+        }
+    }
+
+    /**
+     * Calculer l'analyse de cohortes (survie J+30 et J+60)
+     */
+    private function calculateCohorts($startDate, $endDate, $operatorFilter = null)
+    {
+        try {
+            // Cohortes par mois de démarrage des 6 derniers mois
+            $cohorts = [];
+            
+            for ($i = 5; $i >= 0; $i--) {
+                $cohortMonth = Carbon::parse($startDate)->subMonths($i);
+                $monthStart = $cohortMonth->copy()->startOfMonth();
+                $monthEnd = $cohortMonth->copy()->endOfMonth();
+                
+                // Abonnés ayant commencé ce mois-là
+                $query = DB::table('client_abonnement')
+                    ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                    ->whereBetween('client_abonnement_creation', [$monthStart, $monthEnd]);
+
+                if ($operatorFilter && $operatorFilter !== 'ALL') {
+                    $query->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+                }
+
+                $totalSubscribers = $query->count();
+                
+                if ($totalSubscribers == 0) {
+                    $cohorts[] = [
+                        'month' => $cohortMonth->format('M Y'),
+                        'total' => 0,
+                        'survival_d30' => 0,
+                        'survival_d60' => 0
+                    ];
+                    continue;
+                }
+
+                // Survivants à J+30
+                $survivalD30 = $query->clone()
+                    ->where(function($q) use ($monthStart) {
+                        $q->whereNull('client_abonnement_expiration')
+                          ->orWhere('client_abonnement_expiration', '>=', $monthStart->copy()->addDays(30));
+                    })->count();
+
+                // Survivants à J+60
+                $survivalD60 = $query->clone()
+                    ->where(function($q) use ($monthStart) {
+                        $q->whereNull('client_abonnement_expiration')
+                          ->orWhere('client_abonnement_expiration', '>=', $monthStart->copy()->addDays(60));
+                    })->count();
+
+                $cohorts[] = [
+                    'month' => $cohortMonth->format('M Y'),
+                    'total' => $totalSubscribers,
+                    'survival_d30' => round(($survivalD30 / $totalSubscribers) * 100, 1),
+                    'survival_d60' => round(($survivalD60 / $totalSubscribers) * 100, 1)
+                ];
+            }
+
+            return $cohorts;
+        } catch (\Exception $e) {
+            Log::error("Erreur calcul cohortes: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Calculer le taux de renouvellement
+     */
+    private function calculateRenewalRate($startDate, $endDate, $operatorFilter = null)
+    {
+        try {
+            $expiredQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_expiration', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $expiredQuery->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $expiredSubscriptions = $expiredQuery->count();
+            if ($expiredSubscriptions == 0) return 0;
+
+            $windowDays = 60; // fenêtre de renouvellement
+
+            $renewedQuery = DB::table('client_abonnement as ca1')
+                ->join('country_payments_methods as cpm1', 'ca1.country_payments_methods_id', '=', 'cpm1.country_payments_methods_id')
+                ->join('client_abonnement as ca2', 'ca1.client_id', '=', 'ca2.client_id')
+                ->whereBetween('ca1.client_abonnement_expiration', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where('ca2.client_abonnement_creation', '>', DB::raw('ca1.client_abonnement_expiration'))
+                ->where('ca2.client_abonnement_creation', '<=', DB::raw("DATE_ADD(ca1.client_abonnement_expiration, INTERVAL $windowDays DAY)"));
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $renewedQuery->where('cpm1.country_payments_methods_name', $operatorFilter);
+            }
+
+            $renewedSubscriptions = $renewedQuery->distinct('ca1.client_abonnement_id')->count();
+
+            return round(($renewedSubscriptions / $expiredSubscriptions) * 100, 1);
+        } catch (\Exception $e) {
+            Log::error("Erreur calcul taux de renouvellement: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Calculer la durée de vie moyenne
+     */
+    private function calculateAverageLifespan($startDate, $endDate, $operatorFilter = null)
+    {
+        try {
+            $query = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $query->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $subscriptions = $query->select('client_abonnement_creation', 'client_abonnement_expiration')->get();
+            if ($subscriptions->count() == 0) return 0;
+
+            $totalDays = 0;
+            foreach ($subscriptions as $s) {
+                $start = Carbon::parse($s->client_abonnement_creation);
+                $end = $s->client_abonnement_expiration ? Carbon::parse($s->client_abonnement_expiration) : Carbon::now();
+                $totalDays += $start->diffInDays($end);
+            }
+
+            return round($totalDays / $subscriptions->count(), 1);
+        } catch (\Exception $e) {
+            Log::error("Erreur calcul durée de vie moyenne: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Calculer le taux de réactivation
+     */
+    private function calculateReactivationRate($startDate, $endDate, $operatorFilter = null)
+    {
+        try {
+            // Clients qui ont eu un abonnement expiré avant la période
+            $expiredBeforePeriod = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('client_abonnement_expiration', '<', $startDate);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $expiredBeforePeriod->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $expiredClients = $expiredBeforePeriod->distinct('client_abonnement.client_id')->pluck('client_abonnement.client_id');
+
+            if ($expiredClients->count() == 0) {
+                return 0;
+            }
+
+            // Clients réactivés pendant la période
+            $reactivatedQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereIn('client_abonnement.client_id', $expiredClients)
+                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $reactivatedQuery->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $reactivatedClients = $reactivatedQuery->distinct('client_abonnement.client_id')->count();
+
+            return round(($reactivatedClients / $expiredClients->count()) * 100, 1);
+        } catch (\Exception $e) {
+            Log::error("Erreur calcul taux de réactivation: " . $e->getMessage());
+            return 0;
         }
     }
 }
