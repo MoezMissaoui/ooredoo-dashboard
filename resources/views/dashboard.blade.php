@@ -905,10 +905,22 @@
     /* Merchants Section Styles */
     .merchants-kpis-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 20px;
       margin-bottom: 32px;
     }
+    .merchants-kpis-row .kpi-card { grid-column: span 1 !important; }
+
+    .trans-kpis-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .trans-kpis-row .kpi-card { grid-column: span 1 !important; }
+
+    .sub-kpis-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+    .sub-kpis-row .kpi-card { grid-column: span 1 !important; }
 
     .merchants-kpi {
       grid-column: span 1;
@@ -1110,9 +1122,9 @@
           <a href="{{ route('password.change') }}" class="admin-btn" title="Changer mon mot de passe">🔒 Mot de passe</a>
           
           @if(Auth::user()->canAccessSubStoresDashboard())
-            <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
-              🏪 Sub-Stores
-            </a>
+          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
+            🏪 Sub-Stores
+          </a>
           @endif
           
           <form action="{{ route('auth.logout') }}" method="POST" style="display: inline;">
@@ -1232,33 +1244,59 @@
 
     <!-- Tab 1: Overview -->
     <div id="overview" class="tab-content active">
+      <!-- KPIs Row 1 (4 KPI) -->
       <div class="grid">
-        <!-- Key KPIs -->
         <div class="card kpi-card">
-          <div class="kpi-title">Activated Subscriptions</div>
+          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d’abonnements activés entre start et end (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="activatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="activatedSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Active Subscriptions</div>
+          <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Activés dans la période et encore actifs à la fin (expiration NULL ou > end).">ⓘ</span></div>
           <div class="kpi-value" id="activeSubscriptions">Loading...</div>
           <div class="kpi-delta" id="activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Total Transactions</div>
-          <div class="kpi-value" id="totalTransactions">Loading...</div>
-          <div class="kpi-delta" id="totalTransactionsDelta">Loading...</div>
+          <div class="kpi-title">Engagement Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-value" id="overview-retentionRate">Loading...</div>
+          <div class="kpi-delta" id="overview-retentionRateDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate</div>
+          <div class="kpi-title">Conversion Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
           <div class="kpi-value" id="conversionRate">Loading...</div>
           <div class="progress-bar">
             <div class="progress-fill" id="overview-conversionProgress" style="width: 0%"></div>
           </div>
           <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Target: 30%</div>
         </div>
+      </div>
+
+      <!-- KPIs Row 2 (4 KPI) -->
+      <div class="grid">
+        <div class="card kpi-card">
+          <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
+          <div class="kpi-value" id="totalTransactions">Loading...</div>
+          <div class="kpi-delta" id="totalTransactionsDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Cohort Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions effectuées par les abonnements dont la date de création est dans [start,end).">ⓘ</span></div>
+          <div class="kpi-value" id="cohortTransactions">Loading...</div>
+          <div class="kpi-delta" id="cohortTransactionsDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
+          <div class="kpi-value" id="totalTransactingUsers">Loading...</div>
+          <div class="kpi-delta" id="totalTransactingUsersDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transacting Users (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Clients de la cohorte (créés dans [start,end)) ayant transigé dans la période.">ⓘ</span></div>
+          <div class="kpi-value" id="cohortTransactingUsers">Loading...</div>
+          <div class="kpi-delta" id="cohortTransactingUsersDelta">Loading...</div>
+        </div>
+        </div>
 
         <!-- Overview Chart -->
+      <div class="grid">
         <div class="card chart-card full-width">
           <div class="chart-title">Performance Overview - Period Comparison</div>
           <div class="chart-container">
@@ -1266,45 +1304,73 @@
           </div>
         </div>
       </div>
+
+      <!-- Global snapshots row removed on request -->
     </div>
 
     <!-- Tab 2: Detailed Subscription Analysis -->
     <div id="subscriptions" class="tab-content">
-      <div class="grid">
-        <!-- Subscription KPIs -->
+      <!-- Subscriptions KPIs: Row 1 (4 KPI) -->
+      <div class="sub-kpis-row">
         <div class="card kpi-card">
-          <div class="kpi-title">Activated Subscriptions</div>
+          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d’abonnements activés (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="sub-activatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-activatedSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Active Subscriptions</div>
+          <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Activés dans la période et encore actifs à la fin (expiration NULL ou > end).">ⓘ</span></div>
           <div class="kpi-value" id="sub-activeSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Deactivated</div>
+          <div class="kpi-title">Engagement Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Engagement = Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-retentionRate">Loading...</div>
+          <div class="kpi-delta" id="sub-retentionRateDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-conversionRate">Loading...</div>
+          <div class="kpi-delta" id="sub-conversionRateDelta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Subscriptions KPIs: Row 2 (4 KPI) -->
+      <div class="sub-kpis-row">
+        <div class="card kpi-card">
+          <div class="kpi-title">Deactivated (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte: Activation ∈ [start,end) ET expiration ∈ [start,end).">ⓘ</span></div>
           <div class="kpi-value" id="sub-deactivatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-deactivatedSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Retention Rate</div>
-          <div class="kpi-value" id="sub-retentionRate">Loading...</div>
-          <div class="kpi-delta" id="sub-retentionRateDelta">Loading...</div>
+          <div class="kpi-title">Deactivated (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte: Abonnements créés dans [start,end) puis expirés dans la période.">ⓘ</span></div>
+          <div class="kpi-value" id="sub-lostSubscriptions">Loading...</div>
+          <div class="kpi-delta" id="sub-lostSubscriptionsDelta">Loading...</div>
         </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Taux de churn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Churn = Deactivated (Cohorte) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-retentionRateTrue">Loading...</div>
+          <div class="kpi-delta" id="sub-retentionRateTrueDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transactions (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-totalTransactions">Loading...</div>
+          <div class="kpi-delta" id="sub-totalTransactionsDelta">Loading...</div>
+        </div>
+      </div>
 
-        <!-- Subscription Trends -->
+      <!-- Subscription Trends (two charts side by side) -->
+      <div class="grid">
         <div class="card chart-card">
-          <div class="chart-title">Daily Activated Subscriptions</div>
+          <div class="chart-title">Engagement Rate Trend</div>
           <div class="chart-container">
-            <canvas id="subscriptionTrendChart"></canvas>
+            <canvas id="retentionChart"></canvas>
           </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Retention Rate Trend</div>
+          <div class="chart-title">Daily Activated Subscriptions</div>
           <div class="chart-container">
-            <canvas id="retentionChart"></canvas>
+            <canvas id="subscriptionTrendChart"></canvas>
           </div>
         </div>
       </div>
@@ -1365,6 +1431,8 @@
         </div>
       </div>
 
+      
+
       <!-- Graphiques Avancés -->
       <div class="grid" style="margin-top: 20px;">
         <div class="card chart-card">
@@ -1392,31 +1460,39 @@
 
     <!-- Tab 3: Detailed Transaction Analysis -->
     <div id="transactions" class="tab-content">
-      <div class="grid">
+      <div class="trans-kpis-row">
         <!-- Transaction KPIs -->
         <div class="card kpi-card">
-          <div class="kpi-title">Total Transactions</div>
+          <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="trans-totalTransactions">Loading...</div>
           <div class="kpi-delta" id="trans-totalTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transacting Users</div>
+          <div class="kpi-title">Transacting Users <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
           <div class="kpi-value" id="trans-transactingUsers">Loading...</div>
           <div class="kpi-delta" id="trans-transactingUsersDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transactions/User</div>
+          <div class="kpi-title">Transacting Users (Global) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Clients ayant transigé avant ou à end (history.time < end).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-transactingUsersGlobal">Loading...</div>
+          <div class="kpi-delta" id="trans-transactingUsersGlobalDelta">—</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transactions/User <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions (période) / Utilisateurs transigeants (période).">ⓘ</span></div>
           <div class="kpi-value" id="trans-transactionsPerUser">Loading...</div>
           <div class="kpi-delta" id="trans-transactionsPerUserDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate</div>
+          <div class="kpi-title">Conversion Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
           <div class="kpi-value" id="trans-conversionRate">Loading...</div>
           <div class="progress-bar">
             <div class="progress-fill" id="trans-conversionProgress" style="width: 0%"></div>
           </div>
           <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Target: 30%</div>
         </div>
+        </div>
+
+      <div class="grid">
 
         <!-- Transaction Charts -->
         <div class="card chart-card">
@@ -1457,7 +1533,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🏪</div>
           <div class="kpi-content">
-            <div class="kpi-title">Total Merchants</div>
+            <div class="kpi-title">Total Merchants <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de partenaires (table partner).">ⓘ</span></div>
             <div class="kpi-value" id="merch-totalActivePartnersDB">Loading...</div>
             <div class="kpi-delta" id="merch-totalActivePartnersDBDelta">→ 0.0%</div>
           </div>
@@ -1465,7 +1541,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">📈</div>
           <div class="kpi-content">
-            <div class="kpi-title">Active Merchants</div>
+            <div class="kpi-title">Active Merchants <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Marchands ayant eu au moins une transaction dans la période (history.time ∈ [start,end)).">ⓘ</span></div>
             <div class="kpi-value" id="merch-activeMerchants">Loading...</div>
             <div class="kpi-delta" id="merch-activeMerchantsDelta">Loading...</div>
           </div>
@@ -1473,7 +1549,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">% </div>
           <div class="kpi-content">
-            <div class="kpi-title">Active Merchant Ratio</div>
+            <div class="kpi-title">Active Merchant Ratio <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Active Merchants) / (Total Merchants) × 100.">ⓘ</span></div>
             <div class="kpi-value" id="merch-activeMerchantRatio">Loading...</div>
             <div class="kpi-delta" id="merch-activeMerchantRatioDelta">Loading...</div>
           </div>
@@ -1481,7 +1557,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">💳</div>
           <div class="kpi-content">
-            <div class="kpi-title">Transactions/Merchant</div>
+            <div class="kpi-title">Transactions/Merchant <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions opérateur chez marchands / Marchands actifs (période).">ⓘ</span></div>
             <div class="kpi-value" id="merch-transactionsPerMerchant">Loading...</div>
             <div class="kpi-delta" id="merch-transactionsPerMerchantDelta">Loading...</div>
           </div>
@@ -1489,7 +1565,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🏆</div>
           <div class="kpi-content">
-            <div class="kpi-title">Top Merchant</div>
+            <div class="kpi-title">Top Merchant <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Meilleur marchand par volume (part de marché période).">ⓘ</span></div>
             <div class="kpi-value" id="merch-topMerchantShare">Loading...</div>
             <div class="kpi-delta" id="merch-topMerchantName">Loading...</div>
           </div>
@@ -1497,7 +1573,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🎯</div>
           <div class="kpi-content">
-            <div class="kpi-title">Diversity</div>
+            <div class="kpi-title">Diversity <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Niveau basé sur le nombre de marchands actifs (période).">ⓘ</span></div>
             <div class="kpi-value" id="merch-diversity">Loading...</div>
             <div class="kpi-delta" id="merch-diversityDetail">Loading...</div>
           </div>
@@ -2079,7 +2155,7 @@
         
         // Show success notification after everything is updated
         setTimeout(() => {
-          showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
+        showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
         }, 100);
         
       } catch (error) {
@@ -2529,11 +2605,11 @@
       
       // Update other components with small delays to avoid blocking
       requestAnimationFrame(() => {
-        updateCharts(data);
-        
+      updateCharts(data);
+      
         requestAnimationFrame(() => {
-          updateTables(data);
-          updateMerchantKPIs(data.merchants, data.kpis);
+      updateTables(data);
+      updateMerchantKPIs(data.merchants, data.kpis);
         });
       });
     }
@@ -2544,7 +2620,19 @@
       updateKPI('activatedSubscriptions', kpis.activatedSubscriptions);
       updateKPI('activeSubscriptions', kpis.activeSubscriptions);
       updateKPI('totalTransactions', kpis.totalTransactions);
+      if (kpis.cohortTransactions) {
+        updateKPI('cohortTransactions', kpis.cohortTransactions);
+      }
+      if (kpis.cohortTransactingUsers) {
+        updateKPI('cohortTransactingUsers', kpis.cohortTransactingUsers);
+      }
+      // Total Transacting Users (période)
+      updateKPI('totalTransactingUsers', kpis.transactingUsers);
       updateKPI('conversionRate', kpis.conversionRate, '%');
+      // Overview engagement rate (mirror of subscriptions retentionRate)
+      if (kpis.retentionRate) {
+        updateKPI('overview-retentionRate', kpis.retentionRate, '%');
+      }
       
       // Update Overview conversion progress bar
       updateOverviewConversionProgressBar(kpis.conversionRate);
@@ -2554,6 +2642,12 @@
       updateKPI('sub-activeSubscriptions', kpis.activeSubscriptions);
       updateKPI('sub-deactivatedSubscriptions', kpis.deactivatedSubscriptions);
       updateKPI('sub-retentionRate', kpis.retentionRate, '%');
+      if (kpis.lostSubscriptions) {
+        updateKPI('sub-lostSubscriptions', kpis.lostSubscriptions);
+      }
+      if (kpis.retentionRateTrue) {
+        updateKPI('sub-retentionRateTrue', kpis.retentionRateTrue, '%');
+      }
       
       // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
       if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.activations_by_channel) {
@@ -2577,10 +2671,17 @@
         updateKPI('sub-averageLifespan', dashboardData.subscriptions.average_lifespan, ' jours');
         updateKPI('sub-reactivationRate', dashboardData.subscriptions.reactivation_rate, '%');
       }
+
+      // Valeurs transactions & conversion affichées désormais en haut
+      updateKPI('sub-totalTransactions', kpis.totalTransactions);
+      updateKPI('sub-conversionRate', kpis.conversionRate, '%');
       
       // Transaction KPIs
       updateKPI('trans-totalTransactions', kpis.totalTransactions);
       updateKPI('trans-transactingUsers', kpis.transactingUsers);
+      if (kpis.transactingUsersGlobal) {
+        updateKPI('trans-transactingUsersGlobal', kpis.transactingUsersGlobal);
+      }
       updateKPI('trans-transactionsPerUser', kpis.transactionsPerUser);
       updateKPI('trans-conversionRate', kpis.conversionRate, '%');
       
@@ -2594,6 +2695,9 @@
       if (kpis.activeMerchantRatio) {
         updateKPI('merch-activeMerchantRatio', kpis.activeMerchantRatio, '%');
       }
+
+      // Global snapshots
+      // Global snapshot row removed
       
       // Top merchant info sera mis à jour dans updateTables() avec les nouvelles données
     }
@@ -2668,8 +2772,8 @@
         const isPositive = change > 0;
         const isNegative = change < 0;
 
-        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated)
-        const inverse = elementId.includes('deactivated');
+        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated, churn)
+        const inverse = elementId.includes('deactivated') || elementId.includes('churn') || elementId.includes('lostSubscriptions') || elementId.includes('retentionRateTrue');
         const positiveClass = inverse ? 'delta-negative' : 'delta-positive';
         const negativeClass = inverse ? 'delta-positive' : 'delta-negative';
         
@@ -2830,15 +2934,15 @@
       
       // Use real retention trend data from backend
       const retentionTrend = data.subscriptions?.retention_trend || [];
-      const days = retentionTrend.map((item, index) => `Day ${index + 1}`);
-      const retentionData = retentionTrend.map(item => item.rate || 0);
+      const days = retentionTrend.map((item) => item.date);
+      const retentionData = retentionTrend.map(item => Number(item.rate || 0));
       
       charts.retention = new Chart(ctx, {
         type: 'line',
         data: {
           labels: days,
           datasets: [{
-            label: 'Retention Rate (%)',
+            label: 'Engagement Rate (%)',
             data: retentionData,
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -2856,12 +2960,10 @@
           },
           scales: {
             y: {
-              min: 0,
-              max: 100,
+              beginAtZero: true,
+              suggestedMax: 100,
               ticks: {
-                callback: function(value) {
-                  return value + '%';
-                }
+                callback: function(value) { return value + '%'; }
               }
             }
           }
@@ -2888,7 +2990,7 @@
         acc.push((acc[idx - 1] || 0) + val);
         return acc;
       }, []);
-
+      
       charts.transactionVolume = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -2942,7 +3044,7 @@
         acc.push((acc[idx - 1] || 0) + val);
         return acc;
       }, []);
-
+      
       charts.transactingUsers = new Chart(ctx, {
         type: 'line',
         data: {

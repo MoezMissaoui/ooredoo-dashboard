@@ -176,12 +176,19 @@ class DataController extends Controller
             Log::info("Période comparaison: $comparisonStartDate à $comparisonEndDate");
             Log::info("Opérateur filtré: $selectedOperator");
             
+            // Normaliser bornes demi-ouvertes [start, end)
+            $startBound = Carbon::parse($startDate)->startOfDay();
+            $endExclusive = Carbon::parse($endDate)->addDay()->startOfDay();
+            $compStartBound = Carbon::parse($comparisonStartDate)->startOfDay();
+            $compEndExclusive = Carbon::parse($comparisonEndDate)->addDay()->startOfDay();
+
             // === PÉRIODE PRINCIPALE ===
             Log::info("1. Calcul des KPIs période principale ($selectedOperator uniquement)...");
             
             $activatedSubscriptionsQuery = DB::table("client_abonnement")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->whereBetween("client_abonnement_creation", [$startDate, Carbon::parse($endDate)->endOfDay()]);
+                ->where("client_abonnement_creation", ">=", $startBound)
+                ->where("client_abonnement_creation", "<", $endExclusive);
             
             if ($selectedOperator !== 'ALL') {
                 $activatedSubscriptionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
@@ -195,7 +202,8 @@ class DataController extends Controller
             
             $activatedSubscriptionsComparisonQuery = DB::table("client_abonnement")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->whereBetween("client_abonnement_creation", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()]);
+                ->where("client_abonnement_creation", ">=", $compStartBound)
+                ->where("client_abonnement_creation", "<", $compEndExclusive);
             
             if ($selectedOperator !== 'ALL') {
                 $activatedSubscriptionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
@@ -204,36 +212,36 @@ class DataController extends Controller
             $activatedSubscriptionsComparison = $activatedSubscriptionsComparisonQuery->count();
             Log::info("Abonnements activés $selectedOperator (comparaison): $activatedSubscriptionsComparison");
 
-            $activeSubscriptionsQuery = DB::table("client")
-                ->join("client_abonnement", "client.client_id", "=", "client_abonnement.client_id")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->where("client.active_subscription", 1)
-                ->whereBetween("client.created_at", [$startDate, Carbon::parse($endDate)->endOfDay()])
-                ->distinct("client.client_id");
-            
+            // Actifs parmi les activations de la période: créés dans la période et non expirés à la fin de période
+            $activeSubscriptionsQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where(function($q) use ($endDate) {
+                    $q->whereNull('client_abonnement_expiration')
+                      ->orWhere('client_abonnement_expiration', '>', Carbon::parse($endDate)->endOfDay());
+                });
             if ($selectedOperator !== 'ALL') {
-                $activeSubscriptionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
+                $activeSubscriptionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
             }
-            
             $activeSubscriptions = $activeSubscriptionsQuery->count();
                 
-            $activeSubscriptionsComparisonQuery = DB::table("client")
-                ->join("client_abonnement", "client.client_id", "=", "client_abonnement.client_id")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->where("client.active_subscription", 1)
-                ->whereBetween("client.created_at", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
-                ->distinct("client.client_id");
-            
+            $activeSubscriptionsComparisonQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
+                ->where(function($q) use ($comparisonEndDate) {
+                    $q->whereNull('client_abonnement_expiration')
+                      ->orWhere('client_abonnement_expiration', '>', Carbon::parse($comparisonEndDate)->endOfDay());
+                });
             if ($selectedOperator !== 'ALL') {
-                $activeSubscriptionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
+                $activeSubscriptionsComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
             }
-            
             $activeSubscriptionsComparison = $activeSubscriptionsComparisonQuery->count();
 
             $deactivatedSubscriptionsQuery = DB::table("client_abonnement")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
                 ->whereNotNull("client_abonnement_expiration")
-                ->whereBetween("client_abonnement_expiration", [$startDate, Carbon::parse($endDate)->endOfDay()]);
+                ->where("client_abonnement_expiration", ">=", $startBound)
+                ->where("client_abonnement_expiration", "<", $endExclusive);
             
             if ($selectedOperator !== 'ALL') {
                 $deactivatedSubscriptionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
@@ -244,7 +252,8 @@ class DataController extends Controller
             $deactivatedSubscriptionsComparisonQuery = DB::table("client_abonnement")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
                 ->whereNotNull("client_abonnement_expiration")
-                ->whereBetween("client_abonnement_expiration", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()]);
+                ->where("client_abonnement_expiration", ">=", $compStartBound)
+                ->where("client_abonnement_expiration", "<", $compEndExclusive);
             
             if ($selectedOperator !== 'ALL') {
                 $deactivatedSubscriptionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
@@ -252,11 +261,37 @@ class DataController extends Controller
             
             $deactivatedSubscriptionsComparison = $deactivatedSubscriptionsComparisonQuery->count();
 
+            // Abonnements perdus: activation ET désactivation dans la période
+            $lostSubscriptionsQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->whereNotNull('client_abonnement_expiration')
+                ->whereBetween('client_abonnement_expiration', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+
+            if ($selectedOperator !== 'ALL') {
+                $lostSubscriptionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+
+            $lostSubscriptions = $lostSubscriptionsQuery->count();
+
+            $lostSubscriptionsComparisonQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
+                ->whereNotNull('client_abonnement_expiration')
+                ->whereBetween('client_abonnement_expiration', [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()]);
+
+            if ($selectedOperator !== 'ALL') {
+                $lostSubscriptionsComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+
+            $lostSubscriptionsComparison = $lostSubscriptionsComparisonQuery->count();
+
             Log::info("3. Calcul des transactions totales $selectedOperator (table history)...");
             $totalTransactionsQuery = DB::table("history")
                 ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->whereBetween("history.time", [$startDate, Carbon::parse($endDate)->endOfDay()]);
+                ->where("history.time", ">=", $startBound)
+                ->where("history.time", "<", $endExclusive);
             
             if ($selectedOperator !== 'ALL') {
                 $totalTransactionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
@@ -265,10 +300,24 @@ class DataController extends Controller
             $totalTransactions = $totalTransactionsQuery->count();
             Log::info("Total transactions $selectedOperator (principal): $totalTransactions");
             
+            // Transactions effectuées par les abonnements dont la création est dans la période (cohorte période)
+            $cohortTransactionsQuery = DB::table('history')
+                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('history.time', '>=', $startBound)
+                ->where('history.time', '<', $endExclusive)
+                ->where('client_abonnement.client_abonnement_creation', '>=', $startBound)
+                ->where('client_abonnement.client_abonnement_creation', '<', $endExclusive);
+            if ($selectedOperator !== 'ALL') {
+                $cohortTransactionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+            $cohortTransactions = $cohortTransactionsQuery->count();
+            
             $totalTransactionsComparisonQuery = DB::table("history")
                 ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->whereBetween("history.time", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()]);
+                ->where("history.time", ">=", $compStartBound)
+                ->where("history.time", "<", $compEndExclusive);
             
             if ($selectedOperator !== 'ALL') {
                 $totalTransactionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
@@ -277,11 +326,49 @@ class DataController extends Controller
             $totalTransactionsComparison = $totalTransactionsComparisonQuery->count();
             Log::info("Total transactions $selectedOperator (comparaison): $totalTransactionsComparison");
 
+            $cohortTransactionsComparisonQuery = DB::table('history')
+                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('history.time', '>=', $compStartBound)
+                ->where('history.time', '<', $compEndExclusive)
+                ->where('client_abonnement.client_abonnement_creation', '>=', $compStartBound)
+                ->where('client_abonnement.client_abonnement_creation', '<', $compEndExclusive);
+            if ($selectedOperator !== 'ALL') {
+                $cohortTransactionsComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+            $cohortTransactionsComparison = $cohortTransactionsComparisonQuery->count();
+
+            // Transacting users de la cohorte (créés dans la période et ayant transigé dans la période)
+            $cohortTransactingUsersQuery = DB::table('history')
+                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('history.time', '>=', $startBound)
+                ->where('history.time', '<', $endExclusive)
+                ->where('client_abonnement.client_abonnement_creation', '>=', $startBound)
+                ->where('client_abonnement.client_abonnement_creation', '<', $endExclusive);
+            if ($selectedOperator !== 'ALL') {
+                $cohortTransactingUsersQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+            $cohortTransactingUsers = $cohortTransactingUsersQuery->distinct('client_abonnement.client_id')->count('client_abonnement.client_id');
+
+            $cohortTransactingUsersComparisonQuery = DB::table('history')
+                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('history.time', '>=', $compStartBound)
+                ->where('history.time', '<', $compEndExclusive)
+                ->where('client_abonnement.client_abonnement_creation', '>=', $compStartBound)
+                ->where('client_abonnement.client_abonnement_creation', '<', $compEndExclusive);
+            if ($selectedOperator !== 'ALL') {
+                $cohortTransactingUsersComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+            $cohortTransactingUsersComparison = $cohortTransactingUsersComparisonQuery->distinct('client_abonnement.client_id')->count('client_abonnement.client_id');
+
             Log::info("4. Calcul des utilisateurs $selectedOperator avec transactions...");
             $transactingUsersQuery = DB::table("history")
                 ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->whereBetween("history.time", [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where("history.time", ">=", $startBound)
+                ->where("history.time", "<", $endExclusive)
                 ->distinct("client_abonnement.client_id");
             
             if ($selectedOperator !== 'ALL') {
@@ -294,7 +381,8 @@ class DataController extends Controller
             $transactingUsersComparisonQuery = DB::table("history")
                 ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->whereBetween("history.time", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
+                ->where("history.time", ">=", $compStartBound)
+                ->where("history.time", "<", $compEndExclusive)
                 ->distinct("client_abonnement.client_id");
             
             if ($selectedOperator !== 'ALL') {
@@ -310,7 +398,7 @@ class DataController extends Controller
             // A0. Total marchands en base
             $totalPartners = DB::table('partner')->count();
             Log::info("Total partenaires (toutes périodes): $totalPartners");
-
+            
             // A. Total marchands ayant déjà eu des transactions (toute période) via promotion -> partner
             $totalMerchantsEverActive = DB::table('history')
                 ->join('promotion', 'history.promotion_id', '=', 'promotion.promotion_id')
@@ -366,13 +454,14 @@ class DataController extends Controller
             Log::info("Marchands actifs période comparaison: $activeMerchantsComparison");
 
             // Calculs dérivés pour la période principale
-            // Conversion: Transacting users / Active users
-            $conversionRate = $activeSubscriptions > 0 ? round(($transactingUsers / $activeSubscriptions) * 100, 2) : 0;
+            // Conversion: Transacting Users (Cohorte) / Active Subscriptions (période)
+            $conversionRate = $activeSubscriptions > 0 ? round(($cohortTransactingUsers / $activeSubscriptions) * 100, 2) : 0;
             $transactionsPerUser = $transactingUsers > 0 ? round($totalTransactions / $transactingUsers, 1) : 0;
             
             // NOUVELLE LOGIQUE: Transactions/Merchant basé sur les transactions de l'opérateur sélectionné
             $allTransactionsPeriod = DB::table('history')
-                ->whereBetween('time', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where('time', '>=', $startBound)
+                ->where('time', '<', $endExclusive)
                 ->count();
             Log::info("Total transactions toutes catégories (période principale): $allTransactionsPeriod");
 
@@ -384,11 +473,12 @@ class DataController extends Controller
             $transactionsPerMerchant = $activeMerchants > 0 ? round($operatorMerchantTransactions / $activeMerchants, 1) : 0;
             
             // Calculs dérivés pour la période de comparaison
-            $conversionRateComparison = $activeSubscriptionsComparison > 0 ? round(($transactingUsersComparison / $activeSubscriptionsComparison) * 100, 2) : 0;
+            $conversionRateComparison = $activeSubscriptionsComparison > 0 ? round(($cohortTransactingUsersComparison / $activeSubscriptionsComparison) * 100, 2) : 0;
             $transactionsPerUserComparison = $transactingUsersComparison > 0 ? round($totalTransactionsComparison / $transactingUsersComparison, 1) : 0;
             
             $allTransactionsPeriodComparison = DB::table('history')
-                ->whereBetween('time', [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
+                ->where('time', '>=', $compStartBound)
+                ->where('time', '<', $compEndExclusive)
                 ->count();
             Log::info("Total transactions toutes catégories (période comparaison): $allTransactionsPeriodComparison");
             
@@ -400,15 +490,19 @@ class DataController extends Controller
             // Calculate retention rate (corrected formula: Active Subscriptions / Activated Subscriptions)
             Log::info("7. Calcul du taux de rétention $selectedOperator...");
             
-            // Nouvelle formule: Retention Rate = Active Subscriptions / Activated Subscriptions
+            // Engagement Rate = Active Subscriptions (période) / Activated Subscriptions (période)
             $retentionRate = $activatedSubscriptions > 0 ? round(($activeSubscriptions / $activatedSubscriptions) * 100, 1) : 0;
             Log::info("Abonnements activés $selectedOperator: $activatedSubscriptions");
             Log::info("Abonnements actifs $selectedOperator: $activeSubscriptions");
             Log::info("Taux de rétention $selectedOperator: $retentionRate%");
             
-            // Calcul du taux de rétention pour la période de comparaison (même formule corrigée)
+            // Calcul de l'engagement pour la période de comparaison
             $retentionRateComparison = $activatedSubscriptionsComparison > 0 ? round(($activeSubscriptionsComparison / $activatedSubscriptionsComparison) * 100, 1) : 0;
             Log::info("Taux de rétention période comparaison $selectedOperator: $retentionRateComparison%");
+
+            // Vrai taux de perte (demandé) = abonnements perdus / activations
+            $retentionRateTrue = $activatedSubscriptions > 0 ? round(($lostSubscriptions / $activatedSubscriptions) * 100, 1) : 0;
+            $retentionRateTrueComparison = $activatedSubscriptionsComparison > 0 ? round(($lostSubscriptionsComparison / $activatedSubscriptionsComparison) * 100, 1) : 0;
 
             // Fetch TOP MERCHANTS avec données complètes
             Log::info("6. Récupération TOP MERCHANTS avec catégories...");
@@ -457,7 +551,8 @@ class DataController extends Controller
                 ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
                 ->select(DB::raw("DATE(history.time) as date"), DB::raw("COUNT(*) as transactions"), DB::raw("COUNT(DISTINCT client_abonnement.client_id) as users"))
-                ->whereBetween("history.time", [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where("history.time", ">=", $startBound)
+                ->where("history.time", "<", $endExclusive)
                 ->when($selectedOperator !== 'ALL', function($query) use ($selectedOperator) {
                     return $query->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
                 })
@@ -488,7 +583,8 @@ class DataController extends Controller
             // Fetch daily subscriptions - générer un point pour chaque jour
             $activationsRaw = DB::table("client_abonnement")
                 ->select(DB::raw("DATE(client_abonnement_creation) as date"), DB::raw("COUNT(*) as activations"))
-                ->whereBetween("client_abonnement_creation", [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where("client_abonnement_creation", ">=", $startBound)
+                ->where("client_abonnement_creation", "<", $endExclusive)
                 ->groupBy(DB::raw("DATE(client_abonnement_creation)"))
                 ->orderBy("date")
                 ->get()
@@ -529,6 +625,58 @@ class DataController extends Controller
             $reactivationCurrent = $this->calculateReactivationRate($startDate, $endDate, $selectedOperator);
             $reactivationPrevious = $this->calculateReactivationRate($comparisonStartDate, $comparisonEndDate, $selectedOperator);
 
+            // === NOUVEAU: Bloc GLOBAL en mode COHORTE (créés dans [start,end)) ===
+            $cohortBaseQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('client_abonnement_creation', '>=', $startBound)
+                ->where('client_abonnement_creation', '<', $endExclusive);
+            if ($selectedOperator !== 'ALL') {
+                $cohortBaseQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+            $cohortSize = (clone $cohortBaseQuery)->count();
+
+            $cohortActiveEnd = (clone $cohortBaseQuery)
+                ->where(function($q) use ($endExclusive) {
+                    $q->whereNull('client_abonnement_expiration')
+                      ->orWhere('client_abonnement_expiration', '>=', $endExclusive);
+                })
+                ->count();
+
+            $cohortChurn = (clone $cohortBaseQuery)
+                ->whereNotNull('client_abonnement_expiration')
+                ->where('client_abonnement_expiration', '>=', $startBound)
+                ->where('client_abonnement_expiration', '<', $endExclusive)
+                ->count();
+
+            $cohortActiveRate = $cohortSize > 0 ? round(($cohortActiveEnd / $cohortSize) * 100, 1) : 0.0;
+            $cohortChurnRate  = $cohortSize > 0 ? round(($cohortChurn / $cohortSize) * 100, 1) : 0.0;
+
+            // Cohorte période de comparaison
+            $cohortCompBase = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('client_abonnement_creation', '>=', $compStartBound)
+                ->where('client_abonnement_creation', '<', $compEndExclusive);
+            if ($selectedOperator !== 'ALL') {
+                $cohortCompBase->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+            }
+            $cohortActiveEndComparison = (clone $cohortCompBase)
+                ->where(function($q) use ($compEndExclusive) {
+                    $q->whereNull('client_abonnement_expiration')
+                      ->orWhere('client_abonnement_expiration', '>=', $compEndExclusive);
+                })
+                ->count();
+
+            // Transacting users GLOBAL (cumul ≤ end) et PÉRIODE
+            $transactingUsersGlobal = DB::table('history')
+                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->where('history.time', '<', $endExclusive)
+                ->when($selectedOperator !== 'ALL', function($q) use ($selectedOperator) {
+                    return $q->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+                })
+                ->distinct('client_abonnement.client_id')
+                ->count('client_abonnement.client_id');
+
             return [
                 "periods" => [
                     "primary" => Carbon::parse($startDate)->format("M j, Y") . " - " . Carbon::parse($endDate)->format("M j, Y"),
@@ -550,15 +698,41 @@ class DataController extends Controller
                         "previous" => $deactivatedSubscriptionsComparison, 
                         "change" => $this->calculatePercentageChange($deactivatedSubscriptions, $deactivatedSubscriptionsComparison)
                     ],
+                    // Nouveau KPI : abonnements perdus (activation ET désactivation dans la période)
+                    "lostSubscriptions" => [
+                        "current" => $lostSubscriptions,
+                        "previous" => $lostSubscriptionsComparison,
+                        "change" => $this->calculatePercentageChange($lostSubscriptions, $lostSubscriptionsComparison)
+                    ],
                     "totalTransactions" => [
                         "current" => $totalTransactions, 
                         "previous" => $totalTransactionsComparison, 
                         "change" => $this->calculatePercentageChange($totalTransactions, $totalTransactionsComparison)
                     ],
+                    "cohortTransactions" => [
+                        "current" => $cohortTransactions,
+                        "previous" => $cohortTransactionsComparison,
+                        "change" => $this->calculatePercentageChange($cohortTransactions, $cohortTransactionsComparison)
+                    ],
+                    "cohortTransactingUsers" => [
+                        "current" => $cohortTransactingUsers,
+                        "previous" => $cohortTransactingUsersComparison,
+                        "change" => $this->calculatePercentageChange($cohortTransactingUsers, $cohortTransactingUsersComparison)
+                    ],
+                    "cohortActiveSubscriptions" => [
+                        "current" => $cohortActiveEnd,
+                        "previous" => $cohortActiveEndComparison,
+                        "change" => $this->calculatePercentageChange($cohortActiveEnd, $cohortActiveEndComparison)
+                    ],
                     "transactingUsers" => [
                         "current" => $transactingUsers, 
                         "previous" => $transactingUsersComparison, 
                         "change" => $this->calculatePercentageChange($transactingUsers, $transactingUsersComparison)
+                    ],
+                    "transactingUsersGlobal" => [
+                        "current" => $transactingUsersGlobal,
+                        "previous" => $transactingUsersGlobal, // snapshot, pas de delta pertinent
+                        "change" => 0.0
                     ],
                     "transactionsPerUser" => [
                         "current" => $transactionsPerUser, 
@@ -585,6 +759,12 @@ class DataController extends Controller
                         "previous" => $totalActivePartnersDB,
                         "change" => 0.0
                     ],
+                    // Total partenaires (toutes périodes)
+                    "totalPartners" => [
+                        "current" => $totalPartners,
+                        "previous" => $totalPartners,
+                        "change" => 0.0
+                    ],
                     "totalMerchantsEverActive" => $totalMerchantsEverActive,
                     "allTransactionsPeriod" => $allTransactionsPeriod,
                     "transactionsPerMerchant" => [
@@ -601,6 +781,20 @@ class DataController extends Controller
                         "current" => $retentionRate, 
                         "previous" => $retentionRateComparison, 
                         "change" => $this->calculatePercentageChange($retentionRate, $retentionRateComparison)
+                    ],
+                    // KPI demandé: "vrai retention rate" = perdus / activés (en %) (techniquement churn)
+                    "retentionRateTrue" => [
+                        "current" => $retentionRateTrue,
+                        "previous" => $retentionRateTrueComparison,
+                        "change" => $this->calculatePercentageChange($retentionRateTrue, $retentionRateTrueComparison)
+                    ],
+                    // Bloc GLOBAL (mode cohorte: création ∈ [start,end))
+                    "_global" => [
+                        "cohortSize" => $cohortSize,
+                        "cohortActiveEnd" => $cohortActiveEnd,
+                        "cohortActiveRate" => $cohortActiveRate,
+                        "cohortChurn" => $cohortChurn,
+                        "cohortChurnRate" => $cohortChurnRate
                     ]
                 ],
                 "merchants" => $merchants,
@@ -842,54 +1036,8 @@ class DataController extends Controller
     private function calculateRetentionTrend(string $startDate, string $endDate, string $selectedOperator): array
     {
         try {
-            Log::info("Calcul optimisé de la tendance de rétention $selectedOperator...");
-            
-            $currentDate = Carbon::parse($startDate);
-            $endDateCarbon = Carbon::parse($endDate);
-            $daysDiff = $currentDate->diffInDays($endDateCarbon);
-            
-            // Pour les périodes longues (>7 jours), utiliser une approche simplifiée plus rapide
-            if ($daysDiff > 7) {
-                Log::info("Période longue ($daysDiff jours), utilisation du calcul simplifié");
-                return $this->getSimplifiedRetentionTrend($startDate, $endDate, $selectedOperator);
-            }
-            
-            // Pour les courtes périodes, calcul précis mais optimisé
-            $retentionTrend = [];
-            
-            // Pré-calculer toutes les données d'un coup pour optimiser
-            $allActivations = DB::table("client_abonnement")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->select(DB::raw("DATE(client_abonnement_creation) as date"), DB::raw("COUNT(*) as activations"))
-                ->whereBetween("client_abonnement_creation", [$startDate, Carbon::parse($endDate)->endOfDay()])
-                ->when($selectedOperator !== 'ALL', function($query) use ($selectedOperator) {
-                    return $query->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-                })
-                ->groupBy(DB::raw("DATE(client_abonnement_creation)"))
-                ->get()
-                ->keyBy('date');
-            
-            $totalActivated = $allActivations->sum('activations');
-            $baseRetentionRate = $totalActivated > 0 ? 81.0 : 0; // Utiliser une valeur de base réaliste
-            
-            while ($currentDate->lte($endDateCarbon)) {
-                $dateStr = $currentDate->toDateString();
-                
-                // Variation légère autour du taux de base pour une courbe réaliste
-                $variation = (rand(-50, 50) / 100) * 2; // ±2%
-                $dailyRetentionRate = max(75.0, min(85.0, $baseRetentionRate + $variation));
-                
-                $retentionTrend[] = [
-                    "date" => $dateStr,
-                    "rate" => round($dailyRetentionRate, 1)
-                ];
-                
-                $currentDate->addDay();
-            }
-            
-            Log::info("Tendance de rétention calculée: " . count($retentionTrend) . " points de données");
-            return $retentionTrend;
-            
+            // Engagement Rate Trend jour par jour
+            return $this->getEngagementTrendByDay($startDate, $endDate, $selectedOperator);
         } catch (\Exception $e) {
             Log::error("Erreur lors du calcul de la tendance de rétention: " . $e->getMessage());
             return $this->getFallbackRetentionTrend($startDate, $endDate);
@@ -898,24 +1046,24 @@ class DataController extends Controller
     
     private function getSimplifiedRetentionTrend(string $startDate, string $endDate, string $selectedOperator): array
     {
-        $currentDate = Carbon::parse($startDate);
-        $endDateCarbon = Carbon::parse($endDate);
+            $currentDate = Carbon::parse($startDate);
+            $endDateCarbon = Carbon::parse($endDate);
         $trend = [];
         
         $baseRate = 81.0; // Cohérent avec les KPIs
-        
-        while ($currentDate->lte($endDateCarbon)) {
+            
+            while ($currentDate->lte($endDateCarbon)) {
             $variation = (rand(-30, 30) / 100) * 1.5; // Moins de variation pour les longues périodes
             $rate = max(78.0, min(84.0, $baseRate + $variation));
             
             $trend[] = [
                 "date" => $currentDate->toDateString(),
                 "rate" => round($rate, 1)
-            ];
+                ];
+                
+                $currentDate->addDay();
+            }
             
-            $currentDate->addDay();
-        }
-        
         return $trend;
     }
 
@@ -933,91 +1081,35 @@ class DataController extends Controller
         return $rates[$selectedOperator] ?? 52.0;
     }
 
-    private function getOptimizedRetentionTrend(string $startDate, string $endDate, string $selectedOperator): array
+    private function getEngagementTrendByDay(string $startDate, string $endDate, string $selectedOperator): array
     {
-        // Pour les longues périodes, générer des points échantillonnés
-        $currentDate = Carbon::parse($startDate);
-        $endDateCarbon = Carbon::parse($endDate);
+        $start = Carbon::parse($startDate)->startOfDay();
+        $periodEnd = Carbon::parse($endDate)->endOfDay();
         $trend = [];
         
-        // Échantillonner tous les 2-3 jours
-        $step = max(1, intval($currentDate->diffInDays($endDateCarbon) / 7));
-        $baseRate = $this->getBaseRetentionRate($selectedOperator);
-        
-        while ($currentDate->lte($endDateCarbon)) {
-            $dateStr = $currentDate->toDateString();
-            $dayEnd = $currentDate->endOfDay()->toDateTimeString();
-            
-            // Abonnements activés jusqu'à ce jour (cumulatif) - échantillonné
-            $activatedUntilDateQuery = DB::table("client_abonnement")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->where("client_abonnement_creation", "<=", $dayEnd);
-            
+        $cursor = $start->copy();
+        while ($cursor->lte($periodEnd)) {
+            $dayStart = $cursor->copy()->startOfDay();
+            $dayEnd = $cursor->copy()->endOfDay();
+
+            $baseQuery = DB::table('client_abonnement')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->whereBetween('client_abonnement_creation', [$dayStart, $dayEnd]);
             if ($selectedOperator !== 'ALL') {
-                $activatedUntilDateQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
+                $baseQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
             }
-            
-            $activatedUntilDate = $activatedUntilDateQuery->count();
-            
-            // Abonnements actifs à cette date - échantillonné
-            $activeOnDateQuery = DB::table("client")
-                ->join("client_abonnement", "client.client_id", "=", "client_abonnement.client_id")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->where("client.active_subscription", 1)
-                ->where("client_abonnement_creation", "<=", $dayEnd)
-                ->whereRaw("(client_abonnement_expiration IS NULL OR client_abonnement_expiration > ?)", [$dayEnd])
-                ->distinct("client.client_id");
-            
-            if ($selectedOperator !== 'ALL') {
-                $activeOnDateQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
-            
-            $activeOnDate = $activeOnDateQuery->count();
-            
-            // Calcul du taux de rétention réel
-            $rate = $activatedUntilDate > 0 ? round(($activeOnDate / $activatedUntilDate) * 100, 1) : 0;
-            
-            $trend[] = [
-                "date" => $dateStr,
-                "rate" => $rate
-            ];
-            
-            $currentDate->addDays($step);
-        }
-        
-        // S'assurer que la date de fin est incluse avec un calcul réel
-        if (!collect($trend)->contains('date', $endDate)) {
-            $dayEnd = Carbon::parse($endDate)->endOfDay()->toDateTimeString();
-            
-            $activatedUntilEndQuery = DB::table("client_abonnement")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->where("client_abonnement_creation", "<=", $dayEnd);
-            
-            if ($selectedOperator !== 'ALL') {
-                $activatedUntilEndQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
-            
-            $activatedUntilEnd = $activatedUntilEndQuery->count();
-            
-            $activeOnEndQuery = DB::table("client")
-                ->join("client_abonnement", "client.client_id", "=", "client_abonnement.client_id")
-                ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
-                ->where("client.active_subscription", 1)
-                ->where("client_abonnement_creation", "<=", $dayEnd)
-                ->whereRaw("(client_abonnement_expiration IS NULL OR client_abonnement_expiration > ?)", [$dayEnd])
-                ->distinct("client.client_id");
-            
-            if ($selectedOperator !== 'ALL') {
-                $activeOnEndQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
-            
-            $activeOnEnd = $activeOnEndQuery->count();
-            $endRate = $activatedUntilEnd > 0 ? round(($activeOnEnd / $activatedUntilEnd) * 100, 1) : 0;
-            
-            $trend[] = [
-                "date" => $endDate,
-                "rate" => $endRate
-            ];
+            $activatedOnDay = (clone $baseQuery)->count();
+            $activeFromDay = (clone $baseQuery)
+                // Engagement mesuré à la fin de la période (et non pas à la fin du jour)
+                ->where(function($q) use ($periodEnd) {
+                    $q->whereNull('client_abonnement_expiration')
+                      ->orWhere('client_abonnement_expiration', '>', $periodEnd);
+                })
+                ->count();
+
+            $rate = $activatedOnDay > 0 ? round(($activeFromDay / $activatedOnDay) * 100, 1) : 0.0;
+            $trend[] = [ 'date' => $cursor->toDateString(), 'rate' => $rate ];
+            $cursor->addDay();
         }
         
         return $trend;
