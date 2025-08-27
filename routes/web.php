@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\InvitationController;
+use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\SubStoreController;
 use App\Http\Controllers\Api\DataController;
 
 /*
@@ -29,6 +31,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
     Route::post('/otp/resend', [AuthController::class, 'resendOtp'])->name('auth.otp.resend');
     
+    // Routes de gestion des mots de passe
+    Route::get('/password/forgot', [PasswordController::class, 'showForgotPasswordForm'])->name('password.forgot');
+    Route::post('/password/send-reset', [PasswordController::class, 'sendResetLink'])->name('password.send-reset');
+    Route::get('/password/reset/{token}', [PasswordController::class, 'showResetForm'])->name('password.reset.form');
+    Route::post('/password/reset', [PasswordController::class, 'resetPassword'])->name('password.reset');
+    Route::get('/password/first-login/{token}', [PasswordController::class, 'showFirstLoginForm'])->name('password.first-login');
+    Route::post('/password/first-login', [PasswordController::class, 'processFirstLogin'])->name('password.first-login.process');
 
 });
 
@@ -44,6 +53,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.view');
             Route::get('/dashboard/config', [DashboardController::class, 'getConfig'])->name('dashboard.config');
+    
+    // Routes de gestion des mots de passe (utilisateur connecté)
+    Route::get('/password/change', [PasswordController::class, 'showChangePasswordForm'])->name('password.change');
+    Route::post('/password/change', [PasswordController::class, 'changePassword']);
         
         // API routes pour données dashboard
         Route::get('/api/operators', [DataController::class, 'getUserOperators'])->name('api.user.operators');
@@ -55,6 +68,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/dashboard/transactions', [DataController::class, 'getTransactions'])->name('api.dashboard.transactions');
         Route::get('/api/dashboard/subscriptions', [DataController::class, 'getSubscriptions'])->name('api.dashboard.subscriptions');
     
+    // Dashboard Sub-Stores (tous les utilisateurs authentifiés)
+    Route::middleware(['auth'])->prefix('sub-stores')->name('sub-stores.')->group(function () {
+        Route::get('/', [SubStoreController::class, 'index'])->name('dashboard');
+        Route::get('/api/sub-stores', [SubStoreController::class, 'getSubStores'])->name('api.sub-stores');
+        Route::get('/api/dashboard/data', [SubStoreController::class, 'getDashboardData'])->name('api.dashboard.data');
+    });
+
     // Routes d'administration (Super Admin et Admin uniquement)
     Route::middleware(['auth', 'role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
@@ -63,6 +83,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
         Route::put('/users/{user}', [UserManagementController::class, 'update'])->name('users.update');
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+        
+        // Actions supplémentaires pour les utilisateurs
+        Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/suspend', [UserManagementController::class, 'suspend'])->name('users.suspend');
+        Route::post('/users/{user}/unsuspend', [UserManagementController::class, 'unsuspend'])->name('users.unsuspend');
         
         // Invitations
         Route::get('/invitations', [InvitationController::class, 'index'])->name('invitations.index');

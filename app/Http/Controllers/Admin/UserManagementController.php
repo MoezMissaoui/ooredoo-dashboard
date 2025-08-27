@@ -7,8 +7,12 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\UserOperator;
+use App\Models\PasswordResetRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\PasswordResetMail;
 
 class UserManagementController extends Controller
 {
@@ -19,30 +23,46 @@ class UserManagementController extends Controller
     {
         $user = auth()->user();
         
-        // Si c'est un super admin, voir tous les utilisateurs
-        // Si c'est un admin, voir seulement les utilisateurs de ses opérateurs + lui-même
-        if ($user->isSuperAdmin()) {
-            $users = User::with(['role', 'operators'])->paginate(20);
-        } else {
-            // Pour un admin, récupérer les utilisateurs des mêmes opérateurs + lui-même
-            $userOperators = $user->operators->pluck('operator_name')->toArray();
-            $users = User::where(function($query) use ($userOperators, $user) {
-                // Utilisateurs avec les mêmes opérateurs
-                $query->whereHas('operators', function($subQuery) use ($userOperators) {
-                    $subQuery->whereIn('operator_name', $userOperators);
+        // Logique selon les 5 types d'utilisateurs
+        switch ($user->getUserType()) {
+            case 'super_admin_club_privileges':
+                // Super Admin voit TOUS les utilisateurs
+                $users = User::with(['role', 'operators'])
+                    ->paginate(20);
+                break;
+                
+            case 'admin_club_privileges':
+                // Admin CP voit tous les utilisateurs Club Privilèges (sauf Super Admins)
+                $users = User::where('platform_type', 'club_privileges')
+                    ->whereHas('role', function($query) {
+                        $query->where('name', '!=', 'super_admin');
+                    })
+                    ->with(['role', 'operators'])
+                    ->paginate(20);
+                break;
+                
+            case 'admin_operator':
+            case 'admin_sub_store':
+            case 'collaborator':
+            default:
+                // Tous les autres : SEULEMENT les utilisateurs qu'ils ont créés + eux-mêmes
+                $users = User::where(function($query) use ($user) {
+                    $query->where('created_by', $user->id)
+                          ->orWhere('id', $user->id);
                 })
-                // OU l'utilisateur lui-même (même s'il n'a pas d'opérateur)
-                ->orWhere('id', $user->id);
-            })
-            // Exclure les super admins (un admin ne peut pas voir les super admins)
-            ->whereHas('role', function($query) {
-                $query->where('name', '!=', 'super_admin');
-            })
-            ->with(['role', 'operators'])
-            ->paginate(20);
+                ->whereHas('role', function($query) {
+                    $query->where('name', '!=', 'super_admin');
+                })
+                ->with(['role', 'operators'])
+                ->paginate(20);
+                break;
         }
         
-        return view('admin.users.index', compact('users'));
+        // Déterminer le thème selon l'utilisateur connecté
+        $theme = $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges';
+        $isOoredoo = $theme === 'ooredoo';
+        
+        return view('admin.users.index', compact('users', 'theme', 'isOoredoo'));
     }
 
     /**
@@ -62,7 +82,11 @@ class UserManagementController extends Controller
             $operators = $user->operators->pluck('operator_name', 'operator_name');
         }
         
-        return view('admin.users.create', compact('roles', 'operators'));
+        // Déterminer le thème selon l'utilisateur connecté
+        $theme = $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges';
+        $isOoredoo = $theme === 'ooredoo';
+        
+        return view('admin.users.create', compact('roles', 'operators', 'theme', 'isOoredoo'));
     }
 
     /**
@@ -155,7 +179,11 @@ class UserManagementController extends Controller
             $operators = $currentUser->operators->pluck('operator_name', 'operator_name');
         }
         
-        return view('admin.users.edit', compact('user', 'roles', 'operators'));
+        // Déterminer le thème selon l'utilisateur connecté
+        $theme = $currentUser->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges';
+        $isOoredoo = $theme === 'ooredoo';
+        
+        return view('admin.users.edit', compact('user', 'roles', 'operators', 'theme', 'isOoredoo'));
     }
 
     /**
@@ -270,6 +298,82 @@ class UserManagementController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Suspendre un utilisateur
+     */
+    public function suspend(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Seuls les super administrateurs peuvent suspendre des comptes.');
+        }
+
+        $user->update(['status' => 'suspended']);
+
+        // Invalider toutes les sessions de l'utilisateur
+        DB::table('sessions')->where('user_id', $user->id)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Utilisateur suspendu avec succès'
+        ]);
+    }
+
+    /**
+     * Réactiver un utilisateur suspendu
+     */
+    public function unsuspend(User $user)
+    {
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Seuls les super administrateurs peuvent réactiver des comptes.');
+        }
+
+        $user->update(['status' => 'active']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Utilisateur réactivé avec succès'
+        ]);
+    }
+
+    /**
+     * Envoyer un lien de réinitialisation de mot de passe pour un utilisateur (Super Admin uniquement)
+     */
+    public function resetPassword(User $user)
+    {
+        // Vérifier que l'utilisateur connecté est Super Admin
+        if (!auth()->user()->isSuperAdmin()) {
+            return back()->with('error', 'Accès refusé. Cette action est réservée aux Super Administrateurs.');
+        }
+
+        // Vérifier que l'utilisateur cible existe et est actif
+        if ($user->status !== 'active') {
+            return back()->with('error', 'Impossible d\'envoyer un lien de réinitialisation à un compte inactif.');
+        }
+
+        try {
+            // Créer la demande de réinitialisation
+            $resetRequest = PasswordResetRequest::createForPasswordReset($user->email);
+            
+            // Envoyer l'email
+            $resetUrl = route('password.reset.form', $resetRequest->token);
+            Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+            
+            Log::info("=== RÉINITIALISATION ADMIN ===");
+            Log::info("Super Admin: " . auth()->user()->email);
+            Log::info("Cible: " . $user->email);
+            Log::info("Lien envoyé: " . $resetUrl);
+            
+            return back()->with('success', "✅ Lien de réinitialisation envoyé avec succès à {$user->email}. L'utilisateur recevra un email avec les instructions pour créer un nouveau mot de passe.");
+            
+        } catch (\Exception $e) {
+            Log::error("Erreur lors de l'envoi de la réinitialisation admin: " . $e->getMessage());
+            Log::error("Super Admin: " . auth()->user()->email);
+            Log::error("Cible: " . $user->email);
+            
+            return back()->with('error', 'Erreur lors de l\'envoi de l\'email de réinitialisation. Veuillez réessayer ou contacter le support technique.');
+        }
     }
 
     /**

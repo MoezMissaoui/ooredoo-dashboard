@@ -49,4 +49,15 @@ return [
         'cache_ttl' => env('WEBSERVICE_CACHE_TTL', 3600), // seconds
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Aggregator API
+    |--------------------------------------------------------------------------
+    */
+    'aggregator' => [
+        'base_url' => env('AGGREGATOR_BASE_URL', 'https://payment.eklectic.tn/API'),
+        'token' => env('AGGREGATOR_TOKEN', ''),
+        'timeout' => env('AGGREGATOR_TIMEOUT', 30),
+    ],
+
 ];

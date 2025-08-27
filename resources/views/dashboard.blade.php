@@ -1,15 +1,28 @@
+@php
+    $theme = $theme ?? 'club_privileges';
+    $isOoredoo = $theme === 'ooredoo';
+    $isClubPrivileges = $theme === 'club_privileges';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ooredoo Privileges - Comprehensive Performance Dashboard</title>
+  <title>{{ $isOoredoo ? 'Ooredoo Privileges' : 'Club Privilèges' }} - Comprehensive Performance Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <style>
     :root {
-      --brand-red: #E30613;
+      @if($isOoredoo)
+      --brand-primary: #E30613;
+      --brand-secondary: #DC2626;
+      --theme-name: 'Ooredoo';
+      @else
+      --brand-primary: #6B46C1;
+      --brand-secondary: #8B5CF6;
+      --theme-name: 'Club Privilèges';
+      @endif
       --brand-dark: #1f2937;
       --bg: #f8fafc;
       --card: #ffffff;
@@ -19,6 +32,8 @@
       --danger: #ef4444;
       --accent: #3b82f6;
       --border: #e2e8f0;
+      /* Backward compatibility */
+      --brand-red: var(--brand-primary);
     }
     
     * { box-sizing: border-box; }
@@ -488,6 +503,34 @@
       100% { transform: rotate(360deg); }
     }
     
+    /* Skeleton loading styles */
+    .skeleton-text {
+      height: 24px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 4px;
+      width: 80%;
+    }
+    
+    .skeleton-text-small {
+      height: 16px;
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 4px;
+      width: 60%;
+    }
+    
+    @keyframes skeleton-loading {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+    
     .notification {
       position: fixed;
       top: 20px;
@@ -826,13 +869,61 @@
       transform: translateY(-1px);
     }
 
+    .btn-info {
+      background: linear-gradient(135deg, #36d1dc 0%, #5b86e5 100%);
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: linear-gradient(135deg, #2bbac6 0%, #4a75d3 100%);
+      transform: translateY(-1px);
+    }
+
+    .performance-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #059669;
+      animation: pulse 2s infinite;
+    }
+
+    .performance-icon {
+      font-size: 14px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
     /* Merchants Section Styles */
     .merchants-kpis-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 20px;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
+    .merchants-kpis-row .kpi-card { grid-column: span 1 !important; }
+    .merchants-kpi { min-height: 120px; }
+    .merchants-kpi .kpi-value { font-size: 32px; }
+    .merchants-kpi .kpi-delta { min-height: 18px; }
+
+    .trans-kpis-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .trans-kpis-row .kpi-card { grid-column: span 1 !important; }
+
+    .sub-kpis-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
+    .sub-kpis-row .kpi-card { grid-column: span 1 !important; }
 
     .merchants-kpi {
       grid-column: span 1;
@@ -994,12 +1085,27 @@
     <!-- Header -->
     <div class="header">
       <div class="header-left">
+        @if($isOoredoo)
         <img src="{{ asset('images/ooredoo-logo.png') }}" alt="Ooredoo" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
         <svg class="logo" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-          <rect width="200" height="60" fill="#E30613"/>
+          <rect width="200" height="60" fill="var(--brand-primary)"/>
           <text x="20" y="35" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">ooredoo</text>
         </svg>
         <h1>Ooredoo Privileges - Performance Dashboard</h1>
+        @else
+        <svg class="logo" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="clubGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:var(--brand-primary);stop-opacity:1" />
+              <stop offset="100%" style="stop-color:var(--brand-secondary);stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect width="200" height="60" fill="url(#clubGradient)" rx="8"/>
+          <text x="20" y="25" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">Club</text>
+          <text x="20" y="45" fill="#F59E0B" font-family="Arial, sans-serif" font-size="14" font-weight="600" font-style="italic">Privilèges</text>
+        </svg>
+        <h1>Club Privilèges - Performance Dashboard</h1>
+        @endif
       </div>
       <div class="header-right">
         <span>📊</span>
@@ -1014,6 +1120,14 @@
           @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
             <a href="{{ route('admin.users.index') }}" class="admin-btn">Utilisateurs</a>
             <a href="{{ route('admin.invitations.index') }}" class="admin-btn">Invitations</a>
+          @endif
+          
+          <a href="{{ route('password.change') }}" class="admin-btn" title="Changer mon mot de passe">🔒 Mot de passe</a>
+          
+          @if(Auth::user()->canAccessSubStoresDashboard())
+          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
+            🏪 Sub-Stores
+          </a>
           @endif
           
           <form action="{{ route('auth.logout') }}" method="POST" style="display: inline;">
@@ -1033,7 +1147,7 @@
       <button class="nav-tab" onclick="showTab('transactions')">Transactions</button>
       <button class="nav-tab" onclick="showTab('merchants')">Merchants</button>
       <button class="nav-tab" onclick="showTab('comparison')">Comparison</button>
-      <button class="nav-tab" onclick="showTab('insights')">Insights</button>
+      <!-- <button class="nav-tab" onclick="showTab('insights')">Insights</button> -->
     </div>
 
     <!-- Enhanced Date & Filters Bar -->
@@ -1096,64 +1210,96 @@
             <span>Opérateur</span>
           </div>
           <select id="operator-select" class="enhanced-select" onchange="handleOperatorChange()">
-            <!-- Les opérateurs seront chargés dynamiquement -->
+            <option value="ALL">📱 Tous les opérateurs (Vue Globale)</option>
+            <!-- Les autres opérateurs seront chargés dynamiquement -->
           </select>
           <div id="operator-info" class="control-info">
             Chargement des opérateurs...
           </div>
         </div>
 
-        <div class="control-group">
-          <div class="control-label">
-            <span class="control-icon">⚡</span>
-            <span>Status</span>
-          </div>
-          <div class="status-badge active">Launch Phase</div>
-        </div>
-
-        <div class="action-buttons">
-          <button class="btn-primary enhanced-btn" onclick="loadDashboardData()" id="refresh-btn">
-            <span id="refresh-text">📊 Actualiser</span>
-            <span id="refresh-loading" style="display: none;">⏳ Chargement...</span>
-          </button>
-          
-          <button class="btn-secondary enhanced-btn" onclick="setSmartComparison()">
-            🔄 Comparaison Auto
-          </button>
-          
-          <button class="btn-accent enhanced-btn" onclick="toggleDatePickerMode()">
-            📆 Raccourcis
-          </button>
-        </div>
+                        <div class="action-buttons">
+                  <button class="btn-primary enhanced-btn" onclick="loadDashboardData()" id="refresh-btn">
+                    <span id="refresh-text">📊 Actualiser</span>
+                    <span id="refresh-loading" style="display: none;">⏳ Chargement...</span>
+                  </button>
+                  
+                  <button class="btn-secondary enhanced-btn" onclick="setSmartComparison()">
+                    🔄 Comparaison Auto
+                  </button>
+                  
+                  <button class="btn-accent enhanced-btn" onclick="toggleDatePickerMode()">
+                    📆 Raccourcis
+                  </button>
+                  
+                  <button class="btn-info enhanced-btn" onclick="showKeyboardShortcutsHelp()">
+                    ⌨️ Aide
+                  </button>
+                  
+                  <!-- Performance indicator -->
+                  <div class="performance-indicator" id="performance-indicator" style="display: none;">
+                    <span class="performance-icon">⚡</span>
+                    <span class="performance-text">Cache</span>
+                  </div>
+                </div>
       </div>
     </div>
 
     <!-- Tab 1: Overview -->
     <div id="overview" class="tab-content active">
+      <!-- KPIs Row 1 (4 KPI) -->
       <div class="grid">
-        <!-- Key KPIs -->
         <div class="card kpi-card">
-          <div class="kpi-title">Activated Subscriptions</div>
+          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d’abonnements activés entre start et end (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="activatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="activatedSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Active Subscriptions</div>
+          <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Activés dans la période et encore actifs à la fin (expiration NULL ou > end).">ⓘ</span></div>
           <div class="kpi-value" id="activeSubscriptions">Loading...</div>
           <div class="kpi-delta" id="activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Total Transactions</div>
+          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-value" id="overview-retentionRate">Loading...</div>
+          <div class="kpi-delta" id="overview-retentionRateDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="conversionRate">Loading...</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="overview-conversionProgress" style="width: 0%"></div>
+          </div>
+          <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Target: 30%</div>
+        </div>
+      </div>
+
+      <!-- KPIs Row 2 (4 KPI) -->
+      <div class="grid">
+        <div class="card kpi-card">
+          <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="totalTransactions">Loading...</div>
           <div class="kpi-delta" id="totalTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate</div>
-          <div class="kpi-value" id="conversionRate">Loading...</div>
-          <div class="kpi-delta delta-negative">vs 30% benchmark</div>
+          <div class="kpi-title">Cohort Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions effectuées par les abonnements dont la date de création est dans [start,end).">ⓘ</span></div>
+          <div class="kpi-value" id="cohortTransactions">Loading...</div>
+          <div class="kpi-delta" id="cohortTransactionsDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
+          <div class="kpi-value" id="totalTransactingUsers">Loading...</div>
+          <div class="kpi-delta" id="totalTransactingUsersDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transacting Users (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Clients de la cohorte (créés dans [start,end)) ayant transigé dans la période.">ⓘ</span></div>
+          <div class="kpi-value" id="cohortTransactingUsers">Loading...</div>
+          <div class="kpi-delta" id="cohortTransactingUsersDelta">Loading...</div>
+        </div>
         </div>
 
         <!-- Overview Chart -->
+      <div class="grid">
         <div class="card chart-card full-width">
           <div class="chart-title">Performance Overview - Period Comparison</div>
           <div class="chart-container">
@@ -1161,45 +1307,151 @@
           </div>
         </div>
       </div>
+
+      <!-- Global snapshots row removed on request -->
     </div>
 
     <!-- Tab 2: Detailed Subscription Analysis -->
     <div id="subscriptions" class="tab-content">
-      <div class="grid">
-        <!-- Subscription KPIs -->
+      <!-- Subscriptions KPIs: Row 1 (4 KPI) -->
+      <div class="sub-kpis-row">
         <div class="card kpi-card">
-          <div class="kpi-title">Activated Subscriptions</div>
+          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d’abonnements activés (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="sub-activatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-activatedSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Active Subscriptions</div>
+          <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Activés dans la période et encore actifs à la fin (expiration NULL ou > end).">ⓘ</span></div>
           <div class="kpi-value" id="sub-activeSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Deactivated</div>
+          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Retention = Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-retentionRate">Loading...</div>
+          <div class="kpi-delta" id="sub-retentionRateDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-conversionRate">Loading...</div>
+          <div class="kpi-delta" id="sub-conversionRateDelta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Subscriptions KPIs: Row 2 (4 KPI) -->
+      <div class="sub-kpis-row">
+        <div class="card kpi-card">
+          <div class="kpi-title">Deactivated (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte: Activation ∈ [start,end) ET expiration ∈ [start,end).">ⓘ</span></div>
           <div class="kpi-value" id="sub-deactivatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-deactivatedSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Retention Rate</div>
-          <div class="kpi-value" id="sub-retentionRate">Loading...</div>
-          <div class="kpi-delta" id="sub-retentionRateDelta">Loading...</div>
+          <div class="kpi-title">Deactivated (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte: Abonnements créés dans [start,end) puis expirés dans la période.">ⓘ</span></div>
+          <div class="kpi-value" id="sub-lostSubscriptions">Loading...</div>
+          <div class="kpi-delta" id="sub-lostSubscriptionsDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Taux de churn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Churn = Deactivated (Cohorte) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-retentionRateTrue">Loading...</div>
+          <div class="kpi-delta" id="sub-retentionRateTrueDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transactions (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
+          <div class="kpi-value" id="sub-totalTransactions">Loading...</div>
+          <div class="kpi-delta" id="sub-totalTransactionsDelta">Loading...</div>
+        </div>
         </div>
 
-        <!-- Subscription Trends -->
+      <!-- Subscription Trends (two charts side by side) -->
+      <div class="grid">
+        <div class="card chart-card">
+          <div class="chart-title">Retention Rate Trend</div>
+          <div class="chart-container">
+            <canvas id="retentionChart"></canvas>
+          </div>
+        </div>
+
         <div class="card chart-card">
           <div class="chart-title">Daily Activated Subscriptions</div>
           <div class="chart-container">
             <canvas id="subscriptionTrendChart"></canvas>
           </div>
+          </div>
+        </div>
+
+      <!-- Nouveaux KPIs Avancés -->
+      <div class="grid" style="margin-top: 20px;">
+        <h3 style="grid-column: 1 / -1; margin-bottom: 15px; color: var(--text); font-size: 18px; font-weight: 600;">📊 Analyses Avancées</h3>
+        
+        <!-- Activations par Canal -->
+        <div class="card kpi-card">
+          <div class="kpi-title">Activations CB</div>
+          <div class="kpi-value" id="sub-activationsCB">Loading...</div>
+          <div class="kpi-delta" id="sub-activationsCBDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Activations Recharge</div>
+          <div class="kpi-value" id="sub-activationsRecharge">Loading...</div>
+          <div class="kpi-delta" id="sub-activationsRechargeDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Activations Solde Tél.</div>
+          <div class="kpi-value" id="sub-activationsPhone">Loading...</div>
+          <div class="kpi-delta" id="sub-activationsPhoneDelta">Loading...</div>
+        </div>
+
+        <!-- Répartition par Plan -->
+        <div class="card kpi-card">
+          <div class="kpi-title">Plans Journaliers</div>
+          <div class="kpi-value" id="sub-plansDaily">Loading...</div>
+          <div class="kpi-delta" id="sub-plansDailyDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Plans Mensuels</div>
+          <div class="kpi-value" id="sub-plansMonthly">Loading...</div>
+          <div class="kpi-delta" id="sub-plansMonthlyDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Plans Annuels</div>
+          <div class="kpi-value" id="sub-plansAnnual">Loading...</div>
+          <div class="kpi-delta" id="sub-plansAnnualDelta">Loading...</div>
+        </div>
+
+        <!-- Métriques de Performance -->
+        <div class="card kpi-card">
+          <div class="kpi-title">Taux de Renouvellement</div>
+          <div class="kpi-value" id="sub-renewalRate">Loading...</div>
+          <div class="kpi-delta" id="sub-renewalRateDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Durée de Vie Moyenne</div>
+          <div class="kpi-value" id="sub-averageLifespan">Loading...</div>
+          <div class="kpi-delta" id="sub-averageLifespanDelta">Loading...</div>
+        </div>
+        
+      </div>
+
+      
+
+      <!-- Graphiques Avancés -->
+      <div class="grid" style="margin-top: 20px;">
+        <div class="card chart-card">
+          <div class="chart-title">Répartition des Activations par Canal</div>
+          <div class="chart-container">
+            <canvas id="activationsByChannelChart"></canvas>
+          </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Retention Rate Trend</div>
+          <div class="chart-title">Distribution des Plans d'Abonnement</div>
           <div class="chart-container">
-            <canvas id="retentionChart"></canvas>
+            <canvas id="planDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">Analyse de Cohortes - Survie J+30/J+60</div>
+          <div class="chart-container">
+            <canvas id="cohortsAnalysisChart"></canvas>
           </div>
         </div>
       </div>
@@ -1207,31 +1459,55 @@
 
     <!-- Tab 3: Detailed Transaction Analysis -->
     <div id="transactions" class="tab-content">
-      <div class="grid">
+      <div class="trans-kpis-row">
         <!-- Transaction KPIs -->
         <div class="card kpi-card">
-          <div class="kpi-title">Total Transactions</div>
+          <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="trans-totalTransactions">Loading...</div>
           <div class="kpi-delta" id="trans-totalTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transacting Users</div>
+          <div class="kpi-title">Total Transactions (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions effectuées par les abonnements créés dans la période (cohorte).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-cohortTransactions">Loading...</div>
+          <div class="kpi-delta" id="trans-cohortTransactionsDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
           <div class="kpi-value" id="trans-transactingUsers">Loading...</div>
           <div class="kpi-delta" id="trans-transactingUsersDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transactions/User</div>
+          <div class="kpi-title">Transacting Users (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Clients de la cohorte (créés dans [start,end)) ayant transigé dans la période.">ⓘ</span></div>
+          <div class="kpi-value" id="trans-cohortTransactingUsers">Loading...</div>
+          <div class="kpi-delta" id="trans-cohortTransactingUsersDelta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Transactions KPIs: Row 2 (4 KPI alignés comme Overview) -->
+      <div class="trans-kpis-row">
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-convCohort">Loading...</div>
+          <div class="kpi-delta" id="trans-convCohortDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Transacting Users (Période)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-convPeriod">Loading...</div>
+          <div class="kpi-delta" id="trans-convPeriodDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transactions/User <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions (période) / Utilisateurs transigeants (période).">ⓘ</span></div>
           <div class="kpi-value" id="trans-transactionsPerUser">Loading...</div>
           <div class="kpi-delta" id="trans-transactionsPerUserDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate</div>
-          <div class="kpi-value" id="trans-conversionRate">Loading...</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="trans-conversionProgress" style="width: 0%"></div>
+          <div class="kpi-title">Avg. Durée entre 2 transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Moyenne des intervalles entre transactions par utilisateur (jours).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-avgInterTxDays">Loading...</div>
+          <div class="kpi-delta" id="trans-avgInterTxDaysDelta">Loading...</div>
           </div>
-          <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Target: 30%</div>
         </div>
+
+      <div class="grid">
 
         <!-- Transaction Charts -->
         <div class="card chart-card">
@@ -1247,33 +1523,75 @@
             <canvas id="transactingUsersChart"></canvas>
           </div>
         </div>
+
+        <!-- Cumulative Charts (separated) -->
+        <div class="card chart-card">
+          <div class="chart-title">Cumulative Transactions</div>
+          <div class="chart-container">
+            <canvas id="transactionVolumeCumulativeChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">Cumulative Transacting Users</div>
+          <div class="chart-container">
+            <canvas id="transactingUsersCumulativeChart"></canvas>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Tab 4: Merchant Analysis -->
     <div id="merchants" class="tab-content">
-      <!-- KPIs Section - 5 cartes en ligne -->
+      <!-- KPIs Section - 8 cartes (2 lignes de 4) -->
       <div class="merchants-kpis-row">
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🏪</div>
           <div class="kpi-content">
-            <div class="kpi-title">Total Merchants</div>
-            <div class="kpi-value" id="merch-totalActivePartnersDB">Loading...</div>
-            <div class="kpi-delta" id="merch-totalActivePartnersDBDelta">→ 0.0%</div>
+            <div class="kpi-title">Total Merchants <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de partenaires (table partner).">ⓘ</span></div>
+            <div class="kpi-value" id="merch-totalPartners">Loading...</div>
+            <div class="kpi-delta" id="merch-totalPartnersDelta">→ 0.0%</div>
           </div>
         </div>
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">📈</div>
           <div class="kpi-content">
-            <div class="kpi-title">Active Merchants</div>
+            <div class="kpi-title">Active Merchants <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Marchands ayant eu au moins une transaction dans la période (history.time ∈ [start,end)).">ⓘ</span></div>
             <div class="kpi-value" id="merch-activeMerchants">Loading...</div>
             <div class="kpi-delta" id="merch-activeMerchantsDelta">Loading...</div>
           </div>
         </div>
         <div class="card kpi-card merchants-kpi">
+          <div class="kpi-icon">📍</div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Points de Vente <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de points de vente (partner_location) des marchands actifs.">ⓘ</span></div>
+            <div class="kpi-value" id="merch-totalLocationsActive">Loading...</div>
+            <div class="kpi-delta" id="merch-totalLocationsActiveDelta">→ 0.0%</div>
+          </div>
+        </div>
+        <div class="card kpi-card merchants-kpi">
+          <div class="kpi-icon">% </div>
+          <div class="kpi-content">
+            <div class="kpi-title">Active Merchant Ratio <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Active Merchants) / (Total Merchants) × 100.">ⓘ</span></div>
+            <div class="kpi-value" id="merch-activeMerchantRatio">Loading...</div>
+            <div class="kpi-delta" id="merch-activeMerchantRatioDelta">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="merchants-kpis-row">
+        <div class="card kpi-card merchants-kpi">
+          <div class="kpi-icon">🔢</div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
+            <div class="kpi-value" id="merch-totalTransactions">Loading...</div>
+            <div class="kpi-delta" id="merch-totalTransactionsDelta">Loading...</div>
+          </div>
+        </div>
+        <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">💳</div>
           <div class="kpi-content">
-            <div class="kpi-title">Transactions/Merchant</div>
+            <div class="kpi-title">Transactions/Merchant <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions opérateur chez marchands / Marchands actifs (période).">ⓘ</span></div>
             <div class="kpi-value" id="merch-transactionsPerMerchant">Loading...</div>
             <div class="kpi-delta" id="merch-transactionsPerMerchantDelta">Loading...</div>
           </div>
@@ -1281,7 +1599,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🏆</div>
           <div class="kpi-content">
-            <div class="kpi-title">Top Merchant</div>
+            <div class="kpi-title">Top Merchant <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Meilleur marchand par volume (part de marché période).">ⓘ</span></div>
             <div class="kpi-value" id="merch-topMerchantShare">Loading...</div>
             <div class="kpi-delta" id="merch-topMerchantName">Loading...</div>
           </div>
@@ -1289,7 +1607,7 @@
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🎯</div>
           <div class="kpi-content">
-            <div class="kpi-title">Diversity</div>
+            <div class="kpi-title">Diversity <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Niveau basé sur le nombre de marchands actifs (période).">ⓘ</span></div>
             <div class="kpi-value" id="merch-diversity">Loading...</div>
             <div class="kpi-delta" id="merch-diversityDetail">Loading...</div>
           </div>
@@ -1319,12 +1637,28 @@
         </div>
       </div>
 
+      <!-- Ligne suivante: évolution points de vente actifs -->
+      <div class="merchants-charts-row">
+        <div class="card chart-card">
+          <div class="chart-title">Active Points of Sale Over Time</div>
+          <div class="chart-container">
+            <canvas id="activeLocationsTrend"></canvas>
+          </div>
+        </div>
+      </div>
+
       <!-- Table Section - Tableau pleine largeur -->
       <div class="merchants-table-section">
         <div class="card table-card merchants-table">
           <div class="table-header">
             <div class="table-title">📋 Performance Détaillée des Marchands</div>
             <div class="table-actions">
+              <select id="merchantsPerPage" onchange="changeMerchantsPerPage()" style="margin-right: 10px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px;">
+                <option value="10">10 par page</option>
+                <option value="25" selected>25 par page</option>
+                <option value="50">50 par page</option>
+                <option value="100">100 par page</option>
+              </select>
               <button class="btn-secondary" onclick="exportMerchantsData()">📥 Exporter</button>
             </div>
           </div>
@@ -1350,6 +1684,22 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          
+          <!-- Pagination Controls -->
+          <div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border-top: 1px solid var(--border);">
+            <div class="pagination-info">
+              <span id="merchantsPaginationInfo">Affichage de 1-25 sur 0 marchands</span>
+            </div>
+            <div class="pagination-buttons">
+              <button id="merchantsPrevBtn" onclick="previousMerchantsPage()" style="padding: 8px 12px; margin-right: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--card); cursor: pointer;" disabled>
+                ← Précédent
+              </button>
+              <span id="merchantsPageNumbers" style="margin: 0 16px; font-weight: 500;"></span>
+              <button id="merchantsNextBtn" onclick="nextMerchantsPage()" style="padding: 8px 12px; margin-left: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--card); cursor: pointer;" disabled>
+                Suivant →
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1395,10 +1745,10 @@
       </div>
     </div>
 
-    <!-- Tab 6: Insights -->
+    <!-- Tab 6: Insights (Hidden) -->
+    <!--
     <div id="insights" class="tab-content">
       <div class="insights-grid">
-        <!-- Positive Insights -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--success);">✅</span>
@@ -1412,7 +1762,6 @@
           </ul>
         </div>
 
-        <!-- Challenges -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--warning);">⚠️</span>
@@ -1426,7 +1775,6 @@
           </ul>
         </div>
 
-        <!-- Strategic Recommendations -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--accent);">🎯</span>
@@ -1440,7 +1788,6 @@
           </ul>
         </div>
 
-        <!-- Next Steps -->
         <div class="insight-card">
           <div class="insight-title">
             <span style="color: var(--brand-red);">🚀</span>
@@ -1455,12 +1802,39 @@
         </div>
       </div>
     </div>
+    -->
   </div>
 
   <script>
     // Global variables for charts and data
     let dashboardData = null;
     let charts = {};
+    
+    // Pagination variables
+    let allMerchants = [];
+    let currentMerchantsPage = 1;
+    let merchantsPerPage = 25;
+
+    // Couleurs dynamiques selon le thème
+    const THEME_COLORS = {
+      @if($isOoredoo)
+      primary: '#E30613',
+      primaryRgba: 'rgba(227, 6, 19, 0.1)',
+      secondary: '#DC2626',
+      accent: '#3b82f6',
+      success: '#10b981',
+      warning: '#f59e0b',
+      @else
+      primary: '#6B46C1',
+      primaryRgba: 'rgba(107, 70, 193, 0.1)',
+      secondary: '#8B5CF6',
+      accent: '#F59E0B',
+      success: '#10b981',
+      warning: '#3b82f6',
+      @endif
+      muted: '#64748b',
+      mutedRgba: 'rgba(100, 116, 139, 0.2)'
+    };
 
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
@@ -1470,18 +1844,246 @@
       
       // Auto-refresh every 5 minutes
       setInterval(loadDashboardData, 5 * 60 * 1000);
+      
+      // Initialize keyboard shortcuts
+      initializeKeyboardShortcuts();
     });
+    
+    // Advanced keyboard shortcuts for power users
+    function initializeKeyboardShortcuts() {
+      document.addEventListener('keydown', function(e) {
+        // Only trigger shortcuts when no input is focused
+        if (document.activeElement.tagName === 'INPUT' || 
+            document.activeElement.tagName === 'SELECT' || 
+            document.activeElement.tagName === 'TEXTAREA') {
+          return;
+        }
+        
+        // Ctrl/Cmd + R - Refresh dashboard
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+          e.preventDefault();
+          loadDashboardData();
+          showNotification('🔄 Dashboard actualisé via raccourci clavier', 'info', 2000);
+        }
+        
+        // Tab navigation: 1-4 for tabs
+        if (['1', '2', '3', '4'].includes(e.key)) {
+          e.preventDefault();
+          const tabs = ['overview', 'subscriptions', 'transactions', 'merchants'];
+          const tabName = tabs[parseInt(e.key) - 1];
+          if (tabName) {
+            showTab(tabName);
+            // Update visual feedback
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            showNotification(`📊 Onglet ${tabName} activé`, 'info', 1500);
+          }
+        }
+        
+        // E for Export (if on merchants tab)
+        if (e.key === 'e' || e.key === 'E') {
+          const activeTab = document.querySelector('.tab-content.active');
+          if (activeTab && activeTab.id === 'merchants') {
+            e.preventDefault();
+            exportMerchantsData();
+            showNotification('📥 Export des données marchands lancé', 'success', 2000);
+          }
+        }
+        
+        // D for Date shortcuts modal
+        if (e.key === 'd' || e.key === 'D') {
+          e.preventDefault();
+          toggleDatePickerMode();
+          showNotification('📅 Raccourcis de dates', 'info', 1500);
+        }
+        
+        // H for Help (show shortcuts)
+        if (e.key === 'h' || e.key === 'H' || e.key === '?') {
+          e.preventDefault();
+          showKeyboardShortcutsHelp();
+        }
+        
+        // Escape to close modals/notifications
+        if (e.key === 'Escape') {
+          // Close date shortcuts modal if open
+          const modal = document.getElementById('date-shortcuts-modal');
+          if (modal && modal.style.display !== 'none') {
+            modal.style.display = 'none';
+          }
+          
+          // Close help modal if open
+          const helpModal = document.getElementById('shortcuts-help-modal');
+          if (helpModal && helpModal.style.display !== 'none') {
+            helpModal.style.display = 'none';
+          }
+          
+          // Close all notifications
+          document.querySelectorAll('.notification').forEach(n => n.remove());
+        }
+      });
+    }
+    
+    function showKeyboardShortcutsHelp() {
+      // Remove existing help modal
+      const existing = document.getElementById('shortcuts-help-modal');
+      if (existing) existing.remove();
+      
+      const modal = document.createElement('div');
+      modal.id = 'shortcuts-help-modal';
+      modal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; display: flex; align-items: center; justify-content: center;">
+          <div style="background: white; border-radius: 12px; padding: 30px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px;">
+              <h3 style="margin: 0; color: var(--brand-red); font-size: 20px;">⌨️ Raccourcis Clavier</h3>
+              <button onclick="document.getElementById('shortcuts-help-modal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; margin-left: auto;">×</button>
+            </div>
+            
+            <div style="space-y: 12px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">Ctrl+R</kbd></span>
+                <span>Actualiser le dashboard</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">1-4</kbd></span>
+                <span>Naviguer entre les onglets</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">E</kbd></span>
+                <span>Exporter (onglet Marchands)</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">D</kbd></span>
+                <span>Raccourcis de dates</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">H / ?</kbd></span>
+                <span>Afficher cette aide</span>
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span><kbd style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-family: monospace;">Esc</kbd></span>
+                <span>Fermer modales/notifications</span>
+              </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px; color: #6c757d;">
+              💡 <strong>Astuce :</strong> Ces raccourcis fonctionnent uniquement quand aucun champ de saisie n'est actif.
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(modal);
+      
+      // Close on background click
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.remove();
+        }
+      });
+    }
 
-    // Initialize dashboard in correct order
+    // Initialize dashboard in correct order - optimized for speed
     async function initializeDashboard() {
       try {
-        // 1. Load operators first
-        await loadOperators();
-        // 2. Then load dashboard data with the correct operator
-        await loadDashboardData();
+        // Show immediate loading state for KPIs (skeleton)
+        showKPISkeleton();
+        
+        // Start loading dashboard data immediately (most important)
+        loadDashboardData();
+        
+        // Load operators in parallel (non-blocking)
+        loadOperators().catch(error => {
+          console.warn('Operators loading failed, using fallback:', error);
+          setupFallbackOperators();
+        });
+        
       } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
+        hideKPISkeleton();
         showNotification('Erreur lors de l\'initialisation du dashboard', 'error');
+      }
+    }
+    
+    // Setup fallback operators if API fails
+    function setupFallbackOperators() {
+      const operatorInfo = document.getElementById('operator-info');
+      
+      if (operatorInfo) {
+        operatorInfo.textContent = 'Mode hors ligne - Vue globale activée';
+      }
+      
+      // L'option par défaut est déjà dans le HTML, pas besoin de la recréer
+      console.log('🔄 Fallback: Using default operators');
+    }
+    
+    // Show skeleton loading for KPIs immediately
+    function showKPISkeleton() {
+      const kpiValues = document.querySelectorAll('.kpi-value');
+      kpiValues.forEach(el => {
+        el.innerHTML = '<div class="skeleton-text"></div>';
+      });
+      
+      const kpiDeltas = document.querySelectorAll('.kpi-delta');
+      kpiDeltas.forEach(el => {
+        el.innerHTML = '<div class="skeleton-text-small"></div>';
+      });
+      
+      // Reset progress bars to 0
+      const progressBars = document.querySelectorAll('.progress-fill');
+      progressBars.forEach(bar => {
+        bar.style.width = '0%';
+      });
+    }
+    
+    // Hide skeleton loading
+    function hideKPISkeleton() {
+      // This will be replaced by real values when updateKPIs is called
+    }
+    
+    // Progress bar issue resolved: height was 0px
+    
+    // Update Overview conversion progress bar safely
+    function updateOverviewConversionProgressBar(conversionRateData) {
+      const conversionProgress = document.getElementById('overview-conversionProgress');
+      
+      if (conversionProgress && conversionRateData && typeof conversionRateData.current !== 'undefined') {
+        const percentage = Math.min(100, Math.max(0, (conversionRateData.current / 30) * 100));
+        
+        conversionProgress.style.width = `${percentage}%`;
+        conversionProgress.style.transition = 'width 0.5s ease-in-out';
+        conversionProgress.style.backgroundColor = THEME_COLORS.primary;
+        conversionProgress.style.height = '8px'; // Fixed: same as transactions
+        conversionProgress.style.display = 'block';
+        
+      } else if (conversionProgress) {
+        // Fallback: set to 0% if no data
+        conversionProgress.style.width = '0%';
+        conversionProgress.style.height = '8px';
+      }
+    }
+    
+    // Update conversion progress bar safely
+    function updateConversionProgressBar(conversionRateData) {
+      const conversionProgress = document.getElementById('trans-conversionProgress');
+      
+      if (conversionProgress && conversionRateData && typeof conversionRateData.current !== 'undefined') {
+        const percentage = Math.min(100, Math.max(0, (conversionRateData.current / 30) * 100));
+        
+        conversionProgress.style.width = `${percentage}%`;
+        conversionProgress.style.transition = 'width 0.5s ease-in-out';
+        conversionProgress.style.backgroundColor = THEME_COLORS.primary;
+        conversionProgress.style.height = '8px'; // Fixed: was 0px height
+        conversionProgress.style.display = 'block';
+        
+      } else if (conversionProgress) {
+        // Fallback: set to 0% if no data
+        conversionProgress.style.width = '0%';
+        conversionProgress.style.height = '8px';
       }
     }
 
@@ -1513,9 +2115,12 @@
       }, 100);
     }
 
-    // Load dashboard data
+    // Load dashboard data with simple loading
     async function loadDashboardData() {
+      let timeoutId = null;
+      
       try {
+        // Show simple loading
         showLoading();
         
         // Get date values for both periods
@@ -1523,7 +2128,10 @@
         const endDate = document.getElementById('end-date').value;
         const comparisonStartDate = document.getElementById('comparison-start-date').value;
         const comparisonEndDate = document.getElementById('comparison-end-date').value;
-        const selectedOperator = document.getElementById('operator-select').value;
+        
+        // Get selected operator with fallback
+        const operatorSelect = document.getElementById('operator-select');
+        const selectedOperator = operatorSelect?.value || 'ALL';
         
         // Build API URL with date parameters
         let apiUrl = '/api/dashboard/data';
@@ -1547,29 +2155,74 @@
           apiUrl += '?' + params.toString();
         }
         
-        const response = await fetch(apiUrl);
+        const startTime = performance.now();
+        
+        // Add timeout to prevent hanging
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
+        const response = await fetch(apiUrl, {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Dashboard data loaded:', data);
+        const loadTime = performance.now() - startTime;
         
+        console.log('✅ Dashboard data loaded successfully:', {
+          operator: selectedOperator,
+          hasKPIs: !!data.kpis,
+          hasCharts: !!data.subscriptions,
+          loadTime: `${loadTime.toFixed(0)}ms`
+        });
+        
+        // Show performance indicator if fast load (likely from cache)
+        updatePerformanceIndicator(loadTime);
+        
+        // Show immediate notification
+        const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
+        
+        // Update dashboard and hide loading simultaneously
         updateDashboard(data);
         hideLoading();
         
-        // Show appropriate notification based on operator
-        const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
-        showNotification(`✅ Données ${operatorLabel} mises à jour avec succès!`, 'success');
+        // Progress bar now working correctly
+        
+        // Show success notification after everything is updated
+        setTimeout(() => {
+        showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
+        }, 100);
+        
       } catch (error) {
+        clearTimeout(timeoutId); // Clean up timeout
         console.error('Error loading dashboard data:', error);
         hideLoading();
-        showNotification('Erreur de connexion: ' + error.message, 'error');
+        
+        // Try to show fallback data instead of complete failure
+        if (error.name === 'AbortError') {
+          showNotification('⏱️ Délai d\'attente dépassé - Chargement des données de démonstration', 'warning');
+          loadFallbackData();
+          updateDashboard(dashboardData);
+        } else {
+          showNotification('❌ Erreur de connexion: ' + error.message, 'error');
+          // Still try fallback
+          loadFallbackData();
+          updateDashboard(dashboardData);
+        }
       }
     }
     
-    // Enhanced loading state management
-    function showLoadingState() {
+    // Simple loading management
+    function showLoading() {
       // Update button state
       const refreshBtn = document.getElementById('refresh-btn');
       const refreshText = document.getElementById('refresh-text');
@@ -1579,11 +2232,31 @@
       if (refreshText) refreshText.style.display = 'none';
       if (refreshLoading) refreshLoading.style.display = 'inline';
       
-      // Show main loading indicator
-      showLoading();
+      // Simple overlay
+      showSimpleOverlay();
+    }
+
+    function showSimpleOverlay() {
+      // Remove existing overlay
+      const existingOverlay = document.getElementById('loading-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
+      const overlay = document.createElement('div');
+      overlay.id = 'loading-overlay';
+      overlay.className = 'loading-overlay';
+      overlay.innerHTML = `
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <div style="margin-top: 15px; font-weight: 500;">Chargement des données...</div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
     }
     
-    function hideLoadingState() {
+    function hideLoading() {
       // Reset button state
       const refreshBtn = document.getElementById('refresh-btn');
       const refreshText = document.getElementById('refresh-text');
@@ -1593,52 +2266,183 @@
       if (refreshText) refreshText.style.display = 'inline';
       if (refreshLoading) refreshLoading.style.display = 'none';
       
-      // Hide main loading indicator
-      hideLoading();
+      // Remove simple overlay
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.remove();
+      }
     }
     
-    // Enhanced notification system
-    function showNotification(message, type = 'info') {
-      // Remove existing notifications
-      const existing = document.querySelectorAll('.notification');
+    // Enhanced notification system with better UX
+    function showNotification(message, type = 'info', duration = 4000) {
+      // Remove existing notifications of same type
+      const existing = document.querySelectorAll(`.notification.${type}`);
       existing.forEach(n => n.remove());
       
-      // Create new notification
+      // Create new notification with enhanced features
       const notification = document.createElement('div');
       notification.className = `notification ${type}`;
       notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
-          <span>${message}</span>
+        <div style="display: flex; align-items: center; gap: 10px; position: relative;">
+          <span style="font-size: 16px;">${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</span>
+          <span style="flex: 1; font-weight: 500;">${message}</span>
+          <button onclick="closeNotification(this)" style="background: none; border: none; font-size: 18px; cursor: pointer; color: inherit; opacity: 0.7;">×</button>
+        </div>
+        <div class="notification-progress" style="position: absolute; bottom: 0; left: 0; height: 3px; background: rgba(255,255,255,0.3); width: 100%; overflow: hidden;">
+          <div class="notification-progress-bar" style="height: 100%; background: rgba(255,255,255,0.8); width: 100%; animation: progressShrink ${duration}ms linear;"></div>
         </div>
       `;
       
+      // Improve positioning and stacking
+      notification.style.position = 'fixed';
+      notification.style.zIndex = '10000';
+      notification.style.marginBottom = '10px';
+      
+      // Stack notifications
+      const existingNotifications = document.querySelectorAll('.notification');
+      const offset = existingNotifications.length * 80; // 80px per notification
+      notification.style.top = (20 + offset) + 'px';
+      
       document.body.appendChild(notification);
       
-      // Auto-remove after 4 seconds
+      // Add progress animation style if not exists
+      if (!document.getElementById('progress-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'progress-animation-style';
+        style.textContent = `
+          @keyframes progressShrink {
+            from { width: 100%; }
+            to { width: 0%; }
+          }
+          
+          .notification {
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+          }
+          
+          .notification:hover .notification-progress-bar {
+            animation-play-state: paused;
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      
+      // Auto-remove with smooth animation
       setTimeout(() => {
         if (document.body.contains(notification)) {
           notification.style.animation = 'slideIn 0.3s ease reverse';
+          notification.style.transform = 'translateX(100%)';
           setTimeout(() => {
             if (document.body.contains(notification)) {
               document.body.removeChild(notification);
+              // Reposition remaining notifications
+              repositionNotifications();
             }
           }, 300);
         }
-      }, 4000);
+      }, duration);
     }
     
-    // Load available operators
+    function closeNotification(button) {
+      const notification = button.closest('.notification');
+      if (notification) {
+        notification.style.animation = 'slideIn 0.3s ease reverse';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+            repositionNotifications();
+          }
+        }, 300);
+      }
+    }
+    
+    function repositionNotifications() {
+      const notifications = document.querySelectorAll('.notification');
+      notifications.forEach((notification, index) => {
+        notification.style.top = (20 + index * 80) + 'px';
+      });
+    }
+
+    function updatePerformanceIndicator(loadTime) {
+      const indicator = document.getElementById('performance-indicator');
+      if (!indicator) return;
+      
+      if (loadTime < 500) {
+        // Fast load - likely from cache
+        indicator.style.display = 'flex';
+        indicator.querySelector('.performance-text').textContent = 'Cache ⚡';
+        indicator.style.background = 'rgba(16, 185, 129, 0.1)';
+        indicator.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        indicator.style.color = '#059669';
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 3000);
+      } else if (loadTime < 2000) {
+        // Medium load
+        indicator.style.display = 'flex';
+        indicator.querySelector('.performance-text').textContent = `${Math.round(loadTime)}ms`;
+        indicator.style.background = 'rgba(245, 158, 11, 0.1)';
+        indicator.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+        indicator.style.color = '#d97706';
+        
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 2000);
+      } else {
+        // Slow load
+        indicator.style.display = 'flex';
+        indicator.querySelector('.performance-text').textContent = 'Lent';
+        indicator.style.background = 'rgba(239, 68, 68, 0.1)';
+        indicator.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        indicator.style.color = '#dc2626';
+        
+        setTimeout(() => {
+          indicator.style.display = 'none';
+        }, 4000);
+      }
+    }
+    
+    // Load available operators with timeout and fallback
     async function loadOperators() {
+      let timeoutId = null;
+      
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      
       try {
-        const response = await fetch('/api/operators');
+        const response = await fetch('/api/operators', {
+          signal: controller.signal,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        console.log('🔍 DEBUG API Response:', {
+          operators: data.operators,
+          default_operator: data.default_operator,
+          user_role: data.user_role
+        });
         
         if (data.operators && data.operators.length > 0) {
           const select = document.getElementById('operator-select');
           const operatorInfo = document.getElementById('operator-info');
           
-          // Clear existing options
+          // Clear existing options (keep default structure)
           select.innerHTML = '';
           
           // Add operators to select
@@ -1646,9 +2450,12 @@
             const option = document.createElement('option');
             option.value = operator.value;
             option.textContent = `📱 ${operator.label}`;
-            // Use the default_operator from API response
+            
+            console.log(`🔍 Comparaison: "${operator.value}" === "${data.default_operator}" ? ${operator.value === data.default_operator}`);
+            
             if (operator.value === data.default_operator) {
               option.selected = true;
+              console.log('✅ Opérateur sélectionné par défaut:', operator.label);
             }
             select.appendChild(option);
           });
@@ -1660,17 +2467,16 @@
             operatorInfo.textContent = `${data.operators.length} opérateur(s) assigné(s)`;
           }
           
-          console.log('Opérateurs chargés:', data.operators.length, 'Défaut:', data.default_operator);
+          console.log('✅ Opérateurs chargés:', data.operators.length);
           
         } else {
-          console.warn('Aucun opérateur disponible');
-          document.getElementById('operator-info').textContent = 'Aucun opérateur disponible';
+          throw new Error('No operators data');
         }
         
       } catch (error) {
-        console.error('Erreur lors du chargement des opérateurs:', error);
-        document.getElementById('operator-info').textContent = 'Erreur de chargement';
-        throw error; // Re-throw to handle in initialization
+        clearTimeout(timeoutId);
+        console.warn('⚠️ Operators loading failed:', error.message);
+        throw error;
       }
     }
     
@@ -1766,12 +2572,7 @@
       alert(message);
     }
 
-    // Initialize dashboard
-    document.addEventListener('DOMContentLoaded', function() {
-      setDefaultDates();
-      updateDateRange();
-      loadDashboardData();
-    });
+    // Duplicate DOMContentLoaded removed - initialization handled by main DOMContentLoaded above
 
     // Load fallback data (static data for demo)
     function loadFallbackData() {
@@ -1827,9 +2628,12 @@
       updateDashboard(dashboardData);
     }
 
-    // Update dashboard with data
+    // Update dashboard with data - optimized for performance
     function updateDashboard(data) {
-      // Update periods
+      // Store globally FIRST so dependent functions can safely read it
+      dashboardData = data;
+
+      // Update periods immediately
       const primaryPeriodEl = document.getElementById('primaryPeriod');
       if (primaryPeriodEl) {
         primaryPeriodEl.textContent = data.periods.primary;
@@ -1840,20 +2644,18 @@
         comparisonPeriodEl.textContent = data.periods.comparison;
       }
       
-      // Update KPIs
+      // Update KPIs first (most important)
       updateKPIs(data.kpis);
       
-      // Update charts
+      // Update other components with small delays to avoid blocking
+      requestAnimationFrame(() => {
       updateCharts(data);
       
-      // Update tables
+        requestAnimationFrame(() => {
       updateTables(data);
-      
-      // Update merchant KPI info with real merchants data
       updateMerchantKPIs(data.merchants, data.kpis);
-      
-      // Update insights
-      updateInsights(data.insights);
+        });
+      });
     }
 
     // Update KPI values
@@ -1862,30 +2664,87 @@
       updateKPI('activatedSubscriptions', kpis.activatedSubscriptions);
       updateKPI('activeSubscriptions', kpis.activeSubscriptions);
       updateKPI('totalTransactions', kpis.totalTransactions);
+      if (kpis.cohortTransactions) {
+        updateKPI('cohortTransactions', kpis.cohortTransactions);
+      }
+      if (kpis.cohortTransactingUsers) {
+        updateKPI('cohortTransactingUsers', kpis.cohortTransactingUsers);
+      }
+      // Total Transacting Users (période)
+      updateKPI('totalTransactingUsers', kpis.transactingUsers);
       updateKPI('conversionRate', kpis.conversionRate, '%');
+      // Overview engagement rate (mirror of subscriptions retentionRate)
+      if (kpis.retentionRate) {
+        updateKPI('overview-retentionRate', kpis.retentionRate, '%');
+      }
+      
+      // Update Overview conversion progress bar
+      updateOverviewConversionProgressBar(kpis.conversionRate);
       
       // Subscription KPIs
       updateKPI('sub-activatedSubscriptions', kpis.activatedSubscriptions);
       updateKPI('sub-activeSubscriptions', kpis.activeSubscriptions);
       updateKPI('sub-deactivatedSubscriptions', kpis.deactivatedSubscriptions);
       updateKPI('sub-retentionRate', kpis.retentionRate, '%');
-      
-      // Transaction KPIs
-      updateKPI('trans-totalTransactions', kpis.totalTransactions);
-      updateKPI('trans-transactingUsers', kpis.transactingUsers);
-      updateKPI('trans-transactionsPerUser', kpis.transactionsPerUser);
-      updateKPI('trans-conversionRate', kpis.conversionRate, '%');
-      
-      // Update conversion progress bar
-      const conversionProgress = document.getElementById('trans-conversionProgress');
-      if (conversionProgress) {
-        conversionProgress.style.width = `${(kpis.conversionRate.current / 30) * 100}%`;
+      if (kpis.lostSubscriptions) {
+        updateKPI('sub-lostSubscriptions', kpis.lostSubscriptions);
+      }
+      if (kpis.retentionRateTrue) {
+        updateKPI('sub-retentionRateTrue', kpis.retentionRateTrue, '%');
       }
       
+      // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
+      if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.activations_by_channel) {
+        const activations = dashboardData.subscriptions.activations_by_channel;
+        updateKPI('sub-activationsCB', activations.cb);
+        updateKPI('sub-activationsRecharge', activations.recharge);
+        updateKPI('sub-activationsPhone', activations.phone_balance);
+      }
+      
+      // Nouveaux KPIs Avancés - Plans (avec comparaison)
+      if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.plan_distribution) {
+        const plans = dashboardData.subscriptions.plan_distribution;
+        updateKPI('sub-plansDaily', plans.daily);
+        updateKPI('sub-plansMonthly', plans.monthly);
+        updateKPI('sub-plansAnnual', plans.annual);
+      }
+      
+      // Nouveaux KPIs Avancés - Métriques (avec comparaison)
+      if (dashboardData && dashboardData.subscriptions) {
+        updateKPI('sub-renewalRate', dashboardData.subscriptions.renewal_rate, '%');
+        updateKPI('sub-averageLifespan', dashboardData.subscriptions.average_lifespan, ' jours');
+      }
+
+      // Valeurs transactions & conversion affichées désormais en haut
+      updateKPI('sub-totalTransactions', kpis.totalTransactions);
+      updateKPI('sub-conversionRate', kpis.conversionRate, '%');
+      
+      // Transaction KPIs réorganisés
+      updateKPI('trans-totalTransactions', kpis.totalTransactions);
+      if (kpis.cohortTransactions) { updateKPI('trans-cohortTransactions', kpis.cohortTransactions); }
+      updateKPI('trans-transactingUsers', kpis.transactingUsers);
+      if (kpis.cohortTransactingUsers) { updateKPI('trans-cohortTransactingUsers', kpis.cohortTransactingUsers); }
+      updateKPI('trans-transactionsPerUser', kpis.transactionsPerUser);
+      if (kpis.conversionRate) { updateKPI('trans-convCohort', kpis.conversionRate, '%'); }
+      if (kpis.conversionRatePeriod) { updateKPI('trans-convPeriod', kpis.conversionRatePeriod, '%'); }
+      if (kpis.avgInterTransactionDays) { updateKPI('trans-avgInterTxDays', kpis.avgInterTransactionDays, ' j'); }
+      
       // Merchant KPIs
-      updateKPI('merch-totalActivePartnersDB', kpis.totalActivePartnersDB);
+      updateKPI('merch-totalPartners', kpis.totalPartners);
       updateKPI('merch-activeMerchants', kpis.activeMerchants);
       updateKPI('merch-transactionsPerMerchant', kpis.transactionsPerMerchant);
+      if (kpis.activeMerchantRatio) {
+        updateKPI('merch-activeMerchantRatio', kpis.activeMerchantRatio, '%');
+      }
+      if (kpis.totalLocationsActive) {
+        updateKPI('merch-totalLocationsActive', kpis.totalLocationsActive);
+      }
+      if (kpis.totalTransactions) {
+        updateKPI('merch-totalTransactions', kpis.totalTransactions);
+      }
+
+      // Global snapshots
+      // Global snapshot row removed
       
       // Top merchant info sera mis à jour dans updateTables() avec les nouvelles données
     }
@@ -1959,9 +2818,22 @@
         const change = Number.isFinite(safe.change) ? safe.change : 0;
         const isPositive = change > 0;
         const isNegative = change < 0;
+
+        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated, churn, durée entre transactions)
+        const inverse = elementId.includes('deactivated') || elementId.includes('churn') || elementId.includes('lostSubscriptions') || elementId.includes('retentionRateTrue') || elementId.includes('avgInterTxDays');
+        const positiveClass = inverse ? 'delta-negative' : 'delta-positive';
+        const negativeClass = inverse ? 'delta-positive' : 'delta-negative';
         
         deltaElement.textContent = `${isPositive ? '↗' : isNegative ? '↘' : '→'} ${isPositive ? '+' : ''}${change.toFixed(1)}%`;
-        deltaElement.className = `kpi-delta ${isPositive ? 'delta-positive' : isNegative ? 'delta-negative' : 'delta-neutral'}`;
+        deltaElement.className = `kpi-delta ${isPositive ? positiveClass : isNegative ? negativeClass : 'delta-neutral'}`;
+      }
+    }
+
+    // Helper function to update KPI value only (for new KPIs without comparison)
+    function updateKPIValue(id, value, suffix = '') {
+      const element = document.getElementById(id);
+      if (element && value !== undefined && value !== null) {
+        element.textContent = formatNumber(value) + suffix;
       }
     }
 
@@ -1982,6 +2854,11 @@
       createSubscriptionTrendChart(data);
       createRetentionChart(data);
       
+      // Nouveaux graphiques de subscription
+      createActivationsByChannelChart(data);
+      createPlanDistributionChart(data);
+      createCohortsAnalysisChart(data);
+      
       // Transaction Charts
       createTransactionVolumeChart(data);
       createTransactingUsersChart(data);
@@ -1989,10 +2866,40 @@
       // Merchant Charts
       createTopMerchantsChart(data);
       createCategoryChart(data);
+      createActiveLocationsTrend(data);
       
       // Comparison Chart
       createComparisonChart(data);
     }
+  // Create active locations trend chart
+  function createActiveLocationsTrend(data) {
+    const ctx = document.getElementById('activeLocationsTrend');
+    if (!ctx) return;
+
+    if (charts.activeLocationsTrend) {
+      charts.activeLocationsTrend.destroy();
+    }
+
+    const points = (data.subscriptions && data.subscriptions.quarterly_active_locations) ? data.subscriptions.quarterly_active_locations : [];
+    const labels = points.map(p => p.quarter);
+    const values = points.map(p => p.locations);
+
+    charts.activeLocationsTrend = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Points de vente actifs',
+          data: values,
+          borderColor: THEME_COLORS.primary,
+          backgroundColor: THEME_COLORS.primaryRgba,
+          tension: 0.25,
+          fill: true
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
 
     // Create overview chart
     function createOverviewChart(data) {
@@ -2016,7 +2923,7 @@
                 data.kpis.totalTransactions.current,
                 data.kpis.activeMerchants.current
               ],
-              backgroundColor: '#E30613',
+              backgroundColor: THEME_COLORS.primary,
               borderRadius: 4
             },
             {
@@ -2058,11 +2965,10 @@
         charts.subscriptionTrend.destroy();
       }
       
-      // Generate sample daily data
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const dailyData = Array.from({length: 14}, (_, i) => 
-        Math.floor(data.kpis.activatedSubscriptions.current / 14 * (0.5 + Math.random()))
-      );
+      // Use real daily activations data from backend
+      const dailyActivations = data.subscriptions?.daily_activations || [];
+      const days = dailyActivations.map((item, index) => `Day ${index + 1}`);
+      const dailyData = dailyActivations.map(item => item.activations || 0);
       
       charts.subscriptionTrend = new Chart(ctx, {
         type: 'line',
@@ -2071,8 +2977,8 @@
           datasets: [{
             label: 'Daily Activated Subscriptions',
             data: dailyData,
-            borderColor: '#E30613',
-            backgroundColor: 'rgba(227, 6, 19, 0.1)',
+            borderColor: THEME_COLORS.primary,
+            backgroundColor: THEME_COLORS.primaryRgba,
             fill: true,
             tension: 0.4
           }]
@@ -2103,10 +3009,10 @@
         charts.retention.destroy();
       }
       
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const retentionData = Array.from({length: 14}, (_, i) => 
-        90 + Math.random() * 8
-      );
+      // Use real retention trend data from backend
+      const retentionTrend = data.subscriptions?.retention_trend || [];
+      const days = retentionTrend.map((item) => item.date);
+      const retentionData = retentionTrend.map(item => Number(item.rate || 0));
       
       charts.retention = new Chart(ctx, {
         type: 'line',
@@ -2131,8 +3037,11 @@
           },
           scales: {
             y: {
-              min: 85,
-              max: 100
+              beginAtZero: true,
+              suggestedMax: 100,
+              ticks: {
+                callback: function(value) { return value + '%'; }
+              }
             }
           }
         }
@@ -2148,10 +3057,16 @@
         charts.transactionVolume.destroy();
       }
       
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const transactionData = Array.from({length: 14}, (_, i) => 
-        Math.floor(data.kpis.totalTransactions.current / 14 * (0.3 + Math.random() * 1.4))
-      );
+      // Use real daily transactions data from backend
+      const dailyTransactions = data.transactions?.daily_volume || [];
+      const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
+      const transactionData = dailyTransactions.map(item => item.transactions || 0);
+      
+      // Build cumulative series
+      const cumulativeTransactions = transactionData.reduce((acc, val, idx) => {
+        acc.push((acc[idx - 1] || 0) + val);
+        return acc;
+      }, []);
       
       charts.transactionVolume = new Chart(ctx, {
         type: 'bar',
@@ -2160,25 +3075,32 @@
           datasets: [{
             label: 'Daily Transactions',
             data: transactionData,
-            backgroundColor: '#3b82f6',
-            borderRadius: 4
+            backgroundColor: THEME_COLORS.accent,
+            borderRadius: 4,
+            
+          },{
+            type: 'line',
+            label: 'Cumulative (preview)',
+            data: new Array(transactionData.length).fill(null) // hidden in this chart
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
         }
       });
+
+      const cumCtx = document.getElementById('transactionVolumeCumulativeChart');
+      if (cumCtx) {
+        if (charts.transactionVolumeCumulative) charts.transactionVolumeCumulative.destroy();
+        charts.transactionVolumeCumulative = new Chart(cumCtx, {
+          type: 'line',
+          data: { labels: days, datasets: [{ label: 'Cumulative Transactions', data: cumulativeTransactions, borderColor: THEME_COLORS.primary, backgroundColor: THEME_COLORS.primaryRgba, fill: false, tension: 0.3 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
     }
 
     // Create transacting users chart
@@ -2190,10 +3112,15 @@
         charts.transactingUsers.destroy();
       }
       
-      const days = Array.from({length: 14}, (_, i) => `Day ${i + 1}`);
-      const userData = Array.from({length: 14}, (_, i) => 
-        Math.floor(data.kpis.transactingUsers.current / 14 * (0.3 + Math.random() * 1.4))
-      );
+      // Use real daily transactions data from backend to extract users
+      const dailyTransactions = data.transactions?.daily_volume || [];
+      const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
+      const userData = dailyTransactions.map(item => item.users || 0);
+      
+      const cumulativeUsers = userData.reduce((acc, val, idx) => {
+        acc.push((acc[idx - 1] || 0) + val);
+        return acc;
+      }, []);
       
       charts.transactingUsers = new Chart(ctx, {
         type: 'line',
@@ -2202,27 +3129,33 @@
           datasets: [{
             label: 'Daily Transacting Users',
             data: userData,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderColor: THEME_COLORS.warning,
+            backgroundColor: THEME_COLORS.warning === '#3b82f6' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
             fill: true,
             tension: 0.4
+          },{
+            type: 'line',
+            label: 'Cumulative (preview)',
+            data: new Array(userData.length).fill(null)
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
         }
       });
+
+      const cumUsersCtx = document.getElementById('transactingUsersCumulativeChart');
+      if (cumUsersCtx) {
+        if (charts.transactingUsersCumulative) charts.transactingUsersCumulative.destroy();
+        charts.transactingUsersCumulative = new Chart(cumUsersCtx, {
+          type: 'line',
+          data: { labels: days, datasets: [{ label: 'Cumulative Users', data: cumulativeUsers, borderColor: THEME_COLORS.primary, backgroundColor: THEME_COLORS.primaryRgba, fill: false, tension: 0.3 }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
     }
 
     // Create top merchants chart
@@ -2234,8 +3167,9 @@
         charts.topMerchants.destroy();
       }
       
-      const merchantNames = data.merchants.map(m => m.name);
-      const merchantValues = data.merchants.map(m => m.current);
+      const top10 = (data.merchants || []).slice(0, 10);
+      const merchantNames = top10.map(m => m.name);
+      const merchantValues = top10.map(m => m.current);
       
       charts.topMerchants = new Chart(ctx, {
         type: 'doughnut',
@@ -2244,10 +3178,10 @@
           datasets: [{
             data: merchantValues,
             backgroundColor: [
-              '#E30613',
-              '#3b82f6',
-              '#10b981',
-              '#f59e0b'
+              THEME_COLORS.primary,
+              THEME_COLORS.accent,
+              THEME_COLORS.success,
+              THEME_COLORS.warning
             ],
             borderWidth: 2,
             borderColor: '#ffffff'
@@ -2275,8 +3209,8 @@
       }
       
       const dist = (data.categoryDistribution || []).slice(0, 10);
-      const labels = dist.map(d => d.category);
-      const values = dist.map(d => d.percentage);
+      const labels = dist.map(d => `${d.category} (${d.merchants_count})`);
+      const values = dist.map(d => d.merchants_count);
       const colors = ['#E30613','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#f97316','#64748b'];
       
       charts.category = new Chart(ctx, {
@@ -2295,14 +3229,7 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { position: 'bottom' },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const item = dist[ctx.dataIndex];
-                  return item ? `${item.category}: ${item.transactions} tx (${item.percentage}%)` : '';
-                }
-              }
-            }
+            tooltip: { enabled: true }
           }
         }
       });
@@ -2325,9 +3252,9 @@
             {
               label: 'Current Period',
               data: [100, 20, 80, 1, 94],
-              borderColor: '#E30613',
-              backgroundColor: 'rgba(227, 6, 19, 0.2)',
-              pointBackgroundColor: '#E30613'
+              borderColor: THEME_COLORS.primary,
+              backgroundColor: THEME_COLORS.primaryRgba.replace('0.1', '0.2'),
+              pointBackgroundColor: THEME_COLORS.primary
             },
             {
               label: 'Previous Period',
@@ -2356,18 +3283,183 @@
       });
     }
 
+    // Nouveaux graphiques pour les KPIs avancés
+
+    // Graphique des activations par canal
+    function createActivationsByChannelChart(data) {
+      const ctx = document.getElementById('activationsByChannelChart');
+      if (!ctx) return;
+      
+      if (charts.activationsByChannel) {
+        charts.activationsByChannel.destroy();
+      }
+      
+      const activations = data.subscriptions?.activations_by_channel || {};
+      // Support both old (numbers) and new (objects with current/previous/change) shapes
+      const cbVal = (activations.cb && typeof activations.cb === 'object') ? (activations.cb.current ?? 0) : (activations.cb ?? 0);
+      const rechargeVal = (activations.recharge && typeof activations.recharge === 'object') ? (activations.recharge.current ?? 0) : (activations.recharge ?? 0);
+      const phoneVal = (activations.phone_balance && typeof activations.phone_balance === 'object') ? (activations.phone_balance.current ?? 0) : (activations.phone_balance ?? 0);
+      const otherVal = (activations.other && typeof activations.other === 'object') ? (activations.other.current ?? 0) : (activations.other ?? 0);
+
+      charts.activationsByChannel = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Carte Bancaire', 'Recharge', 'Solde Téléphonique', 'Autres'],
+          datasets: [{
+            data: [cbVal, rechargeVal, phoneVal, otherVal],
+            backgroundColor: [
+              THEME_COLORS.primary,
+              '#10b981',
+              '#f59e0b',
+              '#6b7280'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique de distribution des plans
+    function createPlanDistributionChart(data) {
+      const ctx = document.getElementById('planDistributionChart');
+      if (!ctx) return;
+      
+      if (charts.planDistribution) {
+        charts.planDistribution.destroy();
+      }
+      
+      const plans = data.subscriptions?.plan_distribution || {};
+      const dailyVal = (plans.daily && typeof plans.daily === 'object') ? (plans.daily.current ?? 0) : (plans.daily ?? 0);
+      const monthlyVal = (plans.monthly && typeof plans.monthly === 'object') ? (plans.monthly.current ?? 0) : (plans.monthly ?? 0);
+      const annualVal = (plans.annual && typeof plans.annual === 'object') ? (plans.annual.current ?? 0) : (plans.annual ?? 0);
+      const otherPlanVal = (plans.other && typeof plans.other === 'object') ? (plans.other.current ?? 0) : (plans.other ?? 0);
+      
+      charts.planDistribution = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Journalier', 'Mensuel', 'Annuel', 'Autres'],
+          datasets: [{
+            label: 'Nombre d\'abonnements',
+            data: [dailyVal, monthlyVal, annualVal, otherPlanVal],
+            backgroundColor: [
+              THEME_COLORS.primary,
+              '#10b981',
+              '#f59e0b',
+              '#6b7280'
+            ],
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique d'analyse de cohortes
+    function createCohortsAnalysisChart(data) {
+      const ctx = document.getElementById('cohortsAnalysisChart');
+      if (!ctx) return;
+      
+      if (charts.cohortsAnalysis) {
+        charts.cohortsAnalysis.destroy();
+      }
+      
+      const cohorts = data.subscriptions?.cohorts || [];
+      const months = cohorts.map(c => c.month);
+      const survivalD30 = cohorts.map(c => c.survival_d30 || 0);
+      const survivalD60 = cohorts.map(c => c.survival_d60 || 0);
+      
+      charts.cohortsAnalysis = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [
+            {
+              label: 'Survie J+30 (%)',
+              data: survivalD30,
+              borderColor: THEME_COLORS.primary,
+              backgroundColor: THEME_COLORS.primaryRgba,
+              fill: false,
+              tension: 0.4
+            },
+            {
+              label: 'Survie J+60 (%)',
+              data: survivalD60,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: false,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: function(value) {
+                  return value + '%';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
     // Update tables
     function updateTables(data) {
       updateMerchantsTable(data.merchants);
       updateComparisonTable(data.kpis);
     }
 
-    // Update merchants table with enhanced data
+    // Update merchants table with enhanced data and pagination
     function updateMerchantsTable(merchants) {
+      allMerchants = merchants || [];
+      currentMerchantsPage = 1;
+      renderMerchantsPage();
+    }
+    
+    function renderMerchantsPage() {
       const tbody = document.getElementById('merchantsTableBody');
       if (!tbody) return;
       
-      tbody.innerHTML = merchants.map((merchant, index) => {
+      const startIndex = (currentMerchantsPage - 1) * merchantsPerPage;
+      const endIndex = startIndex + merchantsPerPage;
+      const pageData = allMerchants.slice(startIndex, endIndex);
+      
+      tbody.innerHTML = pageData.map((merchant, index) => {
+        const globalIndex = startIndex + index;
         // Calcul du changement plus robuste
         let change = 0;
         let badgeClass = 'badge-info';
@@ -2397,8 +3489,8 @@
           statusText = 'En croissance';
         }
         
-        // Icône basée sur la position
-        const positionIcon = index < 3 ? '🏆' : index < 10 ? '⭐' : '📊';
+        // Icône basée sur la position globale
+        const positionIcon = globalIndex < 3 ? '🏆' : globalIndex < 10 ? '⭐' : '📊';
         
         return `
           <tr>
@@ -2408,7 +3500,7 @@
                 <div>
                   <strong>${merchant.name}</strong>
                   <div style="font-size: 12px; color: #666; margin-top: 2px;">
-                    Position: #${index + 1}
+                    Position: #${globalIndex + 1}
                   </div>
                 </div>
               </div>
@@ -2441,6 +3533,65 @@
           </tr>
         `;
       }).join('');
+      
+      updateMerchantsPagination();
+    }
+    
+    function updateMerchantsPagination() {
+      const totalMerchants = allMerchants.length;
+      const totalPages = Math.ceil(totalMerchants / merchantsPerPage);
+      const startIndex = (currentMerchantsPage - 1) * merchantsPerPage + 1;
+      const endIndex = Math.min(currentMerchantsPage * merchantsPerPage, totalMerchants);
+      
+      // Update pagination info
+      const infoEl = document.getElementById('merchantsPaginationInfo');
+      if (infoEl) {
+        infoEl.textContent = `Affichage de ${startIndex}-${endIndex} sur ${totalMerchants} marchands`;
+      }
+      
+      // Update page numbers
+      const pageNumbersEl = document.getElementById('merchantsPageNumbers');
+      if (pageNumbersEl) {
+        pageNumbersEl.textContent = `Page ${currentMerchantsPage} sur ${totalPages}`;
+      }
+      
+      // Update button states
+      const prevBtn = document.getElementById('merchantsPrevBtn');
+      const nextBtn = document.getElementById('merchantsNextBtn');
+      
+      if (prevBtn) {
+        prevBtn.disabled = currentMerchantsPage <= 1;
+        prevBtn.style.opacity = currentMerchantsPage <= 1 ? '0.5' : '1';
+        prevBtn.style.cursor = currentMerchantsPage <= 1 ? 'not-allowed' : 'pointer';
+      }
+      
+      if (nextBtn) {
+        nextBtn.disabled = currentMerchantsPage >= totalPages;
+        nextBtn.style.opacity = currentMerchantsPage >= totalPages ? '0.5' : '1';
+        nextBtn.style.cursor = currentMerchantsPage >= totalPages ? 'not-allowed' : 'pointer';
+      }
+    }
+    
+    function changeMerchantsPerPage() {
+      const select = document.getElementById('merchantsPerPage');
+      merchantsPerPage = parseInt(select.value);
+      currentMerchantsPage = 1;
+      renderMerchantsPage();
+    }
+    
+    function previousMerchantsPage() {
+      if (currentMerchantsPage > 1) {
+        currentMerchantsPage--;
+        renderMerchantsPage();
+      }
+    }
+    
+    function nextMerchantsPage() {
+      const totalPages = Math.ceil(allMerchants.length / merchantsPerPage);
+      if (currentMerchantsPage < totalPages) {
+        currentMerchantsPage++;
+        renderMerchantsPage();
+      }
     }
 
     // Add export function for merchants data
@@ -2584,13 +3735,15 @@
       }).join('');
     }
 
-    // Update insights
+    // Update insights (disabled)
+    /*
     function updateInsights(insights) {
       updateInsightList('positiveInsights', insights.positive);
       updateInsightList('challenges', insights.challenges);
       updateInsightList('recommendations', insights.recommendations);
       updateInsightList('nextSteps', insights.nextSteps);
     }
+    */
 
     // Update individual insight list
     function updateInsightList(elementId, items) {

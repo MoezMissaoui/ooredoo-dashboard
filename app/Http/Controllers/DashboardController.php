@@ -11,15 +11,18 @@ class DashboardController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        
+        // Déterminer le thème selon le type d'utilisateur
+        $theme = $request->get('theme', $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges');
         
         // Déterminer l'opérateur par défaut selon le rôle
         $defaultOperator = $this->getDefaultOperatorForUser($user);
         $availableOperators = $this->getAvailableOperatorsForUser($user);
         
-        return view('dashboard', compact('defaultOperator', 'availableOperators'));
+        return view('dashboard', compact('defaultOperator', 'availableOperators', 'theme'));
     }
 
     /**

@@ -21,7 +21,9 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            // Si l'utilisateur est déjà connecté, redirection intelligente
+            $preferredDashboard = Auth::user()->getPreferredDashboard();
+            return redirect($preferredDashboard);
         }
         
         return view('auth.login');
@@ -64,7 +66,10 @@ class AuthController extends Controller
             
             Log::info("Connexion réussie pour l'utilisateur: " . $user->email);
             
-            return redirect()->intended(route('dashboard'));
+            // Redirection intelligente selon le rôle et les permissions
+            $preferredDashboard = $user->getPreferredDashboard();
+            
+            return redirect()->intended($preferredDashboard);
         }
 
         Log::warning("Tentative de connexion échouée pour: " . $request->email);
@@ -206,7 +211,10 @@ class AuthController extends Controller
 
         Log::info("Connexion OTP réussie pour l'utilisateur: " . $user->email);
 
-        return redirect()->route('dashboard');
+        // Redirection intelligente selon le rôle et les permissions
+        $preferredDashboard = $user->getPreferredDashboard();
+        
+        return redirect()->intended($preferredDashboard);
     }
 
     /**
