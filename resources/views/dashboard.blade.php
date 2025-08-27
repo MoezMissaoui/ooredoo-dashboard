@@ -905,15 +905,18 @@
     /* Merchants Section Styles */
     .merchants-kpis-row {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 20px;
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     .merchants-kpis-row .kpi-card { grid-column: span 1 !important; }
+    .merchants-kpi { min-height: 120px; }
+    .merchants-kpi .kpi-value { font-size: 32px; }
+    .merchants-kpi .kpi-delta { min-height: 18px; }
 
     .trans-kpis-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 20px;
       margin-bottom: 24px;
     }
@@ -1257,7 +1260,7 @@
           <div class="kpi-delta" id="activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Engagement Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
           <div class="kpi-value" id="overview-retentionRate">Loading...</div>
           <div class="kpi-delta" id="overview-retentionRateDelta">Loading...</div>
         </div>
@@ -1323,7 +1326,7 @@
           <div class="kpi-delta" id="sub-activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Engagement Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Engagement = Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Retention = Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
           <div class="kpi-value" id="sub-retentionRate">Loading...</div>
           <div class="kpi-delta" id="sub-retentionRateDelta">Loading...</div>
         </div>
@@ -1356,12 +1359,12 @@
           <div class="kpi-value" id="sub-totalTransactions">Loading...</div>
           <div class="kpi-delta" id="sub-totalTransactionsDelta">Loading...</div>
         </div>
-      </div>
+        </div>
 
       <!-- Subscription Trends (two charts side by side) -->
       <div class="grid">
         <div class="card chart-card">
-          <div class="chart-title">Engagement Rate Trend</div>
+          <div class="chart-title">Retention Rate Trend</div>
           <div class="chart-container">
             <canvas id="retentionChart"></canvas>
           </div>
@@ -1372,8 +1375,8 @@
           <div class="chart-container">
             <canvas id="subscriptionTrendChart"></canvas>
           </div>
+          </div>
         </div>
-      </div>
 
       <!-- Nouveaux KPIs Avancés -->
       <div class="grid" style="margin-top: 20px;">
@@ -1424,11 +1427,7 @@
           <div class="kpi-value" id="sub-averageLifespan">Loading...</div>
           <div class="kpi-delta" id="sub-averageLifespanDelta">Loading...</div>
         </div>
-        <div class="card kpi-card">
-          <div class="kpi-title">Taux de Réactivation</div>
-          <div class="kpi-value" id="sub-reactivationRate">Loading...</div>
-          <div class="kpi-delta" id="sub-reactivationRateDelta">Loading...</div>
-        </div>
+        
       </div>
 
       
@@ -1468,14 +1467,33 @@
           <div class="kpi-delta" id="trans-totalTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transacting Users <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
+          <div class="kpi-title">Total Transactions (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions effectuées par les abonnements créés dans la période (cohorte).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-cohortTransactions">Loading...</div>
+          <div class="kpi-delta" id="trans-cohortTransactionsDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
           <div class="kpi-value" id="trans-transactingUsers">Loading...</div>
           <div class="kpi-delta" id="trans-transactingUsersDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transacting Users (Global) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Clients ayant transigé avant ou à end (history.time < end).">ⓘ</span></div>
-          <div class="kpi-value" id="trans-transactingUsersGlobal">Loading...</div>
-          <div class="kpi-delta" id="trans-transactingUsersGlobalDelta">—</div>
+          <div class="kpi-title">Transacting Users (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Clients de la cohorte (créés dans [start,end)) ayant transigé dans la période.">ⓘ</span></div>
+          <div class="kpi-value" id="trans-cohortTransactingUsers">Loading...</div>
+          <div class="kpi-delta" id="trans-cohortTransactingUsersDelta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Transactions KPIs: Row 2 (4 KPI alignés comme Overview) -->
+      <div class="trans-kpis-row">
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-convCohort">Loading...</div>
+          <div class="kpi-delta" id="trans-convCohortDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-title">Conversion Rate (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Transacting Users (Période)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-convPeriod">Loading...</div>
+          <div class="kpi-delta" id="trans-convPeriodDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
           <div class="kpi-title">Transactions/User <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions (période) / Utilisateurs transigeants (période).">ⓘ</span></div>
@@ -1483,13 +1501,10 @@
           <div class="kpi-delta" id="trans-transactionsPerUserDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
-          <div class="kpi-value" id="trans-conversionRate">Loading...</div>
-          <div class="progress-bar">
-            <div class="progress-fill" id="trans-conversionProgress" style="width: 0%"></div>
+          <div class="kpi-title">Avg. Durée entre 2 transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Moyenne des intervalles entre transactions par utilisateur (jours).">ⓘ</span></div>
+          <div class="kpi-value" id="trans-avgInterTxDays">Loading...</div>
+          <div class="kpi-delta" id="trans-avgInterTxDaysDelta">Loading...</div>
           </div>
-          <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">Target: 30%</div>
-        </div>
         </div>
 
       <div class="grid">
@@ -1528,14 +1543,14 @@
 
     <!-- Tab 4: Merchant Analysis -->
     <div id="merchants" class="tab-content">
-      <!-- KPIs Section - 5 cartes en ligne -->
+      <!-- KPIs Section - 8 cartes (2 lignes de 4) -->
       <div class="merchants-kpis-row">
         <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">🏪</div>
           <div class="kpi-content">
             <div class="kpi-title">Total Merchants <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de partenaires (table partner).">ⓘ</span></div>
-            <div class="kpi-value" id="merch-totalActivePartnersDB">Loading...</div>
-            <div class="kpi-delta" id="merch-totalActivePartnersDBDelta">→ 0.0%</div>
+            <div class="kpi-value" id="merch-totalPartners">Loading...</div>
+            <div class="kpi-delta" id="merch-totalPartnersDelta">→ 0.0%</div>
           </div>
         </div>
         <div class="card kpi-card merchants-kpi">
@@ -1547,11 +1562,30 @@
           </div>
         </div>
         <div class="card kpi-card merchants-kpi">
+          <div class="kpi-icon">📍</div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Points de Vente <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de points de vente (partner_location) des marchands actifs.">ⓘ</span></div>
+            <div class="kpi-value" id="merch-totalLocationsActive">Loading...</div>
+            <div class="kpi-delta" id="merch-totalLocationsActiveDelta">→ 0.0%</div>
+          </div>
+        </div>
+        <div class="card kpi-card merchants-kpi">
           <div class="kpi-icon">% </div>
           <div class="kpi-content">
             <div class="kpi-title">Active Merchant Ratio <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Active Merchants) / (Total Merchants) × 100.">ⓘ</span></div>
             <div class="kpi-value" id="merch-activeMerchantRatio">Loading...</div>
             <div class="kpi-delta" id="merch-activeMerchantRatioDelta">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="merchants-kpis-row">
+        <div class="card kpi-card merchants-kpi">
+          <div class="kpi-icon">🔢</div>
+          <div class="kpi-content">
+            <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
+            <div class="kpi-value" id="merch-totalTransactions">Loading...</div>
+            <div class="kpi-delta" id="merch-totalTransactionsDelta">Loading...</div>
           </div>
         </div>
         <div class="card kpi-card merchants-kpi">
@@ -1599,6 +1633,16 @@
           </div>
           <div class="chart-container">
             <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ligne suivante: évolution points de vente actifs -->
+      <div class="merchants-charts-row">
+        <div class="card chart-card">
+          <div class="chart-title">Active Points of Sale Over Time</div>
+          <div class="chart-container">
+            <canvas id="activeLocationsTrend"></canvas>
           </div>
         </div>
       </div>
@@ -2669,31 +2713,34 @@
       if (dashboardData && dashboardData.subscriptions) {
         updateKPI('sub-renewalRate', dashboardData.subscriptions.renewal_rate, '%');
         updateKPI('sub-averageLifespan', dashboardData.subscriptions.average_lifespan, ' jours');
-        updateKPI('sub-reactivationRate', dashboardData.subscriptions.reactivation_rate, '%');
       }
 
       // Valeurs transactions & conversion affichées désormais en haut
       updateKPI('sub-totalTransactions', kpis.totalTransactions);
       updateKPI('sub-conversionRate', kpis.conversionRate, '%');
       
-      // Transaction KPIs
+      // Transaction KPIs réorganisés
       updateKPI('trans-totalTransactions', kpis.totalTransactions);
+      if (kpis.cohortTransactions) { updateKPI('trans-cohortTransactions', kpis.cohortTransactions); }
       updateKPI('trans-transactingUsers', kpis.transactingUsers);
-      if (kpis.transactingUsersGlobal) {
-        updateKPI('trans-transactingUsersGlobal', kpis.transactingUsersGlobal);
-      }
+      if (kpis.cohortTransactingUsers) { updateKPI('trans-cohortTransactingUsers', kpis.cohortTransactingUsers); }
       updateKPI('trans-transactionsPerUser', kpis.transactionsPerUser);
-      updateKPI('trans-conversionRate', kpis.conversionRate, '%');
-      
-      // Update conversion progress bar immediately and safely
-      updateConversionProgressBar(kpis.conversionRate);
+      if (kpis.conversionRate) { updateKPI('trans-convCohort', kpis.conversionRate, '%'); }
+      if (kpis.conversionRatePeriod) { updateKPI('trans-convPeriod', kpis.conversionRatePeriod, '%'); }
+      if (kpis.avgInterTransactionDays) { updateKPI('trans-avgInterTxDays', kpis.avgInterTransactionDays, ' j'); }
       
       // Merchant KPIs
-      updateKPI('merch-totalActivePartnersDB', kpis.totalActivePartnersDB);
+      updateKPI('merch-totalPartners', kpis.totalPartners);
       updateKPI('merch-activeMerchants', kpis.activeMerchants);
       updateKPI('merch-transactionsPerMerchant', kpis.transactionsPerMerchant);
       if (kpis.activeMerchantRatio) {
         updateKPI('merch-activeMerchantRatio', kpis.activeMerchantRatio, '%');
+      }
+      if (kpis.totalLocationsActive) {
+        updateKPI('merch-totalLocationsActive', kpis.totalLocationsActive);
+      }
+      if (kpis.totalTransactions) {
+        updateKPI('merch-totalTransactions', kpis.totalTransactions);
       }
 
       // Global snapshots
@@ -2772,8 +2819,8 @@
         const isPositive = change > 0;
         const isNegative = change < 0;
 
-        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated, churn)
-        const inverse = elementId.includes('deactivated') || elementId.includes('churn') || elementId.includes('lostSubscriptions') || elementId.includes('retentionRateTrue');
+        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated, churn, durée entre transactions)
+        const inverse = elementId.includes('deactivated') || elementId.includes('churn') || elementId.includes('lostSubscriptions') || elementId.includes('retentionRateTrue') || elementId.includes('avgInterTxDays');
         const positiveClass = inverse ? 'delta-negative' : 'delta-positive';
         const negativeClass = inverse ? 'delta-positive' : 'delta-negative';
         
@@ -2819,10 +2866,40 @@
       // Merchant Charts
       createTopMerchantsChart(data);
       createCategoryChart(data);
+      createActiveLocationsTrend(data);
       
       // Comparison Chart
       createComparisonChart(data);
     }
+  // Create active locations trend chart
+  function createActiveLocationsTrend(data) {
+    const ctx = document.getElementById('activeLocationsTrend');
+    if (!ctx) return;
+
+    if (charts.activeLocationsTrend) {
+      charts.activeLocationsTrend.destroy();
+    }
+
+    const points = (data.subscriptions && data.subscriptions.quarterly_active_locations) ? data.subscriptions.quarterly_active_locations : [];
+    const labels = points.map(p => p.quarter);
+    const values = points.map(p => p.locations);
+
+    charts.activeLocationsTrend = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Points de vente actifs',
+          data: values,
+          borderColor: THEME_COLORS.primary,
+          backgroundColor: THEME_COLORS.primaryRgba,
+          tension: 0.25,
+          fill: true
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
 
     // Create overview chart
     function createOverviewChart(data) {
@@ -2942,7 +3019,7 @@
         data: {
           labels: days,
           datasets: [{
-            label: 'Engagement Rate (%)',
+            label: 'Retention Rate (%)',
             data: retentionData,
             borderColor: '#10b981',
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
@@ -3090,8 +3167,9 @@
         charts.topMerchants.destroy();
       }
       
-      const merchantNames = data.merchants.map(m => m.name);
-      const merchantValues = data.merchants.map(m => m.current);
+      const top10 = (data.merchants || []).slice(0, 10);
+      const merchantNames = top10.map(m => m.name);
+      const merchantValues = top10.map(m => m.current);
       
       charts.topMerchants = new Chart(ctx, {
         type: 'doughnut',
@@ -3131,8 +3209,8 @@
       }
       
       const dist = (data.categoryDistribution || []).slice(0, 10);
-      const labels = dist.map(d => d.category);
-      const values = dist.map(d => d.percentage);
+      const labels = dist.map(d => `${d.category} (${d.merchants_count})`);
+      const values = dist.map(d => d.merchants_count);
       const colors = ['#E30613','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#f97316','#64748b'];
       
       charts.category = new Chart(ctx, {
@@ -3151,14 +3229,7 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { position: 'bottom' },
-            tooltip: {
-              callbacks: {
-                label: (ctx) => {
-                  const item = dist[ctx.dataIndex];
-                  return item ? `${item.category}: ${item.transactions} tx (${item.percentage}%)` : '';
-                }
-              }
-            }
+            tooltip: { enabled: true }
           }
         }
       });

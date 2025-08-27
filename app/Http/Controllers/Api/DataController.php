@@ -395,9 +395,9 @@ class DataController extends Controller
             // Get merchants data - CALCULS AMÉLIORÉS
             Log::info("5. Calcul des marchands avec nouvelles métriques...");
             
-            // A0. Total marchands en base
+            // A0. Total marchands en base (sera recalculé après détection du flag actif)
             $totalPartners = DB::table('partner')->count();
-            Log::info("Total partenaires (toutes périodes): $totalPartners");
+            Log::info("Total partenaires (brut): $totalPartners");
             
             // A. Total marchands ayant déjà eu des transactions (toute période) via promotion -> partner
             $totalMerchantsEverActive = DB::table('history')
@@ -416,7 +416,7 @@ class DataController extends Controller
             }
 
             $activeFlag = null;
-            foreach (['partener_active', 'active', 'is_active', 'partner_active', 'status', 'enabled'] as $candidate) {
+            foreach (['partener_active', 'partner_active', 'active', 'is_active', 'status', 'enabled', 'partener_actif', 'actif', 'isEnabled', 'etat', 'etat_active'] as $candidate) {
                 if (Schema::hasColumn('partner', $candidate)) {
                     $activeFlag = $candidate;
                     break;
@@ -438,6 +438,10 @@ class DataController extends Controller
                     ->count();
             }
             Log::info("Total partenaires actifs (DB): $totalActivePartnersDB (colonne: " . ($activeFlag ?? 'fallback_history') . ")");
+
+            // Exigence: Total Merchants = partenaires ACTIFS uniquement
+            $totalPartners = $totalActivePartnersDB;
+            Log::info("Total partenaires (actifs): $totalPartners");
             
             // B. Marchands actifs période principale (via history -> promotion -> partner, filtré opérateur)
             $merchantQuery = $this->buildMerchantQuery($selectedOperator, $startDate, $endDate);
@@ -454,9 +458,13 @@ class DataController extends Controller
             Log::info("Marchands actifs période comparaison: $activeMerchantsComparison");
 
             // Calculs dérivés pour la période principale
-            // Conversion: Transacting Users (Cohorte) / Active Subscriptions (période)
+            // Conversion (Cohorte): Transacting Users (Cohorte) / Active Subscriptions (période)
             $conversionRate = $activeSubscriptions > 0 ? round(($cohortTransactingUsers / $activeSubscriptions) * 100, 2) : 0;
+            // Conversion (Période): Transacting Users (Période) / Active Subscriptions (période)
+            $conversionRatePeriod = $activeSubscriptions > 0 ? round(($transactingUsers / $activeSubscriptions) * 100, 2) : 0;
             $transactionsPerUser = $transactingUsers > 0 ? round($totalTransactions / $transactingUsers, 1) : 0;
+            // Moyenne des intervalles entre deux transactions (en jours) par utilisateur sur la période
+            $avgInterTransactionDays = $this->calculateAverageInterTransactionDays($startBound, $endExclusive, $selectedOperator);
             
             // NOUVELLE LOGIQUE: Transactions/Merchant basé sur les transactions de l'opérateur sélectionné
             $allTransactionsPeriod = DB::table('history')
@@ -474,7 +482,9 @@ class DataController extends Controller
             
             // Calculs dérivés pour la période de comparaison
             $conversionRateComparison = $activeSubscriptionsComparison > 0 ? round(($cohortTransactingUsersComparison / $activeSubscriptionsComparison) * 100, 2) : 0;
+            $conversionRatePeriodComparison = $activeSubscriptionsComparison > 0 ? round(($transactingUsersComparison / $activeSubscriptionsComparison) * 100, 2) : 0;
             $transactionsPerUserComparison = $transactingUsersComparison > 0 ? round($totalTransactionsComparison / $transactingUsersComparison, 1) : 0;
+            $avgInterTransactionDaysComparison = $this->calculateAverageInterTransactionDays($compStartBound, $compEndExclusive, $selectedOperator);
             
             $allTransactionsPeriodComparison = DB::table('history')
                 ->where('time', '>=', $compStartBound)
@@ -578,6 +588,44 @@ class DataController extends Controller
                 ];
                 
                 $currentDate->addDay();
+            }
+
+            // Quarterly active points of sale (all points of sale of ACTIVE partners)
+            $quarterlyActiveLocations = [];
+            // Étendre sur 8 trimestres précédents pour une vision historique (indépendant de la période affichée)
+            $quarterCursor = Carbon::parse($endDate)->firstOfQuarter()->subQuarters(7);
+            $quarterEnd = Carbon::parse($endDate)->firstOfQuarter();
+            while ($quarterCursor->lte($quarterEnd)) {
+                $qEnd = $quarterCursor->copy()->endOfQuarter();
+
+                if ($activeFlag !== null) {
+                    $countLocations = DB::table('partner_location')
+                        ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
+                        ->where(function($q) use ($activeFlag) {
+                            $q->where($activeFlag, 1)
+                              ->orWhereIn($activeFlag, ['1', 1, true, 'ACTIVE', 'Active', 'enabled', 'ENABLED', 'A', 'YES', 'Yes', 'Y', 'true', 'actif', 'ACTIF']);
+                        })
+                        ->when(Schema::hasColumn('partner_location', 'created_at'), function($q) use ($qEnd) {
+                            return $q->where('partner_location.created_at', '<=', $qEnd);
+                        })
+                        ->distinct('partner_location.partner_location_id')
+                        ->count('partner_location.partner_location_id');
+                } else {
+                    // Fallback: tous les points de vente existants à fin de trimestre
+                    $countLocations = DB::table('partner_location')
+                        ->when(Schema::hasColumn('partner_location', 'created_at'), function($q) use ($qEnd) {
+                            return $q->where('partner_location.created_at', '<=', $qEnd);
+                        })
+                        ->distinct('partner_location.partner_location_id')
+                        ->count('partner_location.partner_location_id');
+                }
+
+                $quarterlyActiveLocations[] = [
+                    'quarter' => $quarterCursor->format('Y') . '-Q' . $quarterCursor->quarter,
+                    'locations' => (int) $countLocations
+                ];
+
+                $quarterCursor->addQuarter();
             }
 
             // Fetch daily subscriptions - générer un point pour chaque jour
@@ -765,6 +813,22 @@ class DataController extends Controller
                         "previous" => $totalPartners,
                         "change" => 0.0
                     ],
+                    // Total points de vente des marchands ACTIFS (basé sur le flag DB si dispo, sinon tous)
+                    "totalLocationsActive" => [
+                        "current" => ($activeFlag !== null)
+                            ? DB::table('partner_location')
+                                ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
+                                ->where('partner.' . $activeFlag, 1)
+                                ->count()
+                            : DB::table('partner_location')->count(),
+                        "previous" => ($activeFlag !== null)
+                            ? DB::table('partner_location')
+                                ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
+                                ->where('partner.' . $activeFlag, 1)
+                                ->count()
+                            : DB::table('partner_location')->count(),
+                        "change" => 0.0
+                    ],
                     "totalMerchantsEverActive" => $totalMerchantsEverActive,
                     "allTransactionsPeriod" => $allTransactionsPeriod,
                     "transactionsPerMerchant" => [
@@ -776,6 +840,18 @@ class DataController extends Controller
                         "current" => $conversionRate, 
                         "previous" => $conversionRateComparison, 
                         "change" => $this->calculatePercentageChange($conversionRate, $conversionRateComparison)
+                    ],
+                    // Conversion (Période): Transacting Users (Période) / Active Subscriptions (Période)
+                    "conversionRatePeriod" => [
+                        "current" => $conversionRatePeriod,
+                        "previous" => $conversionRatePeriodComparison,
+                        "change" => $this->calculatePercentageChange($conversionRatePeriod, $conversionRatePeriodComparison)
+                    ],
+                    // Moyenne des intervalles entre transactions par utilisateur (jours)
+                    "avgInterTransactionDays" => [
+                        "current" => $avgInterTransactionDays,
+                        "previous" => $avgInterTransactionDaysComparison,
+                        "change" => $this->calculatePercentageChange($avgInterTransactionDays, $avgInterTransactionDaysComparison)
                     ],
                     "retentionRate" => [
                         "current" => $retentionRate, 
@@ -806,6 +882,8 @@ class DataController extends Controller
                 "subscriptions" => [
                     "daily_activations" => $subscriptionsDailyActivations,
                     "retention_trend" => $this->calculateRetentionTrend($startDate, $endDate, $selectedOperator),
+                    // pour Merchants (trimestriel)
+                    "quarterly_active_locations" => $quarterlyActiveLocations,
                     // Activations par canal (comparatif par catégorie)
                     "activations_by_channel" => [
                         "cb" => [
@@ -1443,37 +1521,134 @@ class DataController extends Controller
     /**
      * Calculate category distribution from merchants data
      */
-    private function calculateCategoryDistribution(array $merchants, int $totalTransactions): array
+    private function calculateCategoryDistribution(array $merchants, int $ignored): array
     {
+        // Essayer d'utiliser les vraies catégories de la table partner si une colonne pertinente existe
+        $partnerCategoryColumn = null;
+        // Priorité: relation partner.partner_category_id -> partner_category.partner_category_name (nomenclature DB)
+        if (Schema::hasColumn('partner', 'partner_category_id')) {
+            $partnerCategoryColumn = 'partner_category_id';
+        } elseif (Schema::hasColumn('partner', 'partner_category')) {
+            $partnerCategoryColumn = 'partner_category';
+        } else {
+            foreach (['category', 'business_category', 'sector', 'industry', 'partner_type'] as $candidate) {
+                if (Schema::hasColumn('partner', $candidate)) {
+                    $partnerCategoryColumn = $candidate;
+                    break;
+                }
+            }
+        }
+
         $categories = [];
+
+        // Préparer un mapping partner_id -> category réelle (si possible)
+        $realCategories = [];
+        if ($partnerCategoryColumn !== null) {
+            try {
+                $partnerIds = array_values(array_unique(array_map(function($m) { return $m['partner_id']; }, $merchants)));
+                if (!empty($partnerIds)) {
+                    if (in_array($partnerCategoryColumn, ['partner_category_id','partner_category'], true)
+                        && Schema::hasTable('partner_category')
+                        && Schema::hasColumn('partner_category', 'partner_category_name')
+                        && Schema::hasColumn('partner_category', 'partner_category_id')) {
+                        $rows = DB::table('partner')
+                            ->leftJoin('partner_category', 'partner.' . $partnerCategoryColumn, '=', 'partner_category.partner_category_id')
+                            ->whereIn('partner.partner_id', $partnerIds)
+                            ->pluck('partner_category.partner_category_name', 'partner.partner_id');
+                    } else {
+                        $rows = DB::table('partner')
+                            ->whereIn('partner_id', $partnerIds)
+                            ->pluck($partnerCategoryColumn, 'partner_id');
+                    }
+                    $realCategories = $rows ? $rows->toArray() : [];
+                }
+            } catch (\Throwable $th) {
+                Log::warning('Impossible de charger les catégories réelles des partenaires', ['error' => $th->getMessage()]);
+            }
+        }
         
         foreach ($merchants as $merchant) {
-            $category = $merchant['category'];
+            $category = $merchant['category'] ?? null;
+            // Remplacer par la vraie catégorie si disponible
+            if (isset($merchant['partner_id']) && isset($realCategories[$merchant['partner_id']])) {
+                $category = $realCategories[$merchant['partner_id']];
+            }
+            if (!$category || trim((string)$category) === '') {
+                $category = 'Others';
+            }
+
             if (!isset($categories[$category])) {
                 $categories[$category] = [
-                    'category' => $category,
+                    'category' => (string)$category,
                     'transactions' => 0,
                     'percentage' => 0,
                     'merchants_count' => 0
                 ];
             }
             
-            $categories[$category]['transactions'] += $merchant['current'];
+            $categories[$category]['transactions'] += (int) ($merchant['current'] ?? 0);
             $categories[$category]['merchants_count']++;
         }
         
-        // Calculer les pourcentages
-        foreach ($categories as &$category) {
-            $category['percentage'] = $totalTransactions > 0 ? 
-                round(($category['transactions'] / $totalTransactions) * 100, 1) : 0;
+        // Calculer les pourcentages basés sur le NOMBRE DE MARCHANDS ACTIFS (pas les transactions)
+        $totalActiveMerchantsInList = 0;
+        foreach ($categories as $row) { $totalActiveMerchantsInList += $row['merchants_count']; }
+        foreach ($categories as &$categoryRow) {
+            $categoryRow['percentage'] = $totalActiveMerchantsInList > 0 ? round(($categoryRow['merchants_count'] / $totalActiveMerchantsInList) * 100, 1) : 0;
         }
         
-        // Trier par nombre de transactions
+        // Trier et retourner top 10 catégories
         uasort($categories, function($a, $b) {
-            return $b['transactions'] - $a['transactions'];
+            return $b['merchants_count'] <=> $a['merchants_count'];
         });
-        
-        return array_values($categories);
+
+        return array_slice(array_values($categories), 0, 10);
+    }
+
+    /**
+     * Calculer la moyenne des intervalles (en jours) entre deux transactions par utilisateur sur une période
+     */
+    private function calculateAverageInterTransactionDays(Carbon $startBound, Carbon $endExclusive, string $operatorFilter = null): float
+    {
+        try {
+            $query = DB::table('history')
+                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
+                ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                ->select('client_abonnement.client_id', 'history.time')
+                ->where('history.time', '>=', $startBound)
+                ->where('history.time', '<', $endExclusive);
+
+            if ($operatorFilter && $operatorFilter !== 'ALL') {
+                $query->where('country_payments_methods.country_payments_methods_name', $operatorFilter);
+            }
+
+            $rows = $query->orderBy('client_abonnement.client_id')->orderBy('history.time')->get();
+
+            if ($rows->isEmpty()) return 0.0;
+
+            $lastTimeByClient = [];
+            $diffDays = [];
+
+            foreach ($rows as $row) {
+                $clientId = $row->client_id;
+                $currentTime = Carbon::parse($row->time);
+                if (isset($lastTimeByClient[$clientId])) {
+                    $prevTime = $lastTimeByClient[$clientId];
+                    $diff = $prevTime->diffInHours($currentTime) / 24.0;
+                    if ($diff > 0) {
+                        $diffDays[] = $diff;
+                    }
+                }
+                $lastTimeByClient[$clientId] = $currentTime;
+            }
+
+            if (count($diffDays) === 0) return 0.0;
+            $avg = array_sum($diffDays) / count($diffDays);
+            return round($avg, 2);
+        } catch (\Exception $e) {
+            Log::error('Erreur calcul moyenne intervalle transactions: ' . $e->getMessage());
+            return 0.0;
+        }
     }
 
     /**
