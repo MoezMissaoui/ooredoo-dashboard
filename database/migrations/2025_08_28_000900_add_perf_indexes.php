@@ -19,11 +19,11 @@ return new class extends Migration
                 }
             } catch (\Throwable $th) {
                 // Journaliser mais ne pas casser la migration
-                \Log::warning('Index creation skipped', [
-                    'table' => $table,
-                    'index' => $indexName,
-                    'error' => $th->getMessage(),
-                ]);
+                // \Log::warning('Index creation skipped', [
+                //     'table' => $table,
+                //     'index' => $indexName,
+                //     'error' => $th->getMessage(),
+                // ]);
             }
         };
 
