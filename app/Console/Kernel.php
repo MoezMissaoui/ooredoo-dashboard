@@ -12,7 +12,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Incrémental toutes les 15 minutes
+        $schedule->command('sync:pull')->everyFifteenMinutes()->withoutOverlapping();
+        // Rattrapage quotidien (fenêtre J-7 si on ajoute la logique ultérieurement)
+        $schedule->command('sync:pull')->dailyAt('02:00')->withoutOverlapping();
     }
 
     /**

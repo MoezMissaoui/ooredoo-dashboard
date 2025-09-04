@@ -73,6 +73,19 @@ nano .env
 # - APP_KEY : sera généré automatiquement
 ```
 
+#### Variables de synchronisation (Club Privilèges)
+Ajoutez ces variables dans votre fichier `.env` pour activer la synchronisation incrémentale :
+
+```env
+# Sync API (pull incrémental)
+SYNC_API_URL=https://clubprivileges.app/api/get-pending-sync-data
+SYNC_API_TOKEN=remplacez_par_votre_token
+SYNC_BATCH_SIZE=5000
+SYNC_HTTP_TIMEOUT=30
+SYNC_RETRY_TIMES=3
+SYNC_RETRY_SLEEP_MS=1000
+```
+
 ### 3. Virtual Host Apache
 ```apache
 <VirtualHost *:80>
@@ -125,6 +138,19 @@ php artisan tinker
 tail -f storage/logs/laravel.log
 ```
 
+### Synchronisation des données
+```bash
+# Lancer une synchronisation manuelle (toutes les tables dans l'ordre)
+php artisan sync:pull
+
+# Synchroniser une seule table
+php artisan sync:pull partner
+
+# Scheduler (configuré par défaut)
+# - everyFifteenMinutes: incrémental continu
+# - dailyAt 02:00: rattrapage quotidien
+```
+
 ## 📊 Fonctionnalités Principales
 
 ### 🎛️ Dashboard Multi-Opérateurs
@@ -164,6 +190,13 @@ php artisan optimize
 
 # Sauvegarder la DB
 mysqldump ooredoo_dashboard > backup_$(date +%Y%m%d).sql
+```
+
+### Cron de production
+Ajoutez ces entrées cron pour garantir l'exécution du scheduler Laravel :
+
+```cron
+* * * * * cd /var/www/html/ooredoo-dashboard && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 ### Logs à Surveiller

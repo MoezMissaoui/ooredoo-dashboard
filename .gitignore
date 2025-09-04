@@ -18,3 +18,8 @@ yarn-error.log
 /.idea
 /.vscode
 /storage/logs/*.log
+ 
+# Ignorer sauvegardes et artefacts volumineux
+/backups/
+*.zip
+*.pdf
