@@ -159,6 +159,19 @@
       padding: 8px;
       margin-bottom: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      /* Sticky navigation for mobile */
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      /* Single line on mobile */
+      overflow-x: auto;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    /* Hide scrollbar for webkit browsers */
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
     }
     
     .nav-tab {
@@ -172,6 +185,10 @@
       border: none;
       background: transparent;
       color: var(--muted);
+      /* Mobile: prevent shrinking below content size */
+      flex-shrink: 0;
+      white-space: nowrap;
+      min-width: fit-content;
     }
     
     .nav-tab.active {
@@ -1415,6 +1432,32 @@
         padding: 12px 12px; /* Même padding que le container */
       }
       
+      /* Navigation tabs optimisées pour mobile */
+      .nav-tabs {
+        margin-bottom: 16px;
+        padding: 6px;
+        border-radius: 10px;
+        /* Amélioration sticky - plus proche du header */
+        top: 2px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      .nav-tab {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-width: max-content;
+        /* Plus compact sur mobile */
+        margin: 0 2px;
+      }
+      
+      .nav-tab:first-child {
+        margin-left: 0;
+      }
+      
+      .nav-tab:last-child {
+        margin-right: 0;
+      }
+      
       /* KPI values responsive - taille réduite */
       .kpi-value { 
         font-size: clamp(20px, 4.5vw, 28px); 
@@ -1472,6 +1515,18 @@
       .chart-card { min-height: 220px; }
       
       .container { padding: 12px 8px; }
+      
+      /* Navigation tabs ultra compactes */
+      .nav-tabs {
+        padding: 4px;
+        margin-bottom: 12px;
+      }
+      
+      .nav-tab {
+        padding: 8px 10px;
+        font-size: 13px;
+        border-radius: 6px;
+      }
       
       /* Header alignment sur très petit mobile */
       .header {
@@ -2574,12 +2629,47 @@
       updateDateRange();
       initializeDashboard();
       
+      // Initialize mobile navigation
+      initializeMobileNavigation();
+      
       // Auto-refresh every 5 minutes
       setInterval(loadDashboardData, 5 * 60 * 1000);
       
       // Initialize keyboard shortcuts
       initializeKeyboardShortcuts();
     });
+    
+    // Initialize mobile-specific navigation features
+    function initializeMobileNavigation() {
+      // Center active tab on page load (mobile)
+      const activeTab = document.querySelector('.nav-tab.active');
+      if (activeTab && window.innerWidth <= 768) {
+        setTimeout(() => centerActiveTab(activeTab), 200);
+      }
+      
+      // Add touch/swipe support for tab navigation (optional)
+      if (window.innerWidth <= 768) {
+        addMobileSwipeSupport();
+      }
+    }
+    
+    // Add swipe support for mobile tab navigation
+    function addMobileSwipeSupport() {
+      const tabsContainer = document.querySelector('.nav-tabs');
+      let startX = 0;
+      let scrollLeft = 0;
+      
+      tabsContainer.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].pageX - tabsContainer.offsetLeft;
+        scrollLeft = tabsContainer.scrollLeft;
+      }, { passive: true });
+      
+      tabsContainer.addEventListener('touchmove', (e) => {
+        const x = e.touches[0].pageX - tabsContainer.offsetLeft;
+        const walk = (x - startX) * 2; // Adjust scroll speed
+        tabsContainer.scrollLeft = scrollLeft - walk;
+      }, { passive: true });
+    }
     
     // Advanced keyboard shortcuts for power users
     function initializeKeyboardShortcuts() {
@@ -2837,6 +2927,9 @@
       // Add active class to selected tab
       event.target.classList.add('active');
       
+      // Auto-scroll to center active tab on mobile
+      centerActiveTab(event.target);
+      
       // Resize charts when tab becomes visible
       setTimeout(() => {
         Object.values(charts).forEach(chart => {
@@ -2845,6 +2938,22 @@
           }
         });
       }, 100);
+    }
+    
+    // Center active tab in viewport (mobile scroll)
+    function centerActiveTab(activeTab) {
+      const navTabs = document.querySelector('.nav-tabs');
+      const tabRect = activeTab.getBoundingClientRect();
+      const navRect = navTabs.getBoundingClientRect();
+      
+      // Only auto-scroll on mobile/tablet
+      if (window.innerWidth <= 768) {
+        const scrollLeft = activeTab.offsetLeft - (navRect.width / 2) + (tabRect.width / 2);
+        navTabs.scrollTo({
+          left: Math.max(0, scrollLeft),
+          behavior: 'smooth'
+        });
+      }
     }
 
     // Load dashboard data with simple loading
