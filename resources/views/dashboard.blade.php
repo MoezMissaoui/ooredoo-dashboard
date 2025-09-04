@@ -340,6 +340,58 @@
     .badge-warning { background: #fef3c7; color: #92400e; }
     .badge-danger { background: #fee2e2; color: #991b1b; }
     .badge-info { background: #dbeafe; color: #1e40af; }
+    .badge-secondary { background: #f3f4f6; color: #374151; }
+
+    /* Styles pour la pagination */
+    .subscriptions-pagination {
+      margin-top: 16px;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pagination-btn {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      min-width: 40px;
+    }
+
+    .pagination-btn:hover {
+      background: var(--hover-bg);
+      border-color: var(--brand-red);
+    }
+
+    .pagination-btn.active {
+      background: var(--brand-red);
+      color: white;
+      border-color: var(--brand-red);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
     
     /* Progress Bar */
     .progress-bar {
@@ -893,6 +945,29 @@
       animation: pulse 2s infinite;
     }
 
+    /* Animations pour les messages d'optimisation */
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+    }
+
     .performance-icon {
       font-size: 14px;
     }
@@ -1202,6 +1277,8 @@
         </div>
       </div>
 
+
+
       <!-- Filters & Controls Section -->
       <div class="controls-section">
         <div class="control-group">
@@ -1250,7 +1327,7 @@
       <!-- KPIs Row 1 (4 KPI) -->
       <div class="grid">
         <div class="card kpi-card">
-          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d’abonnements activés entre start et end (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
+          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d'abonnements activés entre start et end (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="activatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="activatedSubscriptionsDelta">Loading...</div>
         </div>
@@ -1260,12 +1337,12 @@
           <div class="kpi-delta" id="activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Pourcentage d’abonnés qui restent actifs à la fin de la période.">ⓘ</span></div>
           <div class="kpi-value" id="overview-retentionRate">Loading...</div>
           <div class="kpi-delta" id="overview-retentionRateDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-title">Conversion Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Part des abonnés qui ont effectué au moins un achat pendant la période.">ⓘ</span></div>
           <div class="kpi-value" id="conversionRate">Loading...</div>
           <div class="progress-bar">
             <div class="progress-fill" id="overview-conversionProgress" style="width: 0%"></div>
@@ -1277,7 +1354,7 @@
       <!-- KPIs Row 2 (4 KPI) -->
       <div class="grid">
         <div class="card kpi-card">
-          <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb de transactions (history.time ∈ [start,end)).">ⓘ</span></div>
+          <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’achats effectués pendant la période.">ⓘ</span></div>
           <div class="kpi-value" id="totalTransactions">Loading...</div>
           <div class="kpi-delta" id="totalTransactionsDelta">Loading...</div>
         </div>
@@ -1287,7 +1364,7 @@
           <div class="kpi-delta" id="cohortTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
+          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d'utilisateurs transigeants durant la période.">ⓘ</span></div>
           <div class="kpi-value" id="totalTransactingUsers">Loading...</div>
           <div class="kpi-delta" id="totalTransactingUsersDelta">Loading...</div>
         </div>
@@ -1316,7 +1393,7 @@
       <!-- Subscriptions KPIs: Row 1 (4 KPI) -->
       <div class="sub-kpis-row">
         <div class="card kpi-card">
-          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d’abonnements activés (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
+          <div class="kpi-title">Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="PÉRIODE: Nb d'abonnements activés (client_abonnement_creation ∈ [start,end)).">ⓘ</span></div>
           <div class="kpi-value" id="sub-activatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-activatedSubscriptionsDelta">Loading...</div>
         </div>
@@ -1326,12 +1403,12 @@
           <div class="kpi-delta" id="sub-activeSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Retention = Active Subscriptions (Période) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Sur 100 nouveaux abonnés, combien restent actifs à la fin de la période.">ⓘ</span></div>
           <div class="kpi-value" id="sub-retentionRate">Loading...</div>
           <div class="kpi-delta" id="sub-retentionRateDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Conversion Rate (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte/Période: (Transacting Users (Cohorte)) / (Active Subscriptions (Période)).">ⓘ</span></div>
+          <div class="kpi-title">Conversion Rate (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Parmi les abonnés actifs, part de ceux qui ont payé au moins une fois.">ⓘ</span></div>
           <div class="kpi-value" id="sub-conversionRate">Loading...</div>
           <div class="kpi-delta" id="sub-conversionRateDelta">Loading...</div>
         </div>
@@ -1340,7 +1417,7 @@
       <!-- Subscriptions KPIs: Row 2 (4 KPI) -->
       <div class="sub-kpis-row">
         <div class="card kpi-card">
-          <div class="kpi-title">Deactivated (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Cohorte: Activation ∈ [start,end) ET expiration ∈ [start,end).">ⓘ</span></div>
+          <div class="kpi-title">Deactivated (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Période: Tous les abonnements expirés dans la période sélectionnée.">ⓘ</span></div>
           <div class="kpi-value" id="sub-deactivatedSubscriptions">Loading...</div>
           <div class="kpi-delta" id="sub-deactivatedSubscriptionsDelta">Loading...</div>
         </div>
@@ -1350,7 +1427,7 @@
           <div class="kpi-delta" id="sub-lostSubscriptionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Taux de churn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Churn = Deactivated (Cohorte) / Activated Subscriptions (Période).">ⓘ</span></div>
+          <div class="kpi-title">Taux de churn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Part des nouveaux abonnés qui ont résilié (ont pris fin) pendant la période.">ⓘ</span></div>
           <div class="kpi-value" id="sub-retentionRateTrue">Loading...</div>
           <div class="kpi-delta" id="sub-retentionRateTrueDelta">Loading...</div>
         </div>
@@ -1364,14 +1441,14 @@
       <!-- Subscription Trends (two charts side by side) -->
       <div class="grid">
         <div class="card chart-card">
-          <div class="chart-title">Retention Rate Trend</div>
+          <div class="chart-title">Retention Rate Trend <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Part des abonnés qui restent actifs au fil du temps. Plus la courbe est haute, plus les clients restent.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="retentionChart"></canvas>
           </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Daily Activated Subscriptions</div>
+          <div class="chart-title">Daily Activated Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d'abonnements commencés chaque jour. Un pic = beaucoup de nouveaux inscrits ce jour-là.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="subscriptionTrendChart"></canvas>
           </div>
@@ -1384,46 +1461,46 @@
         
         <!-- Activations par Canal -->
         <div class="card kpi-card">
-          <div class="kpi-title">Activations CB</div>
+          <div class="kpi-title">Activations CB <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d’abonnements commencés via carte bancaire.">ⓘ</span></div>
           <div class="kpi-value" id="sub-activationsCB">Loading...</div>
           <div class="kpi-delta" id="sub-activationsCBDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Activations Recharge</div>
+          <div class="kpi-title">Activations Recharge <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d’abonnements commencés via recharge.">ⓘ</span></div>
           <div class="kpi-value" id="sub-activationsRecharge">Loading...</div>
           <div class="kpi-delta" id="sub-activationsRechargeDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Activations Solde Tél.</div>
+          <div class="kpi-title">Activations Solde Tél. <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d’abonnements commencés via solde téléphonique.">ⓘ</span></div>
           <div class="kpi-value" id="sub-activationsPhone">Loading...</div>
           <div class="kpi-delta" id="sub-activationsPhoneDelta">Loading...</div>
         </div>
 
         <!-- Répartition par Plan -->
         <div class="card kpi-card">
-          <div class="kpi-title">Plans Journaliers</div>
+          <div class="kpi-title">Plans Journaliers <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Combien d’abonnements de type journalier ont été pris.">ⓘ</span></div>
           <div class="kpi-value" id="sub-plansDaily">Loading...</div>
           <div class="kpi-delta" id="sub-plansDailyDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Plans Mensuels</div>
+          <div class="kpi-title">Plans Mensuels <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Combien d’abonnements mensuels ont été pris.">ⓘ</span></div>
           <div class="kpi-value" id="sub-plansMonthly">Loading...</div>
           <div class="kpi-delta" id="sub-plansMonthlyDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Plans Annuels</div>
+          <div class="kpi-title">Plans Annuels <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Combien d’abonnements annuels ont été pris.">ⓘ</span></div>
           <div class="kpi-value" id="sub-plansAnnual">Loading...</div>
           <div class="kpi-delta" id="sub-plansAnnualDelta">Loading...</div>
         </div>
 
         <!-- Métriques de Performance -->
         <div class="card kpi-card">
-          <div class="kpi-title">Taux de Renouvellement</div>
+          <div class="kpi-title">Taux de Renouvellement <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Part des abonnements qui ont été repris à la fin de la période.">ⓘ</span></div>
           <div class="kpi-value" id="sub-renewalRate">Loading...</div>
           <div class="kpi-delta" id="sub-renewalRateDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Durée de Vie Moyenne</div>
+          <div class="kpi-title">Durée de Vie Moyenne <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre moyen de jours pendant lesquels un abonnement reste actif.">ⓘ</span></div>
           <div class="kpi-value" id="sub-averageLifespan">Loading...</div>
           <div class="kpi-delta" id="sub-averageLifespanDelta">Loading...</div>
         </div>
@@ -1435,25 +1512,58 @@
       <!-- Graphiques Avancés -->
       <div class="grid" style="margin-top: 20px;">
         <div class="card chart-card">
-          <div class="chart-title">Répartition des Activations par Canal</div>
+          <div class="chart-title">Répartition des Activations par Canal <span style="margin-left:4px; cursor: help; color: var(--muted);" title="D'où viennent les activations: carte, recharge, solde téléphonique…">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="activationsByChannelChart"></canvas>
           </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Distribution des Plans d'Abonnement</div>
+          <div class="chart-title">Distribution des Plans d'Abonnement <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Quels types de plans (journalier, mensuel, annuel) sont le plus choisis.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="planDistributionChart"></canvas>
           </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Analyse de Cohortes - Survie J+30/J+60</div>
+          <div class="chart-title">Analyse de Cohortes - Survie J+30/J+60 <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Comment les groupes d'inscrits par date continuent d'utiliser le service après 30/60 jours.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="cohortsAnalysisChart"></canvas>
           </div>
         </div>
+      </div>
+
+      <!-- Tableau des abonnements (détails) -->
+      <div class="card table-card" style="margin-top: 20px;">
+        <div class="table-header">
+          <div class="table-title">📋 Détails des Abonnements</div>
+                  <div class="table-controls">
+          <select class="table-pagination" onchange="changeSubscriptionsPerPage(this.value)">
+            <option value="25">25 par page</option>
+            <option value="50">50 par page</option>
+            <option value="100">100 par page</option>
+          </select>
+          <button class="export-btn">Exporter</button>
+        </div>
+        </div>
+        <div class="table-container">
+          <table class="enhanced-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Téléphone</th>
+                <th>Opérateur</th>
+                <th>Plan</th>
+                <th>Date Activation</th>
+                <th>Date Fin</th>
+              </tr>
+            </thead>
+            <tbody id="subs-details-body">
+              <tr><td colspan="6" class="loading">Chargement...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="subscriptions-pagination"></div>
       </div>
     </div>
 
@@ -1467,12 +1577,12 @@
           <div class="kpi-delta" id="trans-totalTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Total Transactions (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Transactions effectuées par les abonnements créés dans la période (cohorte).">ⓘ</span></div>
+          <div class="kpi-title">Total Transactions (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Achats réalisés par les abonnés inscrits pendant la période.">ⓘ</span></div>
           <div class="kpi-value" id="trans-cohortTransactions">Loading...</div>
           <div class="kpi-delta" id="trans-cohortTransactionsDelta">Loading...</div>
         </div>
         <div class="card kpi-card">
-          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d’utilisateurs transigeants durant la période.">ⓘ</span></div>
+          <div class="kpi-title">Transacting Users (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de personnes qui ont payé au moins une fois pendant la période.">ⓘ</span></div>
           <div class="kpi-value" id="trans-transactingUsers">Loading...</div>
           <div class="kpi-delta" id="trans-transactingUsersDelta">Loading...</div>
         </div>
@@ -1511,14 +1621,14 @@
 
         <!-- Transaction Charts -->
         <div class="card chart-card">
-          <div class="chart-title">Daily Transaction Volume</div>
+          <div class="chart-title">Daily Transaction Volume <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d'achats/passages en caisse effectués chaque jour.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="transactionVolumeChart"></canvas>
           </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Transacting Users Trend</div>
+          <div class="chart-title">Transacting Users Trend <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Combien de personnes ont payé au moins une fois chaque jour.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="transactingUsersChart"></canvas>
           </div>
@@ -1526,16 +1636,31 @@
 
         <!-- Cumulative Charts (separated) -->
         <div class="card chart-card">
-          <div class="chart-title">Cumulative Transactions</div>
+          <div class="chart-title">Cumulative Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Total qui s'ajoute jour après jour. Comme un compteur qui monte.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="transactionVolumeCumulativeChart"></canvas>
           </div>
         </div>
 
         <div class="card chart-card">
-          <div class="chart-title">Cumulative Transacting Users</div>
+          <div class="chart-title">Cumulative Transacting Users <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de personnes uniques cumulées qui ont payé au fil des jours.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="transactingUsersCumulativeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Nouveaux graphiques d'analyse des transactions -->
+        <div class="card chart-card">
+          <div class="chart-title">📊 Transactions par Opérateurs <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Répartition des transactions par moyen de paiement/opérateur.">ⓘ</span></div>
+          <div class="chart-container">
+            <canvas id="transactionsByOperatorChart"></canvas>
+          </div>
+        </div>
+
+        <div class="card chart-card">
+          <div class="chart-title">📋 Transactions par Plans d'Abonnement <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Combien de transactions pour chaque type de plan.">ⓘ</span></div>
+          <div class="chart-container">
+            <canvas id="transactionsByPlanChart"></canvas>
           </div>
         </div>
       </div>
@@ -1618,7 +1743,7 @@
       <div class="merchants-charts-row">
         <div class="card chart-card merchants-chart">
           <div class="chart-header">
-            <div class="chart-title">🏪 Top Merchants by Volume</div>
+            <div class="chart-title">🏪 Top Merchants by Volume <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Les marchands avec le plus de transactions dans la période.">ⓘ</span></div>
             <div class="chart-subtitle">Transactions par marchand</div>
           </div>
           <div class="chart-container">
@@ -1628,7 +1753,7 @@
 
         <div class="card chart-card merchants-chart">
           <div class="chart-header">
-            <div class="chart-title">📊 Distribution by Category</div>
+            <div class="chart-title">📊 Distribution by Category <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Classement des transactions par types de magasins (ex: restaurants, mode).">ⓘ</span></div>
             <div class="chart-subtitle">Répartition par catégorie</div>
           </div>
           <div class="chart-container">
@@ -1640,7 +1765,7 @@
       <!-- Ligne suivante: évolution points de vente actifs -->
       <div class="merchants-charts-row">
         <div class="card chart-card">
-          <div class="chart-title">Active Points of Sale Over Time</div>
+          <div class="chart-title">Active Points of Sale Over Time <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de boutiques actives visibles trimestre par trimestre.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="activeLocationsTrend"></canvas>
           </div>
@@ -1710,7 +1835,7 @@
       <div class="grid">
         <!-- Comparison Table -->
         <div class="card table-card">
-          <div class="chart-title">Period-over-Period Comparison</div>
+          <div class="chart-title">Period-over-Period Comparison <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Compare cette période à la période d'avant pour voir si on s'améliore.">ⓘ</span></div>
           <div class="table-container">
             <table>
               <thead>
@@ -1737,7 +1862,7 @@
 
         <!-- Comparison Chart -->
         <div class="card chart-card full-width">
-          <div class="chart-title">Key Metrics Comparison</div>
+          <div class="chart-title">Key Metrics Comparison <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Graphique en toile d'araignée: plus la zone verte est grande, mieux c'est par rapport à avant.">ⓘ</span></div>
           <div class="chart-container">
             <canvas id="comparisonChart"></canvas>
           </div>
@@ -1806,17 +1931,8 @@
   </div>
 
   <script>
-    // Global variables for charts and data
-    let dashboardData = null;
-    let charts = {};
-    
-    // Pagination variables
-    let allMerchants = [];
-    let currentMerchantsPage = 1;
-    let merchantsPerPage = 25;
-
-    // Couleurs dynamiques selon le thème
-    const THEME_COLORS = {
+    // Définition immédiate des couleurs thème - CRITIQUE pour éviter les erreurs
+    window.THEME_COLORS = {
       @if($isOoredoo)
       primary: '#E30613',
       primaryRgba: 'rgba(227, 6, 19, 0.1)',
@@ -1835,6 +1951,55 @@
       muted: '#64748b',
       mutedRgba: 'rgba(100, 116, 139, 0.2)'
     };
+    
+    // Alias global immédiat
+    const THEME_COLORS = window.THEME_COLORS;
+    
+    // Global variables for charts and data
+    let dashboardData = null;
+    let charts = {};
+    
+    // Pagination variables
+    let allMerchants = [];
+    let currentMerchantsPage = 1;
+    let merchantsPerPage = 25;
+
+    // THEME_COLORS déjà défini au début du script
+
+    // Fonction utilitaire pour accès sécurisé aux couleurs
+    function getThemeColor(colorName) {
+      try {
+        if (window.THEME_COLORS && window.THEME_COLORS[colorName]) {
+          return window.THEME_COLORS[colorName];
+        }
+        if (typeof THEME_COLORS !== 'undefined' && THEME_COLORS[colorName]) {
+          return THEME_COLORS[colorName];
+        }
+      } catch (e) {
+        console.warn('Erreur accès THEME_COLORS:', e);
+      }
+      
+      // Fallback colors
+      const fallbackColors = {
+        primary: '#E30613',
+        primaryRgba: 'rgba(227, 6, 19, 0.1)',
+        secondary: '#DC2626',
+        accent: '#3b82f6',
+        success: '#10b981',
+        warning: '#f59e0b',
+        muted: '#64748b',
+        mutedRgba: 'rgba(100, 116, 139, 0.2)'
+      };
+      
+      return fallbackColors[colorName] || '#E30613';
+    }
+
+    // Alias sécurisé pour THEME_COLORS
+    const safeThemeColors = new Proxy({}, {
+      get: function(target, prop) {
+        return getThemeColor(prop);
+      }
+    });
 
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
@@ -2056,7 +2221,7 @@
         
         conversionProgress.style.width = `${percentage}%`;
         conversionProgress.style.transition = 'width 0.5s ease-in-out';
-        conversionProgress.style.backgroundColor = THEME_COLORS.primary;
+        conversionProgress.style.backgroundColor = getThemeColor('primary');
         conversionProgress.style.height = '8px'; // Fixed: same as transactions
         conversionProgress.style.display = 'block';
         
@@ -2076,7 +2241,7 @@
         
         conversionProgress.style.width = `${percentage}%`;
         conversionProgress.style.transition = 'width 0.5s ease-in-out';
-        conversionProgress.style.backgroundColor = THEME_COLORS.primary;
+        conversionProgress.style.backgroundColor = getThemeColor('primary');
         conversionProgress.style.height = '8px'; // Fixed: was 0px height
         conversionProgress.style.display = 'block';
         
@@ -2159,7 +2324,7 @@
         
         // Add timeout to prevent hanging
         const controller = new AbortController();
-        timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes timeout pour longues périodes
         
         const response = await fetch(apiUrl, {
           signal: controller.signal,
@@ -2182,8 +2347,12 @@
           operator: selectedOperator,
           hasKPIs: !!data.kpis,
           hasCharts: !!data.subscriptions,
-          loadTime: `${loadTime.toFixed(0)}ms`
+          loadTime: `${loadTime.toFixed(0)}ms`,
+          optimizationMode: data.optimization_mode || 'normal'
         });
+
+        // Masquer le message d'optimisation
+        hideOptimizationMessage();
         
         // Show performance indicator if fast load (likely from cache)
         updatePerformanceIndicator(loadTime);
@@ -2551,9 +2720,73 @@
     function showLoading() {
       // Add loading indicators to KPI cards
       const kpiValues = document.querySelectorAll('.kpi-value');
+      
+      // Détecter les longues périodes
+      const startDate = document.getElementById('start-date').value;
+      const endDate = document.getElementById('end-date').value;
+      let isLongPeriod = false;
+      let diffDays = 0;
+      
+      if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        isLongPeriod = diffDays > 90;
+      }
+      
       kpiValues.forEach(el => {
+        if (isLongPeriod) {
+          el.innerHTML = `<div class="spinner"></div> <small>Optimisation ${diffDays}j...</small>`;
+        } else {
         el.innerHTML = '<div class="spinner"></div>';
+        }
       });
+      
+      if (isLongPeriod) {
+        showOptimizationMessage(diffDays);
+      }
+    }
+
+    function showOptimizationMessage(days) {
+      // Créer le message d'optimisation
+      let optimMsg = document.getElementById('optimization-message');
+      if (!optimMsg) {
+        optimMsg = document.createElement('div');
+        optimMsg.id = 'optimization-message';
+        optimMsg.style.cssText = `
+          position: fixed;
+          top: 80px;
+          right: 20px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          padding: 12px 16px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          z-index: 1000;
+          font-size: 14px;
+          max-width: 300px;
+          animation: slideIn 0.3s ease-out;
+        `;
+        document.body.appendChild(optimMsg);
+      }
+      
+      optimMsg.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>
+          <div>
+            <strong>🚀 Mode optimisé</strong><br>
+            <small>Période étendue: ${days} jours</small>
+          </div>
+        </div>
+      `;
+    }
+
+    function hideOptimizationMessage() {
+      const optimMsg = document.getElementById('optimization-message');
+      if (optimMsg) {
+        optimMsg.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => optimMsg.remove(), 300);
+      }
     }
 
     // Hide loading state
@@ -2633,14 +2866,14 @@
       // Store globally FIRST so dependent functions can safely read it
       dashboardData = data;
 
-      // Update periods immediately
+      // Update periods immediately with safety check
       const primaryPeriodEl = document.getElementById('primaryPeriod');
-      if (primaryPeriodEl) {
+      if (primaryPeriodEl && data.periods && data.periods.primary) {
         primaryPeriodEl.textContent = data.periods.primary;
       }
       
       const comparisonPeriodEl = document.getElementById('comparisonPeriod');
-      if (comparisonPeriodEl) {
+      if (comparisonPeriodEl && data.periods && data.periods.comparison) {
         comparisonPeriodEl.textContent = data.periods.comparison;
       }
       
@@ -2660,139 +2893,126 @@
 
     // Update KPI values
     function updateKPIs(kpis) {
+      const normalizeKPI = (obj) => (obj && typeof obj.current !== 'undefined') ? obj : { current: 0, previous: 0, change: 0 };
+      
       // Overview KPIs
-      updateKPI('activatedSubscriptions', kpis.activatedSubscriptions);
-      updateKPI('activeSubscriptions', kpis.activeSubscriptions);
-      updateKPI('totalTransactions', kpis.totalTransactions);
-      if (kpis.cohortTransactions) {
-        updateKPI('cohortTransactions', kpis.cohortTransactions);
-      }
-      if (kpis.cohortTransactingUsers) {
-        updateKPI('cohortTransactingUsers', kpis.cohortTransactingUsers);
-      }
+      updateKPI('activatedSubscriptions', normalizeKPI(kpis?.activatedSubscriptions));
+      updateKPI('activeSubscriptions', normalizeKPI(kpis?.activeSubscriptions));
+      updateKPI('totalTransactions', normalizeKPI(kpis?.totalTransactions));
+      // Cohorte: toujours mettre à jour (0 si absent)
+      updateKPI('cohortTransactions', normalizeKPI(kpis?.cohortTransactions));
+      updateKPI('cohortTransactingUsers', normalizeKPI(kpis?.cohortTransactingUsers));
       // Total Transacting Users (période)
-      updateKPI('totalTransactingUsers', kpis.transactingUsers);
-      updateKPI('conversionRate', kpis.conversionRate, '%');
-      // Overview engagement rate (mirror of subscriptions retentionRate)
-      if (kpis.retentionRate) {
-        updateKPI('overview-retentionRate', kpis.retentionRate, '%');
-      }
+      updateKPI('totalTransactingUsers', normalizeKPI(kpis?.transactingUsers));
+      updateKPI('conversionRate', normalizeKPI(kpis?.conversionRate), '%');
+      // Overview retention rate
+      updateKPI('overview-retentionRate', normalizeKPI(kpis?.retentionRate), '%');
       
       // Update Overview conversion progress bar
-      updateOverviewConversionProgressBar(kpis.conversionRate);
+      updateOverviewConversionProgressBar(normalizeKPI(kpis?.conversionRate));
       
       // Subscription KPIs
-      updateKPI('sub-activatedSubscriptions', kpis.activatedSubscriptions);
-      updateKPI('sub-activeSubscriptions', kpis.activeSubscriptions);
-      updateKPI('sub-deactivatedSubscriptions', kpis.deactivatedSubscriptions);
-      updateKPI('sub-retentionRate', kpis.retentionRate, '%');
-      if (kpis.lostSubscriptions) {
-        updateKPI('sub-lostSubscriptions', kpis.lostSubscriptions);
-      }
-      if (kpis.retentionRateTrue) {
-        updateKPI('sub-retentionRateTrue', kpis.retentionRateTrue, '%');
-      }
+      updateKPI('sub-activatedSubscriptions', normalizeKPI(kpis?.activatedSubscriptions));
+      updateKPI('sub-activeSubscriptions', normalizeKPI(kpis?.activeSubscriptions));
+      updateKPI('sub-deactivatedSubscriptions', normalizeKPI(kpis?.periodDeactivated));
+      updateKPI('sub-retentionRate', normalizeKPI(kpis?.retentionRateTrue), '%');
+      // Deactivated (Cohorte) doit utiliser la cohorte réelle
+      updateKPI('sub-lostSubscriptions', normalizeKPI(kpis?.cohortDeactivated));
+      // Taux de churn doit utiliser la valeur churnRate
+      updateKPI('sub-retentionRateTrue', normalizeKPI(kpis?.churnRate), '%');
       
       // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
       if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.activations_by_channel) {
         const activations = dashboardData.subscriptions.activations_by_channel;
-        updateKPI('sub-activationsCB', activations.cb);
-        updateKPI('sub-activationsRecharge', activations.recharge);
-        updateKPI('sub-activationsPhone', activations.phone_balance);
+        updateKPI('sub-activationsCB', normalizeKPI(activations.cb));
+        updateKPI('sub-activationsRecharge', normalizeKPI(activations.recharge));
+        updateKPI('sub-activationsPhone', normalizeKPI(activations.phone_balance));
       }
       
       // Nouveaux KPIs Avancés - Plans (avec comparaison)
       if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.plan_distribution) {
         const plans = dashboardData.subscriptions.plan_distribution;
-        updateKPI('sub-plansDaily', plans.daily);
-        updateKPI('sub-plansMonthly', plans.monthly);
-        updateKPI('sub-plansAnnual', plans.annual);
+        updateKPI('sub-plansDaily', normalizeKPI(plans.daily));
+        updateKPI('sub-plansMonthly', normalizeKPI(plans.monthly));
+        updateKPI('sub-plansAnnual', normalizeKPI(plans.annual));
       }
       
       // Nouveaux KPIs Avancés - Métriques (avec comparaison)
       if (dashboardData && dashboardData.subscriptions) {
-        updateKPI('sub-renewalRate', dashboardData.subscriptions.renewal_rate, '%');
-        updateKPI('sub-averageLifespan', dashboardData.subscriptions.average_lifespan, ' jours');
+        updateKPI('sub-renewalRate', normalizeKPI(dashboardData.subscriptions.renewal_rate), '%');
+        updateKPI('sub-averageLifespan', normalizeKPI(dashboardData.subscriptions.average_lifespan), ' jours');
       }
 
       // Valeurs transactions & conversion affichées désormais en haut
-      updateKPI('sub-totalTransactions', kpis.totalTransactions);
-      updateKPI('sub-conversionRate', kpis.conversionRate, '%');
-      
-      // Transaction KPIs réorganisés
-      updateKPI('trans-totalTransactions', kpis.totalTransactions);
-      if (kpis.cohortTransactions) { updateKPI('trans-cohortTransactions', kpis.cohortTransactions); }
-      updateKPI('trans-transactingUsers', kpis.transactingUsers);
-      if (kpis.cohortTransactingUsers) { updateKPI('trans-cohortTransactingUsers', kpis.cohortTransactingUsers); }
-      updateKPI('trans-transactionsPerUser', kpis.transactionsPerUser);
-      if (kpis.conversionRate) { updateKPI('trans-convCohort', kpis.conversionRate, '%'); }
-      if (kpis.conversionRatePeriod) { updateKPI('trans-convPeriod', kpis.conversionRatePeriod, '%'); }
-      if (kpis.avgInterTransactionDays) { updateKPI('trans-avgInterTxDays', kpis.avgInterTransactionDays, ' j'); }
-      
-      // Merchant KPIs
-      updateKPI('merch-totalPartners', kpis.totalPartners);
-      updateKPI('merch-activeMerchants', kpis.activeMerchants);
-      updateKPI('merch-transactionsPerMerchant', kpis.transactionsPerMerchant);
-      if (kpis.activeMerchantRatio) {
-        updateKPI('merch-activeMerchantRatio', kpis.activeMerchantRatio, '%');
-      }
-      if (kpis.totalLocationsActive) {
-        updateKPI('merch-totalLocationsActive', kpis.totalLocationsActive);
-      }
-      if (kpis.totalTransactions) {
-        updateKPI('merch-totalTransactions', kpis.totalTransactions);
-      }
+      updateKPI('sub-totalTransactions', normalizeKPI(kpis?.totalTransactions));
+      updateKPI('sub-conversionRate', normalizeKPI(kpis?.conversionRate), '%');
 
-      // Global snapshots
-      // Global snapshot row removed
-      
-      // Top merchant info sera mis à jour dans updateTables() avec les nouvelles données
+      // Transactions Tab KPIs
+      updateKPI('trans-totalTransactions', normalizeKPI(kpis?.totalTransactions));
+      updateKPI('trans-cohortTransactions', normalizeKPI(kpis?.cohortTransactions));
+      updateKPI('trans-transactingUsers', normalizeKPI(kpis?.transactingUsers));
+      updateKPI('trans-cohortTransactingUsers', normalizeKPI(kpis?.cohortTransactingUsers));
+      updateKPI('trans-convCohort', normalizeKPI(kpis?.conversionRate), '%');
+      updateKPI('trans-convPeriod', normalizeKPI(kpis?.conversionRatePeriod), '%');
+      // transactions/user fallback
+      const tpObj = (kpis?.transactionsPerUser)
+        ? normalizeKPI(kpis.transactionsPerUser)
+        : (kpis?.totalTransactions && kpis?.transactingUsers)
+          ? { current: (normalizeKPI(kpis.totalTransactions).current && normalizeKPI(kpis.transactingUsers).current)
+                ? +(normalizeKPI(kpis.totalTransactions).current / normalizeKPI(kpis.transactingUsers).current).toFixed(1)
+                : 0,
+              previous: 0, change: 0 }
+          : { current: 0, previous: 0, change: 0 };
+      updateKPI('trans-transactionsPerUser', tpObj);
+      updateKPI('trans-avgInterTxDays', normalizeKPI(kpis?.avgInterTransactionDays), ' j');
+
+      // Merchants Tab KPIs
+      updateKPI('merch-totalPartners', normalizeKPI(kpis?.totalPartners));
+      updateKPI('merch-activeMerchants', normalizeKPI(kpis?.activeMerchants));
+      updateKPI('merch-totalTransactions', normalizeKPI(kpis?.totalTransactions));
+      updateKPI('merch-transactionsPerMerchant', normalizeKPI(kpis?.transactionsPerMerchant));
+      updateKPI('merch-totalLocationsActive', normalizeKPI(kpis?.totalLocationsActive));
+      const activeNow = normalizeKPI(kpis?.activeMerchants).current;
+      const totalNow = normalizeKPI(kpis?.totalPartners).current;
+      const activePrev = normalizeKPI(kpis?.activeMerchants).previous;
+      const totalPrev = normalizeKPI(kpis?.totalPartners).previous;
+      const ratioNow = totalNow > 0 ? +(activeNow / totalNow * 100).toFixed(1) : 0;
+      const ratioPrev = totalPrev > 0 ? +(activePrev / totalPrev * 100).toFixed(1) : 0;
+      const ratioChange = ratioPrev !== 0 ? +(((ratioNow - ratioPrev) / Math.abs(ratioPrev)) * 100).toFixed(1) : 0;
+      updateKPI('merch-activeMerchantRatio', { current: ratioNow, previous: ratioPrev, change: ratioChange }, '%');
     }
 
-            // Update merchant KPI info with real data
         function updateMerchantKPIs(merchants, kpis) {
+      const normalizeKPI = (obj) => (obj && typeof obj.current !== 'undefined') ? obj : { current: 0, previous: 0, change: 0 };
         const topMerchantShareEl = document.getElementById('merch-topMerchantShare');
         const topMerchantNameEl = document.getElementById('merch-topMerchantName');
         const diversityEl = document.getElementById('merch-diversity');
         const diversityDetailEl = document.getElementById('merch-diversityDetail');
         
-            // Nouvelles métriques
-            const totalEverActiveEl = document.getElementById('merch-totalEverActive');
-            const totalTransactionsPeriodEl = document.getElementById('merch-totalTransactionsPeriod');
-            
-            // Mettre à jour les nouvelles données
-            if (totalEverActiveEl && kpis.totalMerchantsEverActive) {
-                totalEverActiveEl.textContent = `Total ayant déjà transigé: ${kpis.totalMerchantsEverActive}`;
-            }
-            if (totalTransactionsPeriodEl && kpis.allTransactionsPeriod) {
-                totalTransactionsPeriodEl.textContent = `Total transactions période: ${kpis.allTransactionsPeriod}`;
+            // Si le backend ne calcule pas la part, on la calcule côté client
+            const enriched = Array.isArray(merchants) ? merchants.slice() : [];
+            if (enriched.length > 0 && (typeof enriched[0].share === 'undefined' || enriched[0].share === null)) {
+              const totalTx = enriched.reduce((s, m) => s + (m.current || 0), 0);
+              enriched.forEach(m => { m.share = totalTx > 0 ? +(m.current * 100 / totalTx).toFixed(1) : 0; });
+              enriched.sort((a, b) => (b.current || 0) - (a.current || 0));
             }
             
-            if (merchants && merchants.length > 0) {
-                const topMerchant = merchants[0];
-                
-                if (topMerchantShareEl) {
-                    topMerchantShareEl.textContent = `${topMerchant.share}%`;
-                }
+            if (enriched && enriched.length > 0) {
+                const topMerchant = enriched[0];
+        if (topMerchantShareEl) topMerchantShareEl.textContent = `${topMerchant.share}%`;
                 if (topMerchantNameEl) {
-                    const merchantName = topMerchant.name.length > 20 ? 
-                        topMerchant.name.substring(0, 20) + '...' : topMerchant.name;
+          const merchantName = topMerchant.name.length > 20 ? topMerchant.name.substring(0, 20) + '...' : topMerchant.name;
                     topMerchantNameEl.textContent = merchantName;
-                    topMerchantNameEl.title = topMerchant.name; // Tooltip avec le nom complet
+          topMerchantNameEl.title = topMerchant.name;
                 }
-                
-                // Calcul de la diversité basé sur le nombre de marchands
-                const merchantCount = kpis.activeMerchants.current;
+        // Diversité basée sur le nombre de marchands actifs
+        const merchantCount = normalizeKPI(kpis?.activeMerchants).current;
                 let diversityLevel = 'Faible';
                 if (merchantCount >= 15) diversityLevel = 'Élevée';
                 else if (merchantCount >= 8) diversityLevel = 'Moyenne';
-                
                 if (diversityEl) diversityEl.textContent = diversityLevel;
-                if (diversityDetailEl) {
-                    diversityDetailEl.textContent = `${merchantCount} marchands actifs`;
-                }
+        if (diversityDetailEl) diversityDetailEl.textContent = `${merchantCount} marchands actifs`;
             } else {
-                // Gestion du cas où il n'y a pas de marchands
                 if (topMerchantShareEl) topMerchantShareEl.textContent = '0%';
                 if (topMerchantNameEl) topMerchantNameEl.textContent = 'Aucun marchand';
                 if (diversityEl) diversityEl.textContent = 'Aucune';
@@ -2809,6 +3029,11 @@
       const safe = (data && typeof data.current !== 'undefined')
         ? data
         : { current: 0, previous: 0, change: 0 };
+
+      // DEBUG: tracer les KPI problématiques (période, cohorte, churn)
+      if (elementId === 'sub-deactivatedSubscriptions' || elementId === 'sub-lostSubscriptions' || elementId === 'sub-retentionRateTrue') {
+        console.log('[KPI DEBUG]', elementId, JSON.parse(JSON.stringify(safe)));
+      }
       
       if (valueElement) {
         valueElement.textContent = formatNumber(safe.current) + suffix;
@@ -2863,12 +3088,16 @@
       createTransactionVolumeChart(data);
       createTransactingUsersChart(data);
       
-      // Merchant Charts
+      // Nouveaux graphiques d'analyse des transactions
+      createTransactionsByOperatorChart(data);
+      createTransactionsByPlanChart(data);
+
+      // Merchants Charts (réactivés)
       createTopMerchantsChart(data);
       createCategoryChart(data);
       createActiveLocationsTrend(data);
       
-      // Comparison Chart
+      // Comparison Chart (nouveau)
       createComparisonChart(data);
     }
   // Create active locations trend chart
@@ -2891,15 +3120,106 @@
         datasets: [{
           label: 'Points de vente actifs',
           data: values,
-          borderColor: THEME_COLORS.primary,
-          backgroundColor: THEME_COLORS.primaryRgba,
+          borderColor: getThemeColor('primary'),
+          backgroundColor: getThemeColor('primaryRgba'),
           tension: 0.25,
           fill: true
         }]
       },
       options: { responsive: true, maintainAspectRatio: false }
     });
-  }
+    }
+
+    // Create transactions by operator chart
+    function createTransactionsByOperatorChart(data) {
+      const ctx = document.getElementById('transactionsByOperatorChart');
+      if (!ctx) return;
+
+      if (charts.transactionsByOperator) {
+        charts.transactionsByOperator.destroy();
+      }
+
+      const operatorData = (data.transactions && data.transactions.analytics && data.transactions.analytics.byOperator) ? data.transactions.analytics.byOperator : [];
+      const labels = operatorData.map(item => item.operator);
+      const values = operatorData.map(item => item.count);
+
+      charts.transactionsByOperator = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: [
+              getThemeColor('primary'),
+              getThemeColor('accent'),
+              getThemeColor('success'),
+              getThemeColor('warning'),
+              '#6366f1',
+              '#8b5cf6',
+              '#ec4899'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }
+
+    // Create transactions by plan chart
+    function createTransactionsByPlanChart(data) {
+      const ctx = document.getElementById('transactionsByPlanChart');
+      if (!ctx) return;
+
+      if (charts.transactionsByPlan) {
+        charts.transactionsByPlan.destroy();
+      }
+
+      const planData = (data.transactions && data.transactions.analytics && data.transactions.analytics.byPlan) ? data.transactions.analytics.byPlan : [];
+      const labels = planData.map(item => item.plan);
+      const values = planData.map(item => item.count);
+
+      const planColors = {
+        'Journalier': getThemeColor('warning'),
+        'Mensuel': getThemeColor('accent'),
+        'Annuel': getThemeColor('success'),
+        'Autre': '#6b7280'
+      };
+
+      const backgroundColors = labels.map(label => planColors[label] || '#6b7280');
+
+      charts.transactionsByPlan = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Nombre de transactions',
+            data: values,
+            backgroundColor: backgroundColors
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
 
     // Create overview chart
     function createOverviewChart(data) {
@@ -2918,21 +3238,21 @@
             {
               label: 'Current Period',
               data: [
-                data.kpis.activatedSubscriptions.current,
-                data.kpis.activeSubscriptions.current,
-                data.kpis.totalTransactions.current,
-                data.kpis.activeMerchants.current
+                (data.kpis?.activatedSubscriptions?.current ?? 0),
+                (data.kpis?.activeSubscriptions?.current ?? 0),
+                (data.kpis?.totalTransactions?.current ?? 0),
+                (data.kpis?.activeMerchants?.current ?? 0)
               ],
-              backgroundColor: THEME_COLORS.primary,
+              backgroundColor: getThemeColor('primary'),
               borderRadius: 4
             },
             {
               label: 'Previous Period',
               data: [
-                data.kpis.activatedSubscriptions.previous,
-                data.kpis.activeSubscriptions.previous,
-                data.kpis.totalTransactions.previous,
-                data.kpis.activeMerchants.previous
+                (data.kpis?.activatedSubscriptions?.previous ?? 0),
+                (data.kpis?.activeSubscriptions?.previous ?? 0),
+                (data.kpis?.totalTransactions?.previous ?? 0),
+                (data.kpis?.activeMerchants?.previous ?? 0)
               ],
               backgroundColor: '#64748b',
               borderRadius: 4
@@ -2967,8 +3287,26 @@
       
       // Use real daily activations data from backend
       const dailyActivations = data.subscriptions?.daily_activations || [];
-      const days = dailyActivations.map((item, index) => `Day ${index + 1}`);
-      const dailyData = dailyActivations.map(item => item.activations || 0);
+      // Build a continuous date range (align X axis with other charts)
+      const dateToValue = new Map();
+      const parseISO = (s) => new Date(s + 'T00:00:00');
+      dailyActivations.forEach(it => {
+        if (it && it.date) {
+          dateToValue.set(it.date, Number(it.activations || 0));
+        }
+      });
+
+      const sortedDates = Array.from(dateToValue.keys()).sort();
+      if (sortedDates.length === 0) return;
+      const start = parseISO(sortedDates[0]);
+      const end = parseISO(sortedDates[sortedDates.length - 1]);
+      const days = [];
+      const dailyData = [];
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const iso = d.toISOString().slice(0, 10);
+        days.push(iso);
+        dailyData.push(dateToValue.has(iso) ? dateToValue.get(iso) : 0);
+      }
       
       charts.subscriptionTrend = new Chart(ctx, {
         type: 'line',
@@ -2977,23 +3315,25 @@
           datasets: [{
             label: 'Daily Activated Subscriptions',
             data: dailyData,
-            borderColor: THEME_COLORS.primary,
-            backgroundColor: THEME_COLORS.primaryRgba,
+            borderColor: getThemeColor('primary'),
+            backgroundColor: getThemeColor('primaryRgba'),
             fill: true,
-            tension: 0.4
+            tension: 0.3,
+            pointRadius: 2,
+            spanGaps: true
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
-            }
-          },
           scales: {
-            y: {
-              beginAtZero: true
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 14,
+                minRotation: 45,
+                maxRotation: 45
+              }
             }
           }
         }
@@ -3011,8 +3351,22 @@
       
       // Use real retention trend data from backend
       const retentionTrend = data.subscriptions?.retention_trend || [];
-      const days = retentionTrend.map((item) => item.date);
-      const retentionData = retentionTrend.map(item => Number(item.rate || 0));
+      // Aligner les dates avec le graphe Daily Activated Subscriptions
+      const mapDateToValue = new Map();
+      retentionTrend.forEach(it => {
+        if (it && it.date) mapDateToValue.set(it.date, Number((it.value ?? it.rate) || 0));
+      });
+      const sorted = Array.from(mapDateToValue.keys()).sort();
+      if (sorted.length === 0) return;
+      const start = new Date(sorted[0] + 'T00:00:00');
+      const end = new Date(sorted[sorted.length - 1] + 'T00:00:00');
+      const days = [];
+      const retentionData = [];
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const iso = d.toISOString().slice(0, 10);
+        days.push(iso);
+        retentionData.push(mapDateToValue.has(iso) ? mapDateToValue.get(iso) : 0);
+      }
       
       charts.retention = new Chart(ctx, {
         type: 'line',
@@ -3042,6 +3396,14 @@
               ticks: {
                 callback: function(value) { return value + '%'; }
               }
+            },
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 14,
+                minRotation: 45,
+                maxRotation: 45
+              }
             }
           }
         }
@@ -3059,7 +3421,7 @@
       
       // Use real daily transactions data from backend
       const dailyTransactions = data.transactions?.daily_volume || [];
-      const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
+      const days = dailyTransactions.map((item) => item.date || '');
       const transactionData = dailyTransactions.map(item => item.transactions || 0);
       
       // Build cumulative series
@@ -3075,7 +3437,7 @@
           datasets: [{
             label: 'Daily Transactions',
             data: transactionData,
-            backgroundColor: THEME_COLORS.accent,
+            backgroundColor: getThemeColor('accent'),
             borderRadius: 4,
             
           },{
@@ -3097,7 +3459,7 @@
         if (charts.transactionVolumeCumulative) charts.transactionVolumeCumulative.destroy();
         charts.transactionVolumeCumulative = new Chart(cumCtx, {
           type: 'line',
-          data: { labels: days, datasets: [{ label: 'Cumulative Transactions', data: cumulativeTransactions, borderColor: THEME_COLORS.primary, backgroundColor: THEME_COLORS.primaryRgba, fill: false, tension: 0.3 }] },
+          data: { labels: days, datasets: [{ label: 'Cumulative Transactions', data: cumulativeTransactions, borderColor: getThemeColor('primary'), backgroundColor: getThemeColor('primaryRgba'), fill: false, tension: 0.3 }] },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
         });
       }
@@ -3114,7 +3476,7 @@
       
       // Use real daily transactions data from backend to extract users
       const dailyTransactions = data.transactions?.daily_volume || [];
-      const days = dailyTransactions.map((item, index) => `Day ${index + 1}`);
+      const days = dailyTransactions.map((item) => item.date || '');
       const userData = dailyTransactions.map(item => item.users || 0);
       
       const cumulativeUsers = userData.reduce((acc, val, idx) => {
@@ -3129,8 +3491,8 @@
           datasets: [{
             label: 'Daily Transacting Users',
             data: userData,
-            borderColor: THEME_COLORS.warning,
-            backgroundColor: THEME_COLORS.warning === '#3b82f6' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+            borderColor: getThemeColor('warning'),
+            backgroundColor: getThemeColor('warning') === '#3b82f6' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(245, 158, 11, 0.1)',
             fill: true,
             tension: 0.4
           },{
@@ -3152,7 +3514,7 @@
         if (charts.transactingUsersCumulative) charts.transactingUsersCumulative.destroy();
         charts.transactingUsersCumulative = new Chart(cumUsersCtx, {
           type: 'line',
-          data: { labels: days, datasets: [{ label: 'Cumulative Users', data: cumulativeUsers, borderColor: THEME_COLORS.primary, backgroundColor: THEME_COLORS.primaryRgba, fill: false, tension: 0.3 }] },
+          data: { labels: days, datasets: [{ label: 'Cumulative Users', data: cumulativeUsers, borderColor: getThemeColor('primary'), backgroundColor: getThemeColor('primaryRgba'), fill: false, tension: 0.3 }] },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
         });
       }
@@ -3178,10 +3540,10 @@
           datasets: [{
             data: merchantValues,
             backgroundColor: [
-              THEME_COLORS.primary,
-              THEME_COLORS.accent,
-              THEME_COLORS.success,
-              THEME_COLORS.warning
+              getThemeColor('primary'),
+              getThemeColor('accent'),
+              getThemeColor('success'),
+              getThemeColor('warning')
             ],
             borderWidth: 2,
             borderColor: '#ffffff'
@@ -3209,8 +3571,8 @@
       }
       
       const dist = (data.categoryDistribution || []).slice(0, 10);
-      const labels = dist.map(d => `${d.category} (${d.merchants_count})`);
-      const values = dist.map(d => d.merchants_count);
+      const labels = dist.map(d => `${d.category} (${d.merchants ?? d.merchants_count ?? 0})`);
+      const values = dist.map(d => (typeof d.merchants !== 'undefined') ? d.merchants : (d.merchants_count ?? 0));
       const colors = ['#E30613','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#f97316','#64748b'];
       
       charts.category = new Chart(ctx, {
@@ -3244,6 +3606,43 @@
         charts.comparison.destroy();
       }
       
+      const k = data?.kpis || {};
+      const safe = (obj) => (obj && typeof obj.current !== 'undefined') ? obj : { current: 0, previous: 0 };
+      const activated = safe(k.activatedSubscriptions);
+      const transactions = safe(k.totalTransactions);
+      const merchants = safe(k.activeMerchants);
+      const conversion = safe(k.conversionRate);
+      // Retention: préférer retentionRateTrue s'il existe, sinon retentionRate
+      const retention = safe(k.retentionRateTrue || k.retentionRate);
+      
+      const currentRaw = [
+        activated.current,
+        transactions.current,
+        merchants.current,
+        conversion.current,
+        retention.current
+      ];
+      const previousRaw = [
+        activated.previous,
+        transactions.previous,
+        merchants.previous,
+        conversion.previous,
+        retention.previous
+      ];
+      
+      const current = [];
+      const previous = [];
+      for (let i = 0; i < currentRaw.length; i++) {
+        const denom = Math.max(Number(currentRaw[i]) || 0, Number(previousRaw[i]) || 0);
+        if (denom <= 0) {
+          current.push(0);
+          previous.push(0);
+        } else {
+          current.push(+((Number(currentRaw[i]) || 0) * 100 / denom).toFixed(1));
+          previous.push(+((Number(previousRaw[i]) || 0) * 100 / denom).toFixed(1));
+        }
+      }
+      
       charts.comparison = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -3251,14 +3650,14 @@
           datasets: [
             {
               label: 'Current Period',
-              data: [100, 20, 80, 1, 94],
-              borderColor: THEME_COLORS.primary,
-              backgroundColor: THEME_COLORS.primaryRgba.replace('0.1', '0.2'),
-              pointBackgroundColor: THEME_COLORS.primary
+              data: current,
+              borderColor: getThemeColor('primary'),
+              backgroundColor: getThemeColor('primaryRgba').replace('0.1', '0.2'),
+              pointBackgroundColor: getThemeColor('primary')
             },
             {
               label: 'Previous Period',
-              data: [20, 25, 60, 1, 86],
+              data: previous,
               borderColor: '#64748b',
               backgroundColor: 'rgba(100, 116, 139, 0.2)',
               pointBackgroundColor: '#64748b'
@@ -3308,7 +3707,7 @@
           datasets: [{
             data: [cbVal, rechargeVal, phoneVal, otherVal],
             backgroundColor: [
-              THEME_COLORS.primary,
+              getThemeColor('primary'),
               '#10b981',
               '#f59e0b',
               '#6b7280'
@@ -3352,7 +3751,7 @@
             label: 'Nombre d\'abonnements',
             data: [dailyVal, monthlyVal, annualVal, otherPlanVal],
             backgroundColor: [
-              THEME_COLORS.primary,
+              getThemeColor('primary'),
               '#10b981',
               '#f59e0b',
               '#6b7280'
@@ -3399,8 +3798,8 @@
             {
               label: 'Survie J+30 (%)',
               data: survivalD30,
-              borderColor: THEME_COLORS.primary,
-              backgroundColor: THEME_COLORS.primaryRgba,
+              borderColor: getThemeColor('primary'),
+              backgroundColor: getThemeColor('primaryRgba'),
               fill: false,
               tension: 0.4
             },
@@ -3441,6 +3840,10 @@
     function updateTables(data) {
       updateMerchantsTable(data.merchants);
       updateComparisonTable(data.kpis);
+      // Chargement paresseux du tableau des abonnements
+      setTimeout(() => {
+        updateSubscriptionsTable(data.subscriptions);
+      }, 200);
     }
 
     // Update merchants table with enhanced data and pagination
@@ -3448,6 +3851,137 @@
       allMerchants = merchants || [];
       currentMerchantsPage = 1;
       renderMerchantsPage();
+    }
+
+    // Variables globales pour la pagination des abonnements
+    let allSubscriptionDetails = [];
+    let currentSubscriptionPage = 1;
+    let subscriptionsPerPage = 25;
+
+    // Update subscriptions table with details
+    function updateSubscriptionsTable(subscriptions) {
+      const tbody = document.getElementById('subs-details-body');
+      if (!tbody) return;
+      
+      // Afficher indicateur de chargement spécifique
+      tbody.innerHTML = '<tr><td colspan="6" class="loading">🔄 Chargement des détails...</td></tr>';
+      
+      // Gestion de la nouvelle structure avec meta
+      let detailsData = [];
+      let meta = null;
+      
+      if (subscriptions && subscriptions.details) {
+        if (Array.isArray(subscriptions.details)) {
+          // Ancienne structure (compatibilité)
+          detailsData = subscriptions.details;
+        } else if (subscriptions.details.data && Array.isArray(subscriptions.details.data)) {
+          // Nouvelle structure avec meta
+          detailsData = subscriptions.details.data;
+          meta = subscriptions.details.meta;
+        }
+      }
+      
+      if (detailsData.length > 0) {
+        // Simule un petit délai pour montrer le chargement
+        setTimeout(() => {
+          allSubscriptionDetails = detailsData;
+          currentSubscriptionPage = 1;
+          renderSubscriptionsPage();
+          
+          // Afficher les informations de performance
+          if (meta) {
+            updateSubscriptionTableInfo(meta);
+          }
+        }, 100);
+      } else {
+        tbody.innerHTML = '<tr><td colspan="6" class="no-data">Aucune donnée disponible</td></tr>';
+      }
+    }
+
+    function updateSubscriptionTableInfo(meta) {
+      const tableTitle = document.querySelector('#subscriptions .table-title');
+      if (tableTitle && meta) {
+        const infoSpan = tableTitle.querySelector('.table-info') || document.createElement('span');
+        infoSpan.className = 'table-info';
+        infoSpan.innerHTML = ` <small style="color: #666; font-weight: normal;">(${meta.total_count} clients - ${meta.execution_time_ms}ms)</small>`;
+        
+        if (!tableTitle.querySelector('.table-info')) {
+          tableTitle.appendChild(infoSpan);
+        }
+      }
+    }
+
+    function renderSubscriptionsPage() {
+      const tbody = document.getElementById('subs-details-body');
+      if (!tbody) return;
+      
+      const startIndex = (currentSubscriptionPage - 1) * subscriptionsPerPage;
+      const endIndex = startIndex + subscriptionsPerPage;
+      const pageData = allSubscriptionDetails.slice(startIndex, endIndex);
+      
+      tbody.innerHTML = pageData.map(row => {
+        const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim();
+        const plan = row.plan || '-';
+        const planBadgeClass = 
+          plan === 'Journalier' ? 'badge-warning' :
+          plan === 'Mensuel' ? 'badge-info' :
+          plan === 'Annuel' ? 'badge-success' : 'badge-secondary';
+        
+        return `
+          <tr>
+            <td>${fullName || '-'}</td>
+            <td>${row.phone || '-'}</td>
+            <td>${row.operator || '-'}</td>
+            <td><span class="badge ${planBadgeClass}">${plan}</span></td>
+            <td>${row.activation_date ? row.activation_date.substring(0,10) : '-'}</td>
+            <td>${row.end_date ? row.end_date.substring(0,10) : '-'}</td>
+          </tr>
+        `;
+      }).join('');
+      
+      updateSubscriptionsPagination();
+    }
+
+    function updateSubscriptionsPagination() {
+      const totalPages = Math.ceil(allSubscriptionDetails.length / subscriptionsPerPage);
+      const pagination = document.querySelector('.subscriptions-pagination');
+      
+      if (pagination && totalPages > 1) {
+        let paginationHTML = '<div class="pagination-controls">';
+        
+        // Previous button
+        if (currentSubscriptionPage > 1) {
+          paginationHTML += `<button onclick="changeSubscriptionPage(${currentSubscriptionPage - 1})" class="pagination-btn">‹ Précédent</button>`;
+        }
+        
+        // Page numbers
+        const startPage = Math.max(1, currentSubscriptionPage - 2);
+        const endPage = Math.min(totalPages, currentSubscriptionPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+          const activeClass = i === currentSubscriptionPage ? 'active' : '';
+          paginationHTML += `<button onclick="changeSubscriptionPage(${i})" class="pagination-btn ${activeClass}">${i}</button>`;
+        }
+        
+        // Next button
+        if (currentSubscriptionPage < totalPages) {
+          paginationHTML += `<button onclick="changeSubscriptionPage(${currentSubscriptionPage + 1})" class="pagination-btn">Suivant ›</button>`;
+        }
+        
+        paginationHTML += `</div><div class="pagination-info">Page ${currentSubscriptionPage} sur ${totalPages} (${allSubscriptionDetails.length} éléments)</div>`;
+        pagination.innerHTML = paginationHTML;
+      }
+    }
+
+    function changeSubscriptionPage(page) {
+      currentSubscriptionPage = page;
+      renderSubscriptionsPage();
+    }
+
+    function changeSubscriptionsPerPage(perPage) {
+      subscriptionsPerPage = parseInt(perPage);
+      currentSubscriptionPage = 1;
+      renderSubscriptionsPage();
     }
     
     function renderMerchantsPage() {
@@ -3489,14 +4023,13 @@
           statusText = 'En croissance';
         }
         
-        // Icône basée sur la position globale
-        const positionIcon = globalIndex < 3 ? '🏆' : globalIndex < 10 ? '⭐' : '📊';
+        const shareVal = (typeof merchant.share === 'number') ? merchant.share : 0;
         
         return `
           <tr>
             <td>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 16px;">${positionIcon}</span>
+                <span style="font-size: 16px;">${globalIndex < 3 ? '🏆' : globalIndex < 10 ? '⭐' : '📊'}</span>
                 <div>
                   <strong>${merchant.name}</strong>
                   <div style="font-size: 12px; color: #666; margin-top: 2px;">
@@ -3521,9 +4054,9 @@
             </td>
             <td>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <strong>${merchant.share}%</strong>
+                <strong>${shareVal}%</strong>
                 <div style="width: 60px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;">
-                  <div style="width: ${Math.min(merchant.share * 2, 100)}%; height: 100%; background: var(--brand-red);"></div>
+                  <div style="width: ${Math.min(shareVal * 2, 100)}%; height: 100%; background: var(--brand-red);"></div>
                 </div>
               </div>
             </td>
@@ -3707,26 +4240,31 @@
       const tbody = document.getElementById('comparisonTableBody');
       if (!tbody) return;
       
+      const safe = (obj) => obj ?? { current: 0, previous: 0, change: 0 };
+      
       const metrics = [
-        { name: 'Activated Subscriptions', data: kpis.activatedSubscriptions },
-        { name: 'Active Subscriptions', data: kpis.activeSubscriptions },
-        { name: 'Total Transactions', data: kpis.totalTransactions },
-        { name: 'Transacting Users', data: kpis.transactingUsers },
-        { name: 'Active Merchants', data: kpis.activeMerchants },
-        { name: 'Conversion Rate (%)', data: kpis.conversionRate }
+        { name: 'Activated Subscriptions', data: safe(kpis?.activatedSubscriptions) },
+        { name: 'Active Subscriptions', data: safe(kpis?.activeSubscriptions) },
+        { name: 'Total Transactions', data: safe(kpis?.totalTransactions) },
+        { name: 'Transacting Users', data: safe(kpis?.transactingUsers) },
+        { name: 'Active Merchants', data: safe(kpis?.activeMerchants) },
+        { name: 'Conversion Rate (%)', data: safe(kpis?.conversionRate) }
       ];
       
       tbody.innerHTML = metrics.map(metric => {
-        const change = metric.data.change;
+        const data = metric.data || { current: 0, previous: 0, change: 0 };
+        const current = Number(data.current) || 0;
+        const previous = Number(data.previous) || 0;
+        const change = Number.isFinite(data.change) ? Number(data.change) : 0;
         const isPositive = change > 0;
         const badgeClass = isPositive ? 'badge-success' : change < 0 ? 'badge-danger' : 'badge-info';
-        const absoluteChange = metric.data.current - metric.data.previous;
+        const absoluteChange = current - previous;
         
         return `
           <tr>
             <td><strong>${metric.name}</strong></td>
-            <td>${formatNumber(metric.data.current)}</td>
-            <td>${formatNumber(metric.data.previous)}</td>
+            <td>${formatNumber(current)}</td>
+            <td>${formatNumber(previous)}</td>
             <td>${absoluteChange > 0 ? '+' : ''}${formatNumber(absoluteChange)}</td>
             <td>${change > 0 ? '+' : ''}${change.toFixed(1)}%</td>
             <td><span class="badge ${badgeClass}">${isPositive ? 'Improved' : change < 0 ? 'Declined' : 'Stable'}</span></td>
