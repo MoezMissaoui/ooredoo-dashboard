@@ -22,10 +22,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Dashboard API routes
 Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/data', [DataController::class, 'getDashboardData'])->name('data');
-    Route::get('/operators', [DataController::class, 'getAvailableOperators'])->name('operators');
+    Route::get('/operators', [DataController::class, 'getUserOperators'])->name('operators');
     Route::get('/partners', [DataController::class, 'getPartnersList'])->name('partners');
     Route::get('/kpis', [DataController::class, 'getKpis'])->name('kpis');
     Route::get('/merchants', [DataController::class, 'getMerchants'])->name('merchants');
     Route::get('/transactions', [DataController::class, 'getTransactions'])->name('transactions');
     Route::get('/subscriptions', [DataController::class, 'getSubscriptions'])->name('subscriptions');
 });
+
+// Routes optimisées additionnelles si présentes
+if (file_exists(base_path('routes/api_optimized.php'))) {
+    require base_path('routes/api_optimized.php');
+}
