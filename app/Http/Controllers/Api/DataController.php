@@ -206,6 +206,7 @@ class DataController extends Controller
             }
             
             $activatedSubscriptions = $activatedSubscriptionsQuery->count();
+            
             Log::info("Abonnements activés $selectedOperator (principal): $activatedSubscriptions");
             
             // === PÉRIODE DE COMPARAISON ===
@@ -433,6 +434,23 @@ class DataController extends Controller
                     break;
                 }
             }
+            
+            // Calculer le nombre total de points de vente des partenaires actifs
+            $totalLocationsActive = 0;
+            try {
+                if ($activeFlag !== null) {
+                    $totalLocationsActive = DB::table('partner_location')
+                        ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
+                        ->where('partner.' . $activeFlag, 1)
+                        ->count();
+                } else {
+                    // Fallback: tous les points de vente
+                    $totalLocationsActive = DB::table('partner_location')->count();
+                }
+            } catch (\Throwable $th) {
+                Log::warning('Impossible de calculer totalLocationsActive', ['error' => $th->getMessage()]);
+            }
+            
             if ($activeFlag !== null) {
                 // Si la colonne existe et est booléenne / 1
                 $totalActivePartnersDB = DB::table('partner')->where($activeFlag, 1)->count();
@@ -526,8 +544,9 @@ class DataController extends Controller
             $churnRateComparison = $activatedSubscriptionsComparison > 0 ? round(($lostSubscriptionsComparison / $activatedSubscriptionsComparison) * 100, 1) : 0;
 
             // Ancienne clé (pour compat UI déjà en place): retentionRateTrue conserve le sens historique si utilisé
-            $retentionRateTrue = $churnRate;
-            $retentionRateTrueComparison = $churnRateComparison;
+            // CORRECTION: retentionRateTrue doit rester le vrai taux de rétention, pas le churn
+            $retentionRateTrue = $retentionRate;
+            $retentionRateTrueComparison = $retentionRateComparison;
 
             // Fetch TOP MERCHANTS avec données complètes
             Log::info("6. Récupération TOP MERCHANTS avec catégories...");
@@ -547,8 +566,8 @@ class DataController extends Controller
                     ->where('partner.partner_id', $item->partner_id)
                     ->count();
                 
-                // Déterminer catégorie basée sur le nom
-                $category = $this->categorizePartner($item->name);
+                // Déterminer catégorie basée sur la vraie base de données
+                $category = $this->getRealPartnerCategory($item->partner_id);
                 
                 // Part du marché (basée sur les transactions opérateur chez marchands)
                 $share = $operatorMerchantTransactions > 0 ? round(($item->current / $operatorMerchantTransactions) * 100, 1) : 0;
@@ -631,26 +650,20 @@ class DataController extends Controller
             while ($quarterCursor->lte($quarterEnd)) {
                 $qEnd = $quarterCursor->copy()->endOfQuarter();
 
+                // Utiliser la même logique simplifiée que le mode optimisé
+                $countLocations = 0;
                 if ($activeFlag !== null) {
                     $countLocations = DB::table('partner_location')
                         ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
-                        ->where(function($q) use ($activeFlag) {
-                            $q->where($activeFlag, 1)
-                              ->orWhereIn($activeFlag, ['1', 1, true, 'ACTIVE', 'Active', 'enabled', 'ENABLED', 'A', 'YES', 'Yes', 'Y', 'true', 'actif', 'ACTIF']);
-                        })
+                        ->where('partner.' . $activeFlag, 1)
                         ->when(Schema::hasColumn('partner_location', 'created_at'), function($q) use ($qEnd) {
                             return $q->where('partner_location.created_at', '<=', $qEnd);
                         })
                         ->distinct('partner_location.partner_location_id')
                         ->count('partner_location.partner_location_id');
                 } else {
-                    // Fallback: tous les points de vente existants à fin de trimestre
-                    $countLocations = DB::table('partner_location')
-                        ->when(Schema::hasColumn('partner_location', 'created_at'), function($q) use ($qEnd) {
-                            return $q->where('partner_location.created_at', '<=', $qEnd);
-                        })
-                        ->distinct('partner_location.partner_location_id')
-                        ->count('partner_location.partner_location_id');
+                    // Fallback: utiliser le count total calculé
+                    $countLocations = $totalLocationsActive;
                 }
 
                 $quarterlyActiveLocations[] = [
@@ -867,20 +880,10 @@ class DataController extends Controller
                         "previous" => $totalPartners,
                         "change" => 0.0
                     ],
-                    // Total points de vente des marchands ACTIFS (basé sur le flag DB si dispo, sinon tous)
+                    // Total points de vente des marchands ACTIFS - utiliser le calcul unifié
                     "totalLocationsActive" => [
-                        "current" => ($activeFlag !== null)
-                            ? DB::table('partner_location')
-                                ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
-                                ->where('partner.' . $activeFlag, 1)
-                                ->count()
-                            : DB::table('partner_location')->count(),
-                        "previous" => ($activeFlag !== null)
-                            ? DB::table('partner_location')
-                                ->join('partner', 'partner_location.partner_id', '=', 'partner.partner_id')
-                                ->where('partner.' . $activeFlag, 1)
-                                ->count()
-                            : DB::table('partner_location')->count(),
+                        "current" => $totalLocationsActive,
+                        "previous" => $totalLocationsActive, // Même valeur car pas de comparaison temporelle dans ce contexte
                         "change" => 0.0
                     ],
                     "totalMerchantsEverActive" => $totalMerchantsEverActive,
@@ -912,13 +915,13 @@ class DataController extends Controller
                         "previous" => $retentionRateComparison, 
                         "change" => $this->calculatePercentageChange($retentionRate, $retentionRateComparison)
                     ],
-                    // KPI demandé: "vrai retention rate" = perdus / activés (en %) (techniquement churn)
+                    // KPI "vrai retention rate" = taux de rétention réel (Active/Activated)
                     "retentionRateTrue" => [
                         "current" => $retentionRateTrue,
                         "previous" => $retentionRateTrueComparison,
                         "change" => $this->calculatePercentageChange($retentionRateTrue, $retentionRateTrueComparison)
                     ],
-                    // Exposer aussi churnRate pour l'UI
+                    // Taux de churn séparé
                     "churnRate" => [
                         "current" => $churnRate,
                         "previous" => $churnRateComparison,
@@ -1569,7 +1572,54 @@ class DataController extends Controller
     }
 
     /**
-     * Categorize partner based on name
+     * Get real partner category from database
+     */
+    private function getRealPartnerCategory(int $partnerId): string
+    {
+        try {
+            // Essayer d'abord la relation partner_category
+            if (Schema::hasColumn('partner', 'partner_category_id') && 
+                Schema::hasTable('partner_category') && 
+                Schema::hasColumn('partner_category', 'partner_category_name')) {
+                
+                $category = DB::table('partner')
+                    ->leftJoin('partner_category', 'partner.partner_category_id', '=', 'partner_category.partner_category_id')
+                    ->where('partner.partner_id', $partnerId)
+                    ->value('partner_category.partner_category_name');
+                
+                if ($category && trim($category) !== '') {
+                    return $category;
+                }
+            }
+            
+            // Fallback: essayer une colonne catégorie directe
+            foreach (['partner_category', 'category', 'business_category', 'sector', 'industry'] as $column) {
+                if (Schema::hasColumn('partner', $column)) {
+                    $category = DB::table('partner')
+                        ->where('partner_id', $partnerId)
+                        ->value($column);
+                    
+                    if ($category && trim($category) !== '') {
+                        return $category;
+                    }
+                }
+            }
+            
+            // Si aucune catégorie trouvée, utiliser le nom comme fallback
+            $partnerName = DB::table('partner')
+                ->where('partner_id', $partnerId)
+                ->value('partner_name');
+            
+            return $this->categorizePartner($partnerName ?? 'Unknown');
+            
+        } catch (\Throwable $th) {
+            Log::warning("Impossible de récupérer la catégorie du partenaire $partnerId", ['error' => $th->getMessage()]);
+            return 'Others';
+        }
+    }
+
+    /**
+     * Categorize partner based on name (fallback)
      */
     private function categorizePartner(string $partnerName): string
     {
@@ -1903,6 +1953,11 @@ class DataController extends Controller
 
     /**
      * Calculer la répartition par plan d'abonnement
+     * NOUVELLES RÈGLES:
+     * - Journalier: Tous les abonnements par solde téléphonique (sauf Timwe) + cartes cadeaux durée 1 jour
+     * - Mensuel: Timwe + cartes cadeaux durée 30 jours  
+     * - Annuel: Cartes cadeaux durée 365 jours
+     * - Autres: Cartes cadeaux avec durée différente de 1, 30 ou 365 jours
      */
     private function calculatePlanDistribution($startDate, $endDate, $operatorFilter = null)
     {
@@ -1923,35 +1978,66 @@ class DataController extends Controller
             $totals = ['daily' => 0, 'monthly' => 0, 'annual' => 0, 'other' => 0];
             foreach ($subs as $s) {
                 $name = mb_strtolower($s->cpm_name ?? '');
+                
                 $isTimwe = str_contains($name, 'timwe');
                 $isPhoneBalance = (
                     str_contains($name, 'solde') ||
                     str_contains($name, 'téléphon') || str_contains($name, 'teleph') ||
                     str_contains($name, 'orange') || str_contains($name, ' tt')
                 );
+                $isCarteRecharge = (
+                    str_contains($name, 'carte') ||
+                    str_contains($name, 'cadeau') ||
+                    str_contains($name, 'recharge')
+                );
 
-                // Règle métier: tous les abonnements via Timwe sont considérés comme Mensuels
-                if ($isTimwe) { $totals['monthly']++; continue; }
+                // RÈGLE 1: Timwe = toujours Mensuel
+                if ($isTimwe) {
+                    $totals['monthly']++;
+                    continue;
+                }
 
-                // Si pas d'expiration: classer en Journalier pour le solde téléphonique
-                if (empty($s->client_abonnement_expiration)) {
-                    if ($isPhoneBalance) {
+                // RÈGLE 2: Solde téléphonique (sauf Timwe) = toujours Journalier  
+                if ($isPhoneBalance) {
+                    $totals['daily']++;
+                    continue;
+                }
+
+                // RÈGLE 3: Cartes cadeaux - calculer la durée exacte
+                if ($isCarteRecharge) {
+                    if (empty($s->client_abonnement_expiration)) {
+                        // Sans expiration = Autre
+                        $totals['other']++;
+                        continue;
+                    }
+
+                    $days = Carbon::parse($s->client_abonnement_creation)->diffInDays(Carbon::parse($s->client_abonnement_expiration));
+                    if ($days == 1) {
                         $totals['daily']++;
+                    } elseif ($days == 30) {
+                        $totals['monthly']++;
+                    } elseif ($days == 365) {
+                        $totals['annual']++;
                     } else {
                         $totals['other']++;
                     }
                     continue;
                 }
 
-                $days = Carbon::parse($s->client_abonnement_creation)->diffInDays(Carbon::parse($s->client_abonnement_expiration));
-                if ($days <= 2) {
-                    $totals['daily']++;
-                } elseif ($days >= 20 && $days <= 40) {
-                    $totals['monthly']++;
-                } elseif ($days >= 330) {
-                    $totals['annual']++;
-                } else {
+                // RÈGLE 4: Autres méthodes - classification par défaut
+                if (empty($s->client_abonnement_expiration)) {
                     $totals['other']++;
+                } else {
+                    $days = Carbon::parse($s->client_abonnement_creation)->diffInDays(Carbon::parse($s->client_abonnement_expiration));
+                    if ($days <= 2) {
+                        $totals['daily']++;
+                    } elseif ($days >= 20 && $days <= 40) {
+                        $totals['monthly']++;
+                    } elseif ($days >= 330) {
+                        $totals['annual']++;
+                    } else {
+                        $totals['other']++;
+                    }
                 }
             }
 
@@ -2167,7 +2253,12 @@ class DataController extends Controller
                         'ca.client_abonnement_expiration as end_date',
                         DB::raw("CASE 
                             WHEN LOWER(cpm.country_payments_methods_name) LIKE '%timwe%' THEN 'Mensuel'
-                            WHEN ca.client_abonnement_expiration IS NULL THEN 'Journalier'
+                            WHEN LOWER(cpm.country_payments_methods_name) LIKE '%solde%' OR LOWER(cpm.country_payments_methods_name) LIKE '%téléphon%' OR LOWER(cpm.country_payments_methods_name) LIKE '%orange%' THEN 'Journalier'
+                            WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
+                            WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 30 THEN 'Mensuel'
+                            WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 365 THEN 'Annuel'
+                            WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') THEN 'Autre'
+                            WHEN ca.client_abonnement_expiration IS NULL THEN 'Autre'
                             WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
                             WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 330 THEN 'Annuel'
                             ELSE 'Autre'
@@ -2237,47 +2328,51 @@ class DataController extends Controller
     }
 
     /**
-     * Get transactions distribution by subscription plan
+     * Get transactions distribution by subscription plan - UNIFIÉ avec mode optimisé
      */
     private function getTransactionsByPlan(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
     {
         try {
-            $query = DB::table('history')
-                ->join('client_abonnement as ca', 'history.client_abonnement_id', '=', 'ca.client_abonnement_id')
+            $results = DB::table('history as h')
+                ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                 ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
-                ->select(
-                    DB::raw("CASE 
-                        WHEN ca.client_abonnement_expiration IS NULL THEN 'Journalier'
-                        WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
-                        WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 330 THEN 'Annuel'
-                        ELSE 'Autre'
-                    END as plan"),
-                    DB::raw('COUNT(*) as transaction_count')
-                )
-                ->where('history.time', '>=', $startBound)
-                ->where('history.time', '<', $endExclusive);
-
-            if ($selectedOperator !== 'ALL') {
-                $query->where('cpm.country_payments_methods_name', $selectedOperator);
-            }
-
-            $results = $query->groupBy(DB::raw("CASE 
-                    WHEN ca.client_abonnement_expiration IS NULL THEN 'Journalier'
+                ->where('h.time', '>=', $startBound)
+                ->where('h.time', '<', $endExclusive)
+                ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) {
+                    $q->where('cpm.country_payments_methods_name', $selectedOperator);
+                })
+                ->selectRaw("CASE 
+                    WHEN LOWER(cpm.country_payments_methods_name) LIKE '%timwe%' THEN 'Mensuel'
+                    WHEN LOWER(cpm.country_payments_methods_name) LIKE '%solde%' OR LOWER(cpm.country_payments_methods_name) LIKE '%téléphon%' OR LOWER(cpm.country_payments_methods_name) LIKE '%orange%' THEN 'Journalier'
+                    WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
+                    WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 30 THEN 'Mensuel'
+                    WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 365 THEN 'Annuel'
+                    WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') THEN 'Autre'
+                    WHEN ca.client_abonnement_expiration IS NULL THEN 'Autre'
                     WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
                     WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 330 THEN 'Annuel'
-                    ELSE 'Autre'
-                END"))
-                ->orderByDesc('transaction_count')
+                    ELSE 'Autre' END as plan, COUNT(*) as count")
+                ->groupBy('plan')
+                ->orderByDesc('count')
                 ->get();
 
-            return $results->map(function($row) {
+            $mapped = $results->map(function($row) {
                 return [
                     'plan' => $row->plan,
-                    'count' => (int) $row->transaction_count
+                    'count' => (int) $row->count
                 ];
             })->toArray();
+            
+            // Log informatif si aucune donnée
+            if (empty($mapped)) {
+                Log::info("getTransactionsByPlan MODE NORMAL - Aucune donnée pour opérateur: $selectedOperator", [
+                    'période' => $startBound->toDateString() . ' -> ' . $endExclusive->toDateString()
+                ]);
+            }
+            
+            return $mapped;
         } catch (\Throwable $th) {
-            Log::warning('Erreur calcul transactions par plan', ['error' => $th->getMessage()]);
+            Log::warning('Erreur calcul transactions par plan', ['error' => $th->getMessage(), 'trace' => $th->getTraceAsString()]);
             return [];
         }
     }
@@ -2341,14 +2436,17 @@ class DataController extends Controller
                 // 1. Métriques d'abonnements - MÊME LOGIQUE que le mode normal
                 
                 // Activated Subscriptions (créés dans la période)
-                $activatedSubscriptions = DB::table("client_abonnement")
+                $activatedSubscriptionsQuery = DB::table("client_abonnement")
                     ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
                     ->where("client_abonnement_creation", ">=", $startBound)
-                    ->where("client_abonnement_creation", "<", $endExclusive)
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { 
-                        $q->where('country_payments_methods.country_payments_methods_name', $selectedOperator); 
-                    })
-                    ->count();
+                    ->where("client_abonnement_creation", "<", $endExclusive);
+                
+                if ($selectedOperator !== 'ALL') {
+                    $activatedSubscriptionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
+                }
+                
+                $activatedSubscriptions = $activatedSubscriptionsQuery->count();
+                
 
                 $activatedSubscriptionsComparison = DB::table("client_abonnement")
                     ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
@@ -2744,10 +2842,20 @@ class DataController extends Controller
 
                 $byPlan = DB::table('history as h')
                     ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
+                    ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->where('h.time', '>=', $startBound)
                     ->where('h.time', '<', $endExclusive)
+                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) {
+                        $q->where('cpm.country_payments_methods_name', $selectedOperator);
+                    })
                     ->selectRaw("CASE 
-                        WHEN ca.client_abonnement_expiration IS NULL THEN 'Journalier'
+                        WHEN LOWER(cpm.country_payments_methods_name) LIKE '%timwe%' THEN 'Mensuel'
+                        WHEN LOWER(cpm.country_payments_methods_name) LIKE '%solde%' OR LOWER(cpm.country_payments_methods_name) LIKE '%téléphon%' OR LOWER(cpm.country_payments_methods_name) LIKE '%orange%' THEN 'Journalier'
+                        WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
+                        WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 30 THEN 'Mensuel'
+                        WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') AND DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 365 THEN 'Annuel'
+                        WHEN (LOWER(cpm.country_payments_methods_name) LIKE '%carte%' OR LOWER(cpm.country_payments_methods_name) LIKE '%cadeau%' OR LOWER(cpm.country_payments_methods_name) LIKE '%recharge%') THEN 'Autre'
+                        WHEN ca.client_abonnement_expiration IS NULL THEN 'Autre'
                         WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
                         WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 330 THEN 'Annuel'
                         ELSE 'Autre' END as plan, COUNT(*) as count")
@@ -2756,6 +2864,13 @@ class DataController extends Controller
                     ->get()
                     ->map(function($r){ return ['plan'=>$r->plan, 'count'=>(int)$r->count]; })
                     ->toArray();
+                
+                // Log informatif si aucune donnée en mode optimisé
+                if (empty($byPlan)) {
+                    Log::info("byPlan MODE OPTIMISÉ - Aucune donnée pour opérateur: $selectedOperator", [
+                        'période' => $startBound->toDateString() . ' -> ' . $endExclusive->toDateString()
+                    ]);
+                }
 
                 // Variables manquantes pour les KPIs
                 $transactionsPerUser = $txMetrics->users_current > 0 ? round($txMetrics->transactions_current / $txMetrics->users_current, 1) : 0;
@@ -2898,6 +3013,11 @@ class DataController extends Controller
                             "current" => $retentionRate,
                             "previous" => $retentionRateComparison,
                             "change" => $this->calculatePercentageChange($retentionRate, $retentionRateComparison)
+                        ],
+                        "churnRate" => [
+                            "current" => $churnRate,
+                            "previous" => $churnRatePrev,
+                            "change" => $this->calculatePercentageChange($churnRate, $churnRatePrev)
                         ],
                         "cohortDeactivated" => [
                             "current" => $cohortDeactivated,
