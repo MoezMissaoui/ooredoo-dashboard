@@ -58,10 +58,12 @@
       align-items: center;
       justify-content: space-between;
       background: var(--card);
-      padding: 16px 24px;
+      padding: 16px 20px; /* Aligné avec le reste du contenu */
       border-radius: 12px;
       margin-bottom: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      width: 100%; /* Prend toute la largeur disponible */
+      box-sizing: border-box; /* Inclut padding dans la largeur */
     }
     
     .header-left {
@@ -157,6 +159,19 @@
       padding: 8px;
       margin-bottom: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      /* Sticky navigation for mobile */
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      /* Single line on mobile */
+      overflow-x: auto;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    
+    /* Hide scrollbar for webkit browsers */
+    .nav-tabs::-webkit-scrollbar {
+      display: none;
     }
     
     .nav-tab {
@@ -170,6 +185,10 @@
       border: none;
       background: transparent;
       color: var(--muted);
+      /* Mobile: prevent shrinking below content size */
+      flex-shrink: 0;
+      white-space: nowrap;
+      min-width: fit-content;
     }
     
     .nav-tab.active {
@@ -193,9 +212,17 @@
     /* Filters */
     .filters {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 16px;
       margin-bottom: 24px;
+    }
+    
+    /* Responsive filters pour mobile */
+    @media (max-width: 600px) {
+      .filters {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
     }
     
     .filter-card {
@@ -295,6 +322,17 @@
     /* Table */
     .table-card {
       grid-column: span 12;
+      overflow-x: auto; /* Scroll horizontal sur mobile */
+    }
+    
+    /* Table responsive wrapper */
+    .table-wrapper {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling sur iOS */
+    }
+    
+    .enhanced-table {
+      min-width: 600px; /* Largeur minimale pour éviter le rétrécissement excessif */
     }
     
     .table-container {
@@ -715,6 +753,14 @@
       margin-bottom: 32px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
+    
+    /* Mobile responsive filters */
+    @media (max-width: 768px) {
+      .enhanced-filters-bar {
+        padding: 16px;
+        margin-bottom: 20px;
+      }
+    }
 
     .date-selection-section {
       margin-bottom: 24px;
@@ -738,6 +784,14 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 24px;
+    }
+    
+    /* Responsive date periods pour mobile */
+    @media (max-width: 900px) {
+      .date-periods {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
     }
 
     .date-period {
@@ -768,6 +822,35 @@
       align-items: center;
       gap: 12px;
       margin-bottom: 12px;
+    }
+    
+    /* Mobile responsive date inputs */
+    @media (max-width: 600px) {
+      .date-inputs {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+      }
+      
+      .date-separator {
+        text-align: center;
+        order: 1; /* Place separator between inputs */
+      }
+      
+      /* Multi-select mobile responsive */
+      .multi-select-dropdown {
+        max-height: 200px;
+      }
+      
+      .checkbox-label {
+        padding: 10px 0;
+        font-size: 16px; /* Plus grand pour mobile */
+      }
+      
+      .checkmark {
+        width: 18px;
+        height: 18px;
+      }
     }
 
     .date-input-group {
@@ -851,6 +934,114 @@
       outline: none;
       border-color: var(--brand-red);
       box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+    }
+    
+    /* Multi-select styles */
+    .multi-select-container {
+      position: relative;
+      width: 100%;
+    }
+    
+    .multi-select-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      font-size: 14px;
+    }
+    
+    .multi-select-header:hover {
+      border-color: var(--brand-red);
+      box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+    }
+    
+    .dropdown-arrow {
+      transition: transform 0.2s ease;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    
+    .multi-select-header.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+    
+    .multi-select-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    
+    .select-all-option {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      background: #f8fafc;
+    }
+    
+    .operators-list {
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+      transition: background 0.2s ease;
+    }
+    
+    .checkbox-label:hover {
+      background: rgba(227, 6, 19, 0.05);
+    }
+    
+    .checkbox-label input[type="checkbox"] {
+      display: none;
+    }
+    
+    .checkmark {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    
+    .checkbox-label input[type="checkbox"]:checked + .checkmark {
+      background: var(--brand-red);
+      border-color: var(--brand-red);
+    }
+    
+    .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+      content: '✓';
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    
+    .operator-option {
+      padding: 4px 12px;
     }
 
     .control-info {
@@ -1094,7 +1285,25 @@
       background: #f8fafc;
     }
 
-    /* Responsive */
+    /* === SYSTÈME RESPONSIVE AMÉLIORÉ 5-BREAKPOINTS === */
+    
+    /* Large Desktop (>1400px) - Layout optimal */
+    @media (min-width: 1400px) {
+      .container { max-width: 1600px; }
+      
+      /* Header reste aligné avec le contenu élargi */
+      .header {
+        padding: 16px 20px;
+      }
+      
+      /* Grid KPI optimal large desktop */
+      .main-grid {
+        grid-template-columns: repeat(12, 1fr);
+        gap: 20px;
+      }
+    }
+    
+    /* Desktop (1200px - 1400px) */
     @media (max-width: 1200px) {
       .merchants-kpis-row {
         grid-template-columns: repeat(3, 1fr);
@@ -1104,16 +1313,62 @@
       .merchants-kpi:nth-child(5) {
         grid-column: span 1;
       }
+      
+      /* Grid plus compact */
+      .main-grid {
+        gap: 16px;
+      }
+    }
+    
+    /* Tablet Large (900px - 1200px) */
+    @media (max-width: 900px) {
+      .kpi-card { grid-column: span 4; } /* 3 par ligne */
+      .chart-card { grid-column: span 6; } /* 2 par ligne */
+      
+      .trans-kpis-row,
+      .sub-kpis-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      /* Typography responsive tablet large */
+      .kpi-value {
+        font-size: clamp(28px, 4vw, 36px);
+      }
+      .kpi-label {
+        font-size: clamp(13px, 2.5vw, 15px);
+      }
     }
 
+    /* Tablet (768px - 900px) */
     @media (max-width: 768px) {
-      .kpi-card { grid-column: span 6; }
-      .chart-card { grid-column: span 12; }
-      .nav-tabs { flex-direction: column; }
-      .nav-tab { text-align: left; }
+      .kpi-card { grid-column: span 6; } /* 2 par ligne */
+      .chart-card { 
+        grid-column: span 12; /* 1 par ligne */
+        min-height: 280px; /* Hauteur réduite */
+      }
+      
+      /* Header responsive sur tablet */
+      .header {
+        padding: 14px 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      
+      .header h1 {
+        font-size: 20px; /* Titre plus petit sur tablet */
+      }
+      
+      .nav-tabs { 
+        flex-direction: column;
+        gap: 8px;
+      }
+      .nav-tab { 
+        text-align: center; 
+        padding: 12px 16px;
+      }
       
       .merchants-kpis-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
       
       .merchants-charts-row {
@@ -1122,6 +1377,7 @@
       
       .date-periods {
         grid-template-columns: 1fr;
+        gap: 16px;
       }
       
       .controls-section {
@@ -1133,11 +1389,210 @@
         margin-left: 0;
         justify-content: center;
       }
+      
+      /* Typography responsive tablet */
+      .kpi-value {
+        font-size: clamp(26px, 4.5vw, 32px);
+      }
+      .kpi-label {
+        font-size: clamp(12px, 3vw, 14px);
+      }
+      .kpi-change {
+        font-size: clamp(10px, 2.5vw, 12px);
+      }
+      
+      /* Enhanced table responsiveness for tablet */
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .enhanced-table {
+        min-width: 500px;
+        font-size: 13px;
+      }
+      
+      .enhanced-table th,
+      .enhanced-table td {
+        padding: 12px 8px;
+      }
     }
     
+    /* Mobile Large (480px - 768px) */
+    @media (max-width: 600px) {
+      .kpi-card { grid-column: span 6; } /* 2 par ligne maintenu */
+      .chart-card { min-height: 250px; }
+      
+      .container { padding: 16px 12px; }
+      
+      /* Header alignment sur mobile */
+      .header {
+        padding: 12px 12px; /* Même padding que le container */
+      }
+      
+      /* Navigation tabs optimisées pour mobile */
+      .nav-tabs {
+        margin-bottom: 16px;
+        padding: 6px;
+        border-radius: 10px;
+        /* Amélioration sticky - plus proche du header */
+        top: 2px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      }
+      
+      .nav-tab {
+        padding: 10px 12px;
+        font-size: 14px;
+        min-width: max-content;
+        /* Plus compact sur mobile */
+        margin: 0 2px;
+      }
+      
+      .nav-tab:first-child {
+        margin-left: 0;
+      }
+      
+      .nav-tab:last-child {
+        margin-right: 0;
+      }
+      
+      /* KPI values responsive - taille réduite */
+      .kpi-value { 
+        font-size: clamp(20px, 4.5vw, 28px); 
+      }
+      .kpi-label { 
+        font-size: clamp(10px, 2.5vw, 12px); 
+      }
+      .kpi-change { 
+        font-size: clamp(11px, 2.5vw, 13px); 
+      }
+      
+      /* Réduction de la hauteur des cartes KPI pour mobile */
+      .kpi-card {
+        padding: 12px 16px;
+        min-height: 75px;
+      }
+      
+      /* Logo responsive sur mobile */
+      .logo {
+        width: 100px;
+        height: auto;
+      }
+      
+      .header h1 {
+        font-size: 18px;
+      }
+      
+      /* User menu responsive */
+      .user-menu {
+        padding: 6px 12px;
+      }
+      
+      .user-name {
+        font-size: 12px;
+      }
+      
+      .user-role {
+        font-size: 10px;
+      }
+      
+      .admin-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+      
+      .logout-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+      }
+    }
+    
+    /* Mobile Small (<480px) */
     @media (max-width: 480px) {
-      .kpi-card { grid-column: span 12; }
-      .container { padding: 12px; }
+      .kpi-card { grid-column: span 12; } /* 1 par ligne sur très petit écran */
+      .chart-card { min-height: 220px; }
+      
+      .container { padding: 12px 8px; }
+      
+      /* Navigation tabs ultra compactes */
+      .nav-tabs {
+        padding: 4px;
+        margin-bottom: 12px;
+      }
+      
+      .nav-tab {
+        padding: 8px 10px;
+        font-size: 13px;
+        border-radius: 6px;
+      }
+      
+      /* Header alignment sur très petit mobile */
+      .header {
+        padding: 8px 8px; /* Même padding que le container */
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+      }
+      
+      .header-left, .header-right {
+        justify-content: center;
+        width: 100%;
+      }
+      
+      .header-left {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      /* Logo très compact sur très petit mobile */
+      .logo {
+        width: 80px;
+        height: auto;
+      }
+      
+      .header h1 {
+        font-size: 16px;
+        text-align: center;
+      }
+      
+      /* User menu stack vertical sur très petit mobile */
+      .user-menu {
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px;
+        align-items: center;
+      }
+      
+      .user-info {
+        align-items: center;
+        text-align: center;
+      }
+      
+      .admin-btn, .logout-btn {
+        padding: 4px 8px;
+        font-size: 9px;
+        min-width: 60px;
+      }
+      
+      .merchants-kpis-row,
+      .trans-kpis-row,
+      .sub-kpis-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      /* Typography ultra mobile */
+      .kpi-value { 
+        font-size: clamp(20px, 6vw, 28px); 
+      }
+      h1, h2 { 
+        font-size: clamp(18px, 5vw, 24px); 
+      }
+      h3 { 
+        font-size: clamp(16px, 4vw, 20px); 
+      }
       
       .enhanced-filters-bar {
         padding: 16px;
@@ -1151,6 +1606,28 @@
       .date-separator {
         text-align: center;
         margin: 8px 0;
+      }
+      
+      /* Tables très responsive */
+      .table-wrapper {
+        font-size: 11px;
+        border-radius: 6px;
+      }
+      
+      .enhanced-table {
+        min-width: 320px; /* Largeur minimale pour très petit mobile */
+      }
+      
+      .enhanced-table th,
+      .enhanced-table td {
+        padding: 6px 3px;
+        font-size: 10px;
+      }
+      
+      .enhanced-table th {
+        font-size: 9px;
+        text-transform: none;
+        letter-spacing: 0;
       }
     }
   </style>
@@ -1284,12 +1761,26 @@
         <div class="control-group">
           <div class="control-label">
             <span class="control-icon">📱</span>
-            <span>Opérateur</span>
+            <span>Opérateurs</span>
           </div>
-          <select id="operator-select" class="enhanced-select" onchange="handleOperatorChange()">
-            <option value="ALL">📱 Tous les opérateurs (Vue Globale)</option>
-            <!-- Les autres opérateurs seront chargés dynamiquement -->
-          </select>
+          <div class="multi-select-container">
+            <div class="multi-select-header" onclick="toggleOperatorDropdown()">
+              <span id="selected-operators-text">📱 Tous les opérateurs</span>
+              <span class="dropdown-arrow">▼</span>
+            </div>
+            <div id="operators-dropdown" class="multi-select-dropdown" style="display: none;">
+              <div class="select-all-option">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="select-all-operators" onchange="handleSelectAllOperators()" checked>
+                  <span class="checkmark"></span>
+                  <span>📱 Tous les opérateurs</span>
+                </label>
+              </div>
+              <div class="operators-list" id="operators-list">
+                <!-- Les opérateurs seront chargés dynamiquement -->
+              </div>
+            </div>
+          </div>
           <div id="operator-info" class="control-info">
             Chargement des opérateurs...
           </div>
@@ -1546,7 +2037,7 @@
           <button class="export-btn">Exporter</button>
         </div>
         </div>
-        <div class="table-container">
+        <div class="table-container table-wrapper">
           <table class="enhanced-table">
             <thead>
               <tr>
@@ -1787,7 +2278,7 @@
               <button class="btn-secondary" onclick="exportMerchantsData()">📥 Exporter</button>
             </div>
           </div>
-          <div class="table-container">
+          <div class="table-container table-wrapper">
             <table class="enhanced-table">
               <thead>
                 <tr>
@@ -2001,11 +2492,145 @@
       }
     });
 
+    // Mobile-optimized chart options with enhanced 5-breakpoint system
+    function getMobileOptimizedChartOptions(customOptions = {}) {
+      const screenWidth = window.innerWidth;
+      const isLargeDesktop = screenWidth >= 1400;
+      const isDesktop = screenWidth >= 1200 && screenWidth < 1400;
+      const isTabletLarge = screenWidth >= 900 && screenWidth < 1200;
+      const isTablet = screenWidth >= 768 && screenWidth < 900;
+      const isMobileLarge = screenWidth >= 600 && screenWidth < 768;
+      const isMobileSmall = screenWidth >= 480 && screenWidth < 600;
+      const isMobileTiny = screenWidth < 480;
+      
+      // Determine font sizes based on breakpoint
+      let legendFontSize, tooltipTitleSize, tooltipBodySize, tickFontSize, padding;
+      
+      if (isLargeDesktop) {
+        legendFontSize = 13; tooltipTitleSize = 15; tooltipBodySize = 14; tickFontSize = 12; padding = 24;
+      } else if (isDesktop) {
+        legendFontSize = 12; tooltipTitleSize = 14; tooltipBodySize = 13; tickFontSize = 11; padding = 20;
+      } else if (isTabletLarge) {
+        legendFontSize = 11; tooltipTitleSize = 13; tooltipBodySize = 12; tickFontSize = 10; padding = 16;
+      } else if (isTablet) {
+        legendFontSize = 10; tooltipTitleSize = 12; tooltipBodySize = 11; tickFontSize = 9; padding = 12;
+      } else if (isMobileLarge) {
+        legendFontSize = 9; tooltipTitleSize = 11; tooltipBodySize = 10; tickFontSize = 8; padding = 10;
+      } else if (isMobileSmall) {
+        legendFontSize = 8; tooltipTitleSize = 10; tooltipBodySize = 9; tickFontSize = 7; padding = 8;
+      } else { // isMobileTiny
+        legendFontSize = 7; tooltipTitleSize = 9; tooltipBodySize = 8; tickFontSize = 6; padding = 6;
+      }
+      
+      const isMobile = screenWidth < 768;
+      const isSmallMobile = screenWidth < 480;
+      
+      const baseOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: padding
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: isMobile ? 'bottom' : 'top',
+            labels: {
+              boxWidth: isMobile ? (isSmallMobile ? 8 : 10) : 15,
+              padding: isMobile ? (isSmallMobile ? 6 : 8) : 15,
+              font: {
+                size: legendFontSize
+              },
+              usePointStyle: isMobile // Utilise des points au lieu de carrés sur mobile
+            }
+          },
+          tooltip: {
+            enabled: true,
+            mode: isMobile ? 'nearest' : 'index',
+            intersect: false,
+            titleFont: {
+              size: tooltipTitleSize
+            },
+            bodyFont: {
+              size: tooltipBodySize
+            },
+            padding: isMobile ? (isSmallMobile ? 6 : 8) : 12,
+            caretSize: isMobile ? 4 : 6
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              font: {
+                size: tickFontSize
+              },
+              maxRotation: isMobile ? (isSmallMobile ? 60 : 45) : 0,
+              minRotation: isMobile ? (isSmallMobile ? 60 : 45) : 0,
+              maxTicksLimit: isMobile ? (isSmallMobile ? 5 : 8) : undefined
+            },
+            grid: {
+              display: !isSmallMobile,
+              lineWidth: isMobile ? 0.5 : 1
+            }
+          },
+          y: {
+            ticks: {
+              font: {
+                size: tickFontSize
+              },
+              maxTicksLimit: isMobile ? (isSmallMobile ? 4 : 6) : undefined
+            },
+            grid: {
+              display: true,
+              lineWidth: isMobile ? 0.5 : 1
+            }
+          }
+        },
+        interaction: {
+          mode: 'nearest',
+          axis: 'x',
+          intersect: false
+        },
+        elements: {
+          point: {
+            radius: isMobile ? (isSmallMobile ? 2 : 3) : 4,
+            hoverRadius: isMobile ? (isSmallMobile ? 4 : 5) : 6
+          },
+          line: {
+            borderWidth: isMobile ? (isSmallMobile ? 1.5 : 2) : 3,
+            tension: 0.1 // Lignes légèrement plus lisses sur mobile
+          }
+        }
+      };
+      
+      // Simple merge avec priorité aux options personnalisées
+      return Object.assign({}, baseOptions, customOptions);
+    }
+
+    // Window resize handler for mobile optimization
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(function() {
+        // Re-render charts with new mobile settings
+        if (typeof charts !== 'undefined') {
+          Object.keys(charts).forEach(key => {
+            if (charts[key] && charts[key].resize) {
+              charts[key].resize();
+            }
+          });
+        }
+      }, 250);
+    });
+
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
       setDefaultDates();
       updateDateRange();
       initializeDashboard();
+      
+      // Initialize mobile navigation
+      initializeMobileNavigation();
       
       // Auto-refresh every 5 minutes
       setInterval(loadDashboardData, 5 * 60 * 1000);
@@ -2013,6 +2638,38 @@
       // Initialize keyboard shortcuts
       initializeKeyboardShortcuts();
     });
+    
+    // Initialize mobile-specific navigation features
+    function initializeMobileNavigation() {
+      // Center active tab on page load (mobile)
+      const activeTab = document.querySelector('.nav-tab.active');
+      if (activeTab && window.innerWidth <= 768) {
+        setTimeout(() => centerActiveTab(activeTab), 200);
+      }
+      
+      // Add touch/swipe support for tab navigation (optional)
+      if (window.innerWidth <= 768) {
+        addMobileSwipeSupport();
+      }
+    }
+    
+    // Add swipe support for mobile tab navigation
+    function addMobileSwipeSupport() {
+      const tabsContainer = document.querySelector('.nav-tabs');
+      let startX = 0;
+      let scrollLeft = 0;
+      
+      tabsContainer.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].pageX - tabsContainer.offsetLeft;
+        scrollLeft = tabsContainer.scrollLeft;
+      }, { passive: true });
+      
+      tabsContainer.addEventListener('touchmove', (e) => {
+        const x = e.touches[0].pageX - tabsContainer.offsetLeft;
+        const walk = (x - startX) * 2; // Adjust scroll speed
+        tabsContainer.scrollLeft = scrollLeft - walk;
+      }, { passive: true });
+    }
     
     // Advanced keyboard shortcuts for power users
     function initializeKeyboardShortcuts() {
@@ -2270,6 +2927,9 @@
       // Add active class to selected tab
       event.target.classList.add('active');
       
+      // Auto-scroll to center active tab on mobile
+      centerActiveTab(event.target);
+      
       // Resize charts when tab becomes visible
       setTimeout(() => {
         Object.values(charts).forEach(chart => {
@@ -2278,6 +2938,22 @@
           }
         });
       }, 100);
+    }
+    
+    // Center active tab in viewport (mobile scroll)
+    function centerActiveTab(activeTab) {
+      const navTabs = document.querySelector('.nav-tabs');
+      const tabRect = activeTab.getBoundingClientRect();
+      const navRect = navTabs.getBoundingClientRect();
+      
+      // Only auto-scroll on mobile/tablet
+      if (window.innerWidth <= 768) {
+        const scrollLeft = activeTab.offsetLeft - (navRect.width / 2) + (tabRect.width / 2);
+        navTabs.scrollTo({
+          left: Math.max(0, scrollLeft),
+          behavior: 'smooth'
+        });
+      }
     }
 
     // Load dashboard data with simple loading
@@ -2294,9 +2970,12 @@
         const comparisonStartDate = document.getElementById('comparison-start-date').value;
         const comparisonEndDate = document.getElementById('comparison-end-date').value;
         
-        // Get selected operator with fallback
-        const operatorSelect = document.getElementById('operator-select');
-        const selectedOperator = operatorSelect?.value || 'ALL';
+        // Get selected operators (multi-select)
+        const selectedOperator = selectedOperators.includes('ALL') || selectedOperators.length === 0 
+          ? 'ALL' 
+          : selectedOperators.length === 1 
+            ? selectedOperators[0] 
+            : selectedOperators.join(',');
         
         // Build API URL with date parameters
         let apiUrl = '/api/dashboard/data';
@@ -2608,26 +3287,60 @@
         });
         
         if (data.operators && data.operators.length > 0) {
-          const select = document.getElementById('operator-select');
+          const operatorsList = document.getElementById('operators-list');
           const operatorInfo = document.getElementById('operator-info');
           
-          // Clear existing options (keep default structure)
-          select.innerHTML = '';
+          // Store available operators
+          availableOperators = data.operators;
           
-          // Add operators to select
+          // Clear existing operators
+          operatorsList.innerHTML = '';
+          
+          // Add operators to multi-select
           data.operators.forEach(operator => {
-            const option = document.createElement('option');
-            option.value = operator.value;
-            option.textContent = `📱 ${operator.label}`;
+            const operatorDiv = document.createElement('div');
+            operatorDiv.className = 'operator-option';
             
-            console.log(`🔍 Comparaison: "${operator.value}" === "${data.default_operator}" ? ${operator.value === data.default_operator}`);
+            const label = document.createElement('label');
+            label.className = 'checkbox-label';
             
-            if (operator.value === data.default_operator) {
-              option.selected = true;
-              console.log('✅ Opérateur sélectionné par défaut:', operator.label);
-            }
-            select.appendChild(option);
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = operator.value;
+            checkbox.onchange = function() {
+              handleOperatorChange(operator.value, this);
+            };
+            
+            const checkmark = document.createElement('span');
+            checkmark.className = 'checkmark';
+            
+            const text = document.createElement('span');
+            text.textContent = `📱 ${operator.label}`;
+            
+            label.appendChild(checkbox);
+            label.appendChild(checkmark);
+            label.appendChild(text);
+            operatorDiv.appendChild(label);
+            operatorsList.appendChild(operatorDiv);
+            
+            console.log(`🔍 Opérateur ajouté: ${operator.label} (${operator.value})`);
           });
+          
+          // Set default selection
+          if (data.default_operator && data.default_operator !== 'ALL') {
+            selectedOperators = [data.default_operator];
+            const selectAllCheckbox = document.getElementById('select-all-operators');
+            selectAllCheckbox.checked = false;
+            
+            // Check the default operator
+            const defaultCheckbox = operatorsList.querySelector(`input[value="${data.default_operator}"]`);
+            if (defaultCheckbox) {
+              defaultCheckbox.checked = true;
+            }
+          }
+          
+          updateSelectedOperatorsDisplay();
+          updateOperatorInfo();
           
           // Update info text based on user role
           if (data.user_role === 'super_admin') {
@@ -2649,20 +3362,114 @@
       }
     }
     
-    // Handle operator change
-    function handleOperatorChange() {
-      const selectedOperator = document.getElementById('operator-select').value;
-      const operatorInfo = document.getElementById('operator-info');
+    // Variables globales pour les opérateurs
+    let availableOperators = [];
+    let selectedOperators = ['ALL'];
+    
+    // Toggle operator dropdown
+    function toggleOperatorDropdown() {
+      const dropdown = document.getElementById('operators-dropdown');
+      const header = document.querySelector('.multi-select-header');
       
-      if (selectedOperator === 'ALL') {
-        operatorInfo.textContent = 'Vue globale - Tous les opérateurs';
+      if (dropdown.style.display === 'none') {
+        dropdown.style.display = 'block';
+        header.classList.add('open');
       } else {
-        operatorInfo.textContent = `Données limitées à l'opérateur ${selectedOperator}`;
+        dropdown.style.display = 'none';
+        header.classList.remove('open');
+      }
+    }
+    
+    // Handle select all operators
+    function handleSelectAllOperators() {
+      const selectAllCheckbox = document.getElementById('select-all-operators');
+      const operatorCheckboxes = document.querySelectorAll('.operators-list input[type="checkbox"]');
+      
+      if (selectAllCheckbox.checked) {
+        selectedOperators = ['ALL'];
+        operatorCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+        });
+      } else {
+        selectedOperators = [];
+        operatorCheckboxes.forEach(checkbox => {
+          checkbox.checked = true;
+          if (!selectedOperators.includes(checkbox.value)) {
+            selectedOperators.push(checkbox.value);
+          }
+        });
       }
       
-      // Reload dashboard data with new operator
+      updateSelectedOperatorsDisplay();
+      updateOperatorInfo();
       loadDashboardData();
     }
+    
+    // Handle individual operator selection
+    function handleOperatorChange(operatorValue, checkbox) {
+      const selectAllCheckbox = document.getElementById('select-all-operators');
+      
+      if (checkbox.checked) {
+        // Add operator
+        if (selectedOperators.includes('ALL')) {
+          selectedOperators = [operatorValue];
+          selectAllCheckbox.checked = false;
+        } else if (!selectedOperators.includes(operatorValue)) {
+          selectedOperators.push(operatorValue);
+        }
+      } else {
+        // Remove operator
+        selectedOperators = selectedOperators.filter(op => op !== operatorValue);
+        selectAllCheckbox.checked = false;
+        
+        // Si aucun opérateur sélectionné, revenir à "Tous"
+        if (selectedOperators.length === 0) {
+          selectedOperators = ['ALL'];
+          selectAllCheckbox.checked = true;
+        }
+      }
+      
+      updateSelectedOperatorsDisplay();
+      updateOperatorInfo();
+      loadDashboardData();
+    }
+    
+    // Update selected operators display
+    function updateSelectedOperatorsDisplay() {
+      const displayElement = document.getElementById('selected-operators-text');
+      
+      if (selectedOperators.includes('ALL') || selectedOperators.length === 0) {
+        displayElement.textContent = '📱 Tous les opérateurs';
+      } else if (selectedOperators.length === 1) {
+        displayElement.textContent = `📱 ${selectedOperators[0]}`;
+      } else {
+        displayElement.textContent = `📱 ${selectedOperators.length} opérateurs sélectionnés`;
+      }
+    }
+    
+    // Update operator info
+    function updateOperatorInfo() {
+      const operatorInfo = document.getElementById('operator-info');
+      
+      if (selectedOperators.includes('ALL') || selectedOperators.length === 0) {
+        operatorInfo.textContent = 'Vue globale - Tous les opérateurs';
+      } else if (selectedOperators.length === 1) {
+        operatorInfo.textContent = `Données limitées à l'opérateur ${selectedOperators[0]}`;
+      } else {
+        operatorInfo.textContent = `Données limitées à ${selectedOperators.length} opérateurs sélectionnés`;
+      }
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const container = document.querySelector('.multi-select-container');
+      const dropdown = document.getElementById('operators-dropdown');
+      
+      if (container && !container.contains(event.target)) {
+        dropdown.style.display = 'none';
+        document.querySelector('.multi-select-header').classList.remove('open');
+      }
+    });
 
     // Set default dates (last 14 days for primary, previous 14 for comparison)
     function setDefaultDates() {
@@ -3030,16 +3837,25 @@
         ? data
         : { current: 0, previous: 0, change: 0 };
 
-      // DEBUG: tracer les KPI problématiques (période, cohorte, churn)
-      if (elementId === 'sub-deactivatedSubscriptions' || elementId === 'sub-lostSubscriptions' || elementId === 'sub-retentionRateTrue') {
+      // DEBUG: tracer tous les KPI subscription problématiques
+      if (elementId.startsWith('sub-')) {
         console.log('[KPI DEBUG]', elementId, JSON.parse(JSON.stringify(safe)));
       }
       
       if (valueElement) {
+        // Force la mise à jour complète même si c'était en mode "Optimisation"
+        valueElement.innerHTML = ''; // Clear any existing content including loading states
+        // Force un nouveau rendu pour éviter les résidus
+        valueElement.className = valueElement.className; // Trigger reflow
         valueElement.textContent = formatNumber(safe.current) + suffix;
       }
       
       if (deltaElement) {
+        // Force la mise à jour du delta aussi
+        deltaElement.innerHTML = ''; // Clear any existing content including loading states
+        // Force un nouveau rendu pour éviter les résidus
+        deltaElement.className = deltaElement.className; // Trigger reflow
+        
         const change = Number.isFinite(safe.change) ? safe.change : 0;
         const isPositive = change > 0;
         const isNegative = change < 0;
@@ -3126,7 +3942,11 @@
           fill: true
         }]
       },
-      options: { responsive: true, maintainAspectRatio: false }
+      options: getMobileOptimizedChartOptions({
+        plugins: {
+          legend: { display: false }
+        }
+      })
     });
     }
 
