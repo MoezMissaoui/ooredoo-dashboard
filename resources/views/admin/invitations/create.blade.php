@@ -353,20 +353,81 @@
                         @enderror
                     </div>
                     
-                    <div class="form-group">
-                        <label for="operator_name" class="form-label">Opérateur *</label>
-                        <select id="operator_name" name="operator_name" class="form-select" required>
-                            <option value="">Sélectionner un opérateur</option>
-                            @foreach($operators as $operatorKey => $operatorName)
-                                <option value="{{ $operatorName }}" {{ old('operator_name') == $operatorName ? 'selected' : '' }}>
-                                    {{ $operatorName }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('operator_name')
-                            <div class="form-error">{{ $message }}</div>
-                        @enderror
-                    </div>
+                    @if(Auth::user()->isSuperAdmin())
+                        <div class="form-group">
+                            <label for="type_selection" class="form-label">Type *</label>
+                            <select id="type_selection" name="type_selection" class="form-select" required onchange="toggleOperatorLists()">
+                                <option value="">Sélectionner un type</option>
+                                <option value="operator" {{ old('type_selection') == 'operator' ? 'selected' : '' }}>Opérateur</option>
+                                <option value="substore" {{ old('type_selection') == 'substore' ? 'selected' : '' }}>Sub-Store</option>
+                            </select>
+                            @error('type_selection')
+                                <div class="form-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="form-group" id="operator_selection" style="display: none;">
+                            <label for="operator_name" class="form-label">Opérateur *</label>
+                            <select id="operator_name" name="operator_name" class="form-select">
+                                <option value="">Sélectionner un opérateur</option>
+                                @foreach($operators as $operatorKey => $operatorName)
+                                    <option value="{{ $operatorName }}" {{ old('operator_name') == $operatorName ? 'selected' : '' }}>
+                                        {{ $operatorName }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('operator_name')
+                                <div class="form-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="form-group" id="substore_selection" style="display: none;">
+                            <label for="substore_name" class="form-label">Sub-Store *</label>
+                            <select id="substore_name" name="substore_name" class="form-select">
+                                <option value="">Sélectionner un sub-store</option>
+                                @foreach($subStores as $subStoreKey => $subStoreName)
+                                    <option value="{{ $subStoreName }}" {{ old('substore_name') == $subStoreName ? 'selected' : '' }}>
+                                        {{ $subStoreName }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('substore_name')
+                                <div class="form-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    @elseif(Auth::user()->isAdminOperator())
+                        <div class="form-group">
+                            <label for="operator_name" class="form-label">Opérateur *</label>
+                            <select id="operator_name" name="operator_name" class="form-select" required>
+                                <option value="">Sélectionner un opérateur</option>
+                                @foreach($operators as $operatorKey => $operatorName)
+                                    <option value="{{ $operatorName }}" {{ old('operator_name') == $operatorName ? 'selected' : '' }}>
+                                        {{ $operatorName }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('operator_name')
+                                <div class="form-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <input type="hidden" name="type_selection" value="operator">
+                    @elseif(Auth::user()->isAdminSubStore())
+                        <div class="form-group">
+                            <label for="substore_name" class="form-label">Sub-Store *</label>
+                            <select id="substore_name" name="substore_name" class="form-select" required>
+                                <option value="">Sélectionner un sub-store</option>
+                                @foreach($subStores as $subStoreKey => $subStoreName)
+                                    <option value="{{ $subStoreName }}" {{ old('substore_name') == $subStoreName ? 'selected' : '' }}>
+                                        {{ $subStoreName }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('substore_name')
+                                <div class="form-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <input type="hidden" name="type_selection" value="substore">
+                    @endif
                     
                     <div class="form-group full-width">
                         <label for="message" class="form-label">Message personnalisé (optionnel)</label>
@@ -396,5 +457,48 @@
             </form>
         </div>
     </div>
+    
+    <script>
+        function toggleOperatorLists() {
+            const typeSelection = document.getElementById('type_selection');
+            const operatorSelection = document.getElementById('operator_selection');
+            const substoreSelection = document.getElementById('substore_selection');
+            const operatorName = document.getElementById('operator_name');
+            const substoreName = document.getElementById('substore_name');
+            
+            // Vérifier si les éléments existent (seulement pour super admin)
+            if (!typeSelection || !operatorSelection || !substoreSelection) {
+                return;
+            }
+            
+            // Masquer les deux listes par défaut
+            operatorSelection.style.display = 'none';
+            substoreSelection.style.display = 'none';
+            
+            // Désactiver les champs
+            if (operatorName) {
+                operatorName.required = false;
+                operatorName.value = '';
+            }
+            if (substoreName) {
+                substoreName.required = false;
+                substoreName.value = '';
+            }
+            
+            // Afficher la liste appropriée selon le type sélectionné
+            if (typeSelection.value === 'operator') {
+                operatorSelection.style.display = 'block';
+                if (operatorName) operatorName.required = true;
+            } else if (typeSelection.value === 'substore') {
+                substoreSelection.style.display = 'block';
+                if (substoreName) substoreName.required = true;
+            }
+        }
+        
+        // Initialiser l'affichage au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleOperatorLists();
+        });
+    </script>
 </body>
 </html>

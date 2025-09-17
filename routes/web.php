@@ -52,7 +52,12 @@ Route::post('/invitation/accept', [InvitationController::class, 'acceptInvitatio
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.view');
-            Route::get('/dashboard/config', [DashboardController::class, 'getConfig'])->name('dashboard.config');
+    Route::get('/dashboard/config', [DashboardController::class, 'getConfig'])->name('dashboard.config');
+    
+    // Dashboard Opérateur (accès restreint)
+    Route::middleware(['dashboard.access:operator'])->prefix('operator')->name('operator.')->group(function () {
+        Route::get('/', [DashboardController::class, 'dashboard'])->name('dashboard');
+    });
     
     // Routes de gestion des mots de passe (utilisateur connecté)
     Route::get('/password/change', [PasswordController::class, 'showChangePasswordForm'])->name('password.change');
@@ -68,15 +73,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/dashboard/transactions', [DataController::class, 'getTransactions'])->name('api.dashboard.transactions');
         Route::get('/api/dashboard/subscriptions', [DataController::class, 'getSubscriptions'])->name('api.dashboard.subscriptions');
     
-    // Dashboard Sub-Stores (tous les utilisateurs authentifiés)
-    Route::middleware(['auth'])->prefix('sub-stores')->name('sub-stores.')->group(function () {
+    // Dashboard Sub-Stores (accès restreint)
+    Route::middleware(['auth', 'dashboard.access:sub-store'])->prefix('sub-stores')->name('sub-stores.')->group(function () {
         Route::get('/', [SubStoreController::class, 'index'])->name('dashboard');
         Route::get('/api/sub-stores', [SubStoreController::class, 'getSubStores'])->name('api.sub-stores');
         Route::get('/api/dashboard/data', [SubStoreController::class, 'getDashboardData'])->name('api.dashboard.data');
+        // Endpoint asynchrone pour expirations (léger et mis en cache)
+        Route::get('/api/expirations', [SubStoreController::class, 'getExpirationsAsync'])->name('api.expirations');
     });
 
     // Routes d'administration (Super Admin et Admin uniquement)
-    Route::middleware(['auth', 'role:super_admin,admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['auth', 'dashboard.access:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserManagementController::class, 'create'])->name('users.create');
         Route::post('/users', [UserManagementController::class, 'store'])->name('users.store');

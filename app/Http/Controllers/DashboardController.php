@@ -15,6 +15,11 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         
+        // Redirection spéciale pour les utilisateurs sub-stores
+        if ($user->isSubStoreUser()) {
+            return redirect()->route('sub-stores.dashboard');
+        }
+        
         // Déterminer le thème selon le type d'utilisateur
         $theme = $request->get('theme', $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges');
         
@@ -86,7 +91,7 @@ class DashboardController extends Controller
             return 'ALL';
         } else {
             // Admin/Collaborateur DOIT avoir un opérateur assigné
-            $primaryOperator = $user->primaryOperator()->first();
+            $primaryOperator = $user->primaryOperator();
             if (!$primaryOperator) {
                 // Si aucun opérateur assigné, utiliser le premier disponible ou Timwe par défaut
                 $firstOperator = $user->operators()->first();

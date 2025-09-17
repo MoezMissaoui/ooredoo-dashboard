@@ -27,35 +27,18 @@ class InvitationController extends Controller
     {
         $user = auth()->user();
         
-        // Logique selon les 5 types d'utilisateurs
-        switch ($user->getUserType()) {
-            case 'super_admin_club_privileges':
-                // Super Admin voit TOUTES les invitations
-                $invitations = Invitation::with(['invitedBy', 'role'])
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(20);
-                break;
-                
-            case 'admin_club_privileges':
-                // Admin CP voit toutes les invitations Club Privilèges
-                $invitations = Invitation::whereHas('invitedBy', function($query) {
-                    $query->where('platform_type', 'club_privileges');
-                })
+        // Logique selon les types d'utilisateurs
+        if ($user->isSuperAdmin()) {
+            // Super Admin voit TOUTES les invitations
+            $invitations = Invitation::with(['invitedBy', 'role'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+        } else {
+            // Tous les autres : SEULEMENT leurs propres invitations
+            $invitations = Invitation::where('invited_by', $user->id)
                 ->with(['invitedBy', 'role'])
                 ->orderBy('created_at', 'desc')
                 ->paginate(20);
-                break;
-                
-            case 'admin_operator':
-            case 'admin_sub_store':
-            case 'collaborator':
-            default:
-                // Tous les autres : SEULEMENT leurs propres invitations
-                $invitations = Invitation::where('invited_by', $user->id)
-                    ->with(['invitedBy', 'role'])
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(20);
-                break;
         }
         
         // Déterminer le thème selon l'utilisateur connecté
@@ -72,21 +55,34 @@ class InvitationController extends Controller
     {
         $user = auth()->user();
         
+        // Vérifier les permissions d'accès
+        if (!$user->isSuperAdmin() && !$user->isAdminOperator() && !$user->isAdminSubStore()) {
+            abort(403, 'Vous n\'avez pas les permissions pour inviter des utilisateurs.');
+        }
+        
         // Les rôles disponibles selon le niveau de l'utilisateur connecté
         if ($user->isSuperAdmin()) {
-            $roles = Role::active()->get();
-            $operators = $this->getAllOperators();
-        } else {
-            // Un admin ne peut inviter que des collaborateurs
+            // Super admin peut inviter admin ou collaborateur
+            $roles = Role::whereIn('name', ['admin', 'collaborator'])->active()->get();
+            $operators = $this->getOperators();
+            $subStores = $this->getSubStores();
+        } elseif ($user->isAdminOperator()) {
+            // Admin opérateur ne peut inviter que des collaborateurs pour son opérateur
             $roles = Role::where('name', 'collaborator')->active()->get();
             $operators = $user->operators->pluck('operator_name', 'operator_name');
+            $subStores = [];
+        } elseif ($user->isAdminSubStore()) {
+            // Admin sub-store ne peut inviter que des collaborateurs pour son sub-store
+            $roles = Role::where('name', 'collaborator')->active()->get();
+            $operators = [];
+            $subStores = $user->operators->pluck('operator_name', 'operator_name');
         }
         
         // Déterminer le thème selon l'utilisateur connecté
         $theme = $user->isTimweOoredooUser() ? 'ooredoo' : 'club_privileges';
         $isOoredoo = $theme === 'ooredoo';
         
-        return view('admin.invitations.create', compact('roles', 'operators', 'theme', 'isOoredoo'));
+        return view('admin.invitations.create', compact('roles', 'operators', 'subStores', 'theme', 'isOoredoo'));
     }
 
     /**
@@ -96,12 +92,19 @@ class InvitationController extends Controller
     {
         $user = auth()->user();
         
+        // Vérifier les permissions d'accès
+        if (!$user->isSuperAdmin() && !$user->isAdminOperator() && !$user->isAdminSubStore()) {
+            abort(403, 'Vous n\'avez pas les permissions pour inviter des utilisateurs.');
+        }
+        
         $request->validate([
             'email' => 'required|email|unique:users,email|unique:invitations,email',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'role_id' => 'required|exists:roles,id',
-            'operator_name' => 'required|string',
+            'type_selection' => 'required|in:operator,substore',
+            'operator_name' => 'required_if:type_selection,operator|string|nullable',
+            'substore_name' => 'required_if:type_selection,substore|string|nullable',
             'message' => 'nullable|string|max:500'
         ], [
             'email.required' => 'L\'adresse e-mail est obligatoire.',
@@ -110,77 +113,66 @@ class InvitationController extends Controller
             'first_name.required' => 'Le prénom est obligatoire.',
             'last_name.required' => 'Le nom est obligatoire.',
             'role_id.required' => 'Le rôle est obligatoire.',
-            'operator_name.required' => 'L\'opérateur est obligatoire.'
+            'type_selection.required' => 'Le type est obligatoire.',
+            'type_selection.in' => 'Le type doit être opérateur ou sub-store.',
+            'operator_name.required_if' => 'L\'opérateur est obligatoire quand le type est opérateur.',
+            'substore_name.required_if' => 'Le sub-store est obligatoire quand le type est sub-store.'
         ]);
 
-        // Vérifier les permissions
+        // Vérifier les permissions selon le type d'utilisateur
         $role = Role::find($request->role_id);
-        if (!$user->isSuperAdmin() && $role->name !== 'collaborator') {
-            return back()->with('error', 'Vous ne pouvez inviter que des collaborateurs.');
-        }
-
-        // Vérifier que l'opérateur est dans la liste autorisée
-        if (!$user->isSuperAdmin()) {
+        
+        // Déterminer le nom de l'opérateur/sub-store selon le type sélectionné
+        $operatorName = $request->type_selection === 'operator' ? $request->operator_name : $request->substore_name;
+        
+        if ($user->isSuperAdmin()) {
+            // Super admin peut inviter admin ou collaborateur
+            if (!in_array($role->name, ['admin', 'collaborator'])) {
+                return back()->with('error', 'Vous ne pouvez inviter que des administrateurs ou collaborateurs.');
+            }
+        } elseif ($user->isAdminOperator() || $user->isAdminSubStore()) {
+            // Admin opérateur/sub-store ne peut inviter que des collaborateurs
+            if ($role->name !== 'collaborator') {
+                return back()->with('error', 'Vous ne pouvez inviter que des collaborateurs.');
+            }
+            
+            // Vérifier que l'opérateur/sub-store est dans la liste autorisée
             $userOperators = $user->operators->pluck('operator_name');
-            if (!$userOperators->contains($request->operator_name)) {
-                return back()->with('error', 'Vous ne pouvez pas inviter pour cet opérateur.');
+            if (!$userOperators->contains($operatorName)) {
+                return back()->with('error', 'Vous ne pouvez pas inviter pour cet opérateur/sub-store.');
             }
         }
 
         try {
-            // Créer l'invitation
+            // Créer l'invitation (SANS créer l'utilisateur immédiatement)
             $invitation = Invitation::create([
                 'email' => $request->email,
                 'token' => Str::random(64),
                 'invited_by' => $user->id,
                 'role_id' => $request->role_id,
-                'operator_name' => $request->operator_name,
+                'operator_name' => $operatorName,
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
+                'status' => 'pending', // Invitation en attente
                 'expires_at' => now()->addDays(7), // Expiration dans 7 jours
                 'additional_data' => [
                     'message' => $request->message,
-                    'invited_by_name' => $user->name
+                    'invited_by_name' => $user->name,
+                    'type_selection' => $request->type_selection
                 ]
             ]);
 
-            // Créer directement l'utilisateur avec un mot de passe temporaire
-            $newUser = User::create([
-                'name' => $invitation->first_name . ' ' . $invitation->last_name,
-                'first_name' => $invitation->first_name,
-                'last_name' => $invitation->last_name,
-                'email' => $invitation->email,
-                'password' => Hash::make(Str::random(32)), // Mot de passe temporaire très fort
-                'role_id' => $invitation->role_id,
-                'status' => 'active',
-                'is_otp_enabled' => true, // Sera désactivé après première connexion
-                'created_by' => $invitation->invited_by,
-                'platform_type' => 'club_privileges' // Par défaut Club Privilèges
-            ]);
-
-            // Assigner l'opérateur
-            UserOperator::create([
-                'user_id' => $newUser->id,
-                'operator_name' => $invitation->operator_name,
-                'is_primary' => true,
-                'assigned_by' => $invitation->invited_by
-            ]);
-
-            // Marquer l'invitation comme acceptée
-            $invitation->accept();
-
-            // Créer un token de première connexion
-            $firstLoginRequest = PasswordResetRequest::createForFirstLogin($invitation->email);
-            $firstLoginUrl = route('password.first-login', $firstLoginRequest->token);
+            // Générer l'URL d'invitation
+            $invitationUrl = route('auth.invitation', $invitation->token);
             
             try {
-                // Envoyer l'email avec le lien de première connexion
-                Mail::to($invitation->email)->send(new InvitationMail($invitation, $firstLoginUrl));
+                // Envoyer l'email avec le lien d'invitation
+                Mail::to($invitation->email)->send(new InvitationMail($invitation, $invitationUrl));
                 
                 Log::info("=== INVITATION ENVOYÉE ===");
                 Log::info("Email: {$invitation->email}");
                 Log::info("Invité par: {$user->name}");
-                Log::info("Lien de première connexion: {$firstLoginUrl}");
+                Log::info("Lien d'invitation: {$invitationUrl}");
                 
                 return redirect()->route('admin.invitations.index')
                                ->with('success', "Invitation envoyée avec succès à {$invitation->email}.");
@@ -257,26 +249,51 @@ class InvitationController extends Controller
 
         DB::beginTransaction();
         try {
-            // Créer l'utilisateur
-            $user = User::create([
-                'name' => $invitation->first_name . ' ' . $invitation->last_name,
-                'first_name' => $invitation->first_name,
-                'last_name' => $invitation->last_name,
-                'email' => $invitation->email,
-                'password' => Hash::make(Str::random(16)), // Mot de passe temporaire
-                'role_id' => $invitation->role_id,
-                'status' => 'active',
-                'is_otp_enabled' => true, // L'utilisateur invité utilise OTP par défaut
-                'created_by' => $invitation->invited_by
-            ]);
+            // Vérifier si l'utilisateur existe déjà
+            $existingUser = User::where('email', $invitation->email)->first();
+            
+            if ($existingUser) {
+                // L'utilisateur existe déjà, utiliser cet utilisateur
+                $user = $existingUser;
+                
+                // Mettre à jour les informations si nécessaire
+                $user->update([
+                    'role_id' => $invitation->role_id,
+                    'status' => 'active',
+                    'is_otp_enabled' => true,
+                    'created_by' => $invitation->invited_by,
+                    'platform_type' => 'club_privileges'
+                ]);
+            } else {
+                // Créer l'utilisateur
+                $user = User::create([
+                    'name' => $invitation->first_name . ' ' . $invitation->last_name,
+                    'first_name' => $invitation->first_name,
+                    'last_name' => $invitation->last_name,
+                    'email' => $invitation->email,
+                    'password' => Hash::make(Str::random(16)), // Mot de passe temporaire
+                    'role_id' => $invitation->role_id,
+                    'status' => 'active',
+                    'is_otp_enabled' => true, // L'utilisateur invité utilise OTP par défaut
+                    'created_by' => $invitation->invited_by,
+                    'platform_type' => 'club_privileges'
+                ]);
+            }
 
-            // Assigner l'opérateur
-            UserOperator::create([
-                'user_id' => $user->id,
-                'operator_name' => $invitation->operator_name,
-                'is_primary' => true,
-                'assigned_by' => $invitation->invited_by
-            ]);
+            // Vérifier si l'opérateur est déjà assigné
+            $existingOperator = UserOperator::where('user_id', $user->id)
+                                          ->where('operator_name', $invitation->operator_name)
+                                          ->first();
+            
+            if (!$existingOperator) {
+                // Assigner l'opérateur
+                UserOperator::create([
+                    'user_id' => $user->id,
+                    'operator_name' => $invitation->operator_name,
+                    'is_primary' => true,
+                    'assigned_by' => $invitation->invited_by
+                ]);
+            }
 
             // Marquer l'invitation comme acceptée
             $invitation->accept();
@@ -284,22 +301,41 @@ class InvitationController extends Controller
             // Marquer le code OTP comme utilisé
             $otpCode->markAsUsed();
 
-            // Connecter l'utilisateur
-            auth()->login($user);
-            $request->session()->regenerate();
+            // Vérifier si l'utilisateur doit changer son mot de passe
+            $needsPasswordChange = $user->password_changed_at === null;
 
-            // Mettre à jour les informations de dernière connexion
-            $user->updateLastLogin($request->ip());
+            if ($needsPasswordChange) {
+                // Créer un token de première connexion pour changer le mot de passe
+                $firstLoginRequest = PasswordResetRequest::createForFirstLogin($user->email);
+                $passwordChangeUrl = route('password.first-login', $firstLoginRequest->token);
+                
+                // Stocker l'utilisateur en session pour la connexion après changement de mot de passe
+                $request->session()->put('pending_user_id', $user->id);
+                
+                DB::commit();
+                
+                Log::info("Invitation acceptée, redirection vers changement de mot de passe pour: " . $user->email);
+                
+                return redirect($passwordChangeUrl)
+                               ->with('success', 'Bienvenue ! Veuillez créer votre mot de passe pour continuer.');
+            } else {
+                // L'utilisateur a déjà un mot de passe, le connecter directement
+                auth()->login($user);
+                $request->session()->regenerate();
 
-            DB::commit();
+                // Mettre à jour les informations de dernière connexion
+                $user->updateLastLogin($request->ip());
 
-            Log::info("Invitation acceptée avec succès pour: " . $user->email);
+                DB::commit();
 
-            // Redirection intelligente selon le rôle et les permissions
-            $preferredDashboard = $user->getPreferredDashboard();
+                Log::info("Invitation acceptée avec succès pour: " . $user->email);
 
-            return redirect($preferredDashboard)
-                           ->with('success', 'Bienvenue ! Votre compte a été créé avec succès.');
+                // Redirection intelligente selon le rôle et les permissions
+                $preferredDashboard = $user->getPreferredDashboard();
+
+                return redirect($preferredDashboard)
+                               ->with('success', 'Bienvenue ! Votre compte a été créé avec succès.');
+            }
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -367,13 +403,47 @@ class InvitationController extends Controller
     }
 
     /**
-     * Récupérer tous les opérateurs disponibles
+     * Récupérer tous les opérateurs disponibles (opérateurs + sub-stores)
      */
     private function getAllOperators(): array
+    {
+        // Récupérer les opérateurs classiques
+        $operators = DB::table('country_payments_methods')
+                      ->distinct()
+                      ->pluck('country_payments_methods_name', 'country_payments_methods_name')
+                      ->toArray();
+        
+        // Récupérer les sub-stores
+        $subStores = DB::table('stores')
+                      ->where('is_sub_store', 1)
+                      ->where('store_active', 1)
+                      ->pluck('store_name', 'store_name')
+                      ->toArray();
+        
+        // Combiner les deux listes
+        return array_merge($operators, $subStores);
+    }
+    
+    /**
+     * Récupérer seulement les opérateurs classiques
+     */
+    private function getOperators(): array
     {
         return DB::table('country_payments_methods')
                  ->distinct()
                  ->pluck('country_payments_methods_name', 'country_payments_methods_name')
+                 ->toArray();
+    }
+    
+    /**
+     * Récupérer seulement les sub-stores
+     */
+    private function getSubStores(): array
+    {
+        return DB::table('stores')
+                 ->where('is_sub_store', 1)
+                 ->where('store_active', 1)
+                 ->pluck('store_name', 'store_name')
                  ->toArray();
     }
 }

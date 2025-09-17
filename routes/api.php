@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DataController;
+use App\Http\Controllers\Api\EklektikController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,18 @@ Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/merchants', [DataController::class, 'getMerchants'])->name('merchants');
     Route::get('/transactions', [DataController::class, 'getTransactions'])->name('transactions');
     Route::get('/subscriptions', [DataController::class, 'getSubscriptions'])->name('subscriptions');
+});
+
+// Eklektik API routes
+Route::prefix('eklektik')->name('api.eklektik.')->group(function () {
+    Route::get('/numbers', [EklektikController::class, 'getNumbers'])->name('numbers');
+    Route::get('/status', [EklektikController::class, 'getApiStatus'])->name('status');
+    Route::post('/refresh', [EklektikController::class, 'refreshData'])->name('refresh');
+    Route::post('/test/{phoneNumber}', [EklektikController::class, 'testNumber'])->name('test');
+    Route::post('/test-all', [EklektikController::class, 'testAllNumbersSimple'])->name('test-all');
+    Route::get('/test-debug', [EklektikController::class, 'debugTest'])->name('test-debug');
+    Route::post('/test-endpoints', [EklektikController::class, 'testAllEklektikEndpoints'])->name('test-endpoints');
+    Route::post('/test-msisdn-offers', [EklektikController::class, 'testMsisdnWithAllOffers'])->name('test-msisdn-offers');
 });
 
 // Routes optimisées additionnelles si présentes
