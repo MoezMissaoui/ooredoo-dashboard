@@ -246,7 +246,7 @@ class User extends Authenticatable
             $primaryOperator = $this->primaryOperator();
             
             // Si l'admin est orienté sub-stores, rediriger vers sub-stores dashboard
-            if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership'])) {
+            if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership', 'Sofrecom'])) {
                 return route('sub-stores.dashboard', ['theme' => 'club_privileges']);
             }
             
@@ -260,7 +260,7 @@ class User extends Authenticatable
             $primaryOperator = $this->primaryOperator();
             
             // Si l'opérateur principal est lié aux sub-stores, rediriger vers sub-stores dashboard
-            if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership'])) {
+            if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership', 'Sofrecom'])) {
                 return route('sub-stores.dashboard', ['theme' => 'club_privileges']);
             }
             
@@ -360,7 +360,7 @@ class User extends Authenticatable
         // Liste des opérateurs considérés comme "sub-stores"
         $subStoreOperators = [
             'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-            'Magasins', 'Boutiques', 'Points de Vente'
+            'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom'
         ];
         
         return in_array($primaryOperator->operator_name, $subStoreOperators);
@@ -372,6 +372,28 @@ class User extends Authenticatable
     public function isCollaboratorWithContext(): bool
     {
         return $this->isCollaborator();
+    }
+
+    /**
+     * Vérifier si l'utilisateur est un utilisateur sub-stores
+     */
+    public function isSubStoreUser(): bool
+    {
+        // Vérifier d'abord le rôle
+        if ($this->isCollaborator()) {
+            $primaryOperator = $this->primaryOperator();
+            if (!$primaryOperator) return false;
+            
+            // Liste des opérateurs considérés comme "sub-stores"
+            $subStoreOperators = [
+                'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
+                'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom'
+            ];
+            
+            return in_array($primaryOperator->operator_name, $subStoreOperators);
+        }
+        
+        return false;
     }
 
     /**
@@ -465,7 +487,12 @@ class User extends Authenticatable
                 return true; // Accès total
                 
             case 'admin_club_privileges':
-                return true; // Peut voir tous opérateurs et sub-stores
+                // Vérifier si l'admin est orienté sub-stores
+                $primaryOperator = $this->primaryOperator();
+                if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership', 'Sofrecom'])) {
+                    return false; // Admin sub-store ne voit QUE les sub-stores
+                }
+                return true; // Admin opérateur peut voir tous opérateurs et sub-stores
                 
             case 'admin_operator':
                 return true; // Peut voir son opérateur
