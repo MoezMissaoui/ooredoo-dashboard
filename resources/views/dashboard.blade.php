@@ -2024,7 +2024,7 @@
                 </label>
               </div>
               <div class="operators-list" id="operators-list">
-                <!-- Les opérateurs seront chargés dynamiquement -->
+            <!-- Les opérateurs seront chargés dynamiquement -->
               </div>
             </div>
           </div>

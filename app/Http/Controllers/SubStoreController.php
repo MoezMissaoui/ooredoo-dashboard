@@ -485,7 +485,7 @@ class SubStoreController extends Controller
                 ->where("stores.is_sub_store", 1)
                 ->whereBetween("client_abonnement.client_abonnement_creation", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
-                    return $query->where("stores.store_name", "LIKE", "%$selectedSubStore%");
+                    return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
                 });
             
             $totalRevenueComparison = $revenueComparisonQuery->sum('abonnement_tarifs.abonnement_tarifs_prix');
@@ -506,7 +506,7 @@ class SubStoreController extends Controller
                 ->where("stores.is_sub_store", 1)
                 ->where("stores.store_active", 1)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
-                    return $query->where("stores.store_name", "LIKE", "%$selectedSubStore%");
+                    return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
                 })
                 ->groupBy("stores.store_type")
                 ->orderBy("client_count", "desc")
@@ -708,7 +708,7 @@ class SubStoreController extends Controller
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->where('stores.is_sub_store', 1);
             if ($selectedSubStore !== 'ALL') {
-                $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
             return (int) $query->count();
         } catch (\Exception $e) {
@@ -731,7 +731,7 @@ class SubStoreController extends Controller
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->where('stores.is_sub_store', 1)
                 ->when($selectedSubStore !== 'ALL', function($q) use ($selectedSubStore) {
-                    $q->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                    $q->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
                 })
                 ->whereBetween('client_abonnement.client_abonnement_expiration', [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->count();
@@ -742,7 +742,7 @@ class SubStoreController extends Controller
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->where('stores.is_sub_store', 1)
                 ->when($selectedSubStore !== 'ALL', function($q) use ($selectedSubStore) {
-                    $q->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                    $q->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
                 })
                 ->whereBetween('ca1.client_abonnement_expiration', [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->whereExists(function($sub) {
@@ -782,7 +782,7 @@ class SubStoreController extends Controller
                 )
                 ->where('stores.is_sub_store', 1)
                 ->when($selectedSubStore !== 'ALL', function($q) use ($selectedSubStore) {
-                    $q->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                    $q->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
                 })
                 ->whereBetween('client_abonnement.client_abonnement_expiration', [$start, $end])
                 ->groupBy(DB::raw("DATE_FORMAT(client_abonnement.client_abonnement_expiration, '%Y-%m')"))
@@ -881,7 +881,7 @@ class SubStoreController extends Controller
                 ->where("stores.store_active", 1)
                 ->whereBetween("history.time", [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
-                    return $query->where("stores.store_name", "LIKE", "%$selectedSubStore%");
+                    return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
                 })
                 ->groupBy("partner_category.partner_category_name")
                 ->orderBy("utilizations", "desc")
@@ -924,7 +924,7 @@ class SubStoreController extends Controller
                 ->where("stores.is_sub_store", 1)
                 ->whereBetween("client.created_at", [$extendedStartDate, Carbon::parse($extendedEndDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
-                    return $query->where("stores.store_name", "LIKE", "%$selectedSubStore%");
+                    return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
                 })
                 ->groupBy(DB::raw("DATE_FORMAT(client.created_at, '%Y-%m')"))
                 ->orderBy("month")
@@ -1147,7 +1147,7 @@ class SubStoreController extends Controller
                 ->where("stores.is_sub_store", 1)
                 ->whereBetween("client.created_at", [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
-                    return $query->where("stores.store_name", "LIKE", "%$selectedSubStore%");
+                    return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
                 })
                 ->groupBy(DB::raw("DATE_FORMAT(client.created_at, '$dateFormat')"))
                 ->orderBy("period")
@@ -1313,7 +1313,7 @@ class SubStoreController extends Controller
                 ->whereBetween('client_abonnement.client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
             if ($selectedSubStore !== 'ALL') {
-                $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
             
             return $query->distinct('client.client_id')->count();
@@ -1376,7 +1376,7 @@ class SubStoreController extends Controller
                 ->whereBetween('history.time', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
             if ($selectedSubStore !== 'ALL') {
-                $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
             
             return $query->distinct('history.history_id')->count();
@@ -1399,7 +1399,7 @@ class SubStoreController extends Controller
                 ->whereBetween('client.created_at', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
             if ($selectedSubStore !== 'ALL') {
-                $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
             
             return $query->distinct('client.client_id')->count();
@@ -1416,7 +1416,7 @@ class SubStoreController extends Controller
     {
         try {
             $store = DB::table('stores')
-                ->where('store_name', 'LIKE', "%$storeName%")
+                ->where('store_name', 'LIKE', "%" . $storeName . "%")
                 ->where('is_sub_store', 1)
                 ->first();
             
@@ -1452,7 +1452,7 @@ class SubStoreController extends Controller
                 ->where("stores.is_sub_store", 1)
                 ->where("stores.store_active", 1)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
-                    return $query->where("stores.store_name", "LIKE", "%$selectedSubStore%");
+                    return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
                 })
                 ->groupBy("stores.store_id", "stores.store_name", "stores.store_type", "stores.store_manager_name")
                 ->orderByDesc("active_users")
