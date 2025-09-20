@@ -232,13 +232,13 @@ class User extends Authenticatable
         // Dispatching selon le type de plateforme
         if ($this->isTimweOoredooUser()) {
             // Utilisateurs Timwe/Ooredoo : Dashboard avec thème Ooredoo
-            return route('dashboard', ['theme' => 'ooredoo']);
+            return url('/?theme=ooredoo');
         }
 
         // Utilisateurs Club Privilèges : Logique existante
         // Super Admin : Dashboard principal avec vue globale
         if ($this->isSuperAdmin()) {
-            return route('dashboard', ['theme' => 'club_privileges']);
+            return url('/?theme=club_privileges');
         }
 
         // Admin : Vérifier si orienté sub-stores ou dashboard principal
@@ -247,11 +247,11 @@ class User extends Authenticatable
             
             // Si l'admin est orienté sub-stores, rediriger vers sub-stores dashboard
             if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership', 'Sofrecom'])) {
-                return route('sub-stores.dashboard', ['theme' => 'club_privileges']);
+                return url('/sub-stores/?theme=club_privileges');
             }
             
             // Sinon, dashboard principal avec vue filtrée par opérateur
-            return route('dashboard', ['theme' => 'club_privileges']);
+            return url('/?theme=club_privileges');
         }
 
         // Collaborator : Selon les permissions et le contexte
@@ -261,15 +261,15 @@ class User extends Authenticatable
             
             // Si l'opérateur principal est lié aux sub-stores, rediriger vers sub-stores dashboard
             if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership', 'Sofrecom'])) {
-                return route('sub-stores.dashboard', ['theme' => 'club_privileges']);
+                return url('/sub-stores/?theme=club_privileges');
             }
             
             // Sinon, dashboard principal
-            return route('dashboard', ['theme' => 'club_privileges']);
+            return url('/?theme=club_privileges');
         }
 
         // Par défaut, dashboard principal Club Privilèges
-        return route('dashboard', ['theme' => 'club_privileges']);
+        return url('/?theme=club_privileges');
     }
 
     /**

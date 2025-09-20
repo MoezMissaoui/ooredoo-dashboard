@@ -51,11 +51,7 @@ Route::post('/invitation/accept', [InvitationController::class, 'acceptInvitatio
 // Dashboard routes (protégées par authentification)
 Route::middleware('auth')->group(function () {
     // Route principale avec redirection intelligente selon le rôle
-    Route::get('/', function () {
-        $user = auth()->user();
-        $preferredDashboard = $user->getPreferredDashboard();
-        return redirect($preferredDashboard);
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.view');
     Route::get('/dashboard/config', [DashboardController::class, 'getConfig'])->name('dashboard.config');
     

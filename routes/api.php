@@ -41,6 +41,8 @@ Route::prefix('eklektik')->name('api.eklektik.')->group(function () {
     Route::get('/test-debug', [EklektikController::class, 'debugTest'])->name('test-debug');
     Route::post('/test-endpoints', [EklektikController::class, 'testAllEklektikEndpoints'])->name('test-endpoints');
     Route::post('/test-msisdn-offers', [EklektikController::class, 'testMsisdnWithAllOffers'])->name('test-msisdn-offers');
+    Route::get('/test-auth', [\App\Http\Controllers\Api\EklektikTestController::class, 'testAuth'])->name('test-auth');
+    Route::get('/test-all-endpoints', [\App\Http\Controllers\Api\EklektikTestController::class, 'testAllEndpoints'])->name('test-all-endpoints');
 });
 
 // Routes optimisées additionnelles si présentes
