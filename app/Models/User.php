@@ -376,10 +376,16 @@ class User extends Authenticatable
 
     /**
      * Vérifier si l'utilisateur est un utilisateur sub-stores
+     * Inclut les admins sub-store ET les collaborateurs sub-store
      */
     public function isSubStoreUser(): bool
     {
-        // Vérifier d'abord le rôle
+        // Admin sub-store : toujours considéré comme utilisateur sub-store
+        if ($this->isAdminSubStore()) {
+            return true;
+        }
+        
+        // Collaborateur sub-store : vérifier l'opérateur principal
         if ($this->isCollaborator()) {
             $primaryOperator = $this->primaryOperator();
             if (!$primaryOperator) return false;
