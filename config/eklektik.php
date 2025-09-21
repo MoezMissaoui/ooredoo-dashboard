@@ -1,93 +1,49 @@
 <?php
 
 return [
-    /*
-    |--------------------------------------------------------------------------
-    | Eklektik API Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Configuration pour l'intégration avec l'API Eklektik
-    | Documentation: https://payment.eklectic.tn/API/docs/#/
-    |
-    */
-
-    'api_url' => env('EKLEKTIK_API_URL', 'https://payment.eklectic.tn/API'),
-    
-    'client_id' => env('EKLEKTIK_CLIENT_ID', '0a2e605d-88f6-11ec-9feb-fa163e3dd8b3'),
-    
-    'client_secret' => env('EKLEKTIK_CLIENT_SECRET', 'ee60bb148a0e468a5053f9db41008780'),
-    
-    'offer_ids' => [
-        'tt' => env('EKLEKTIK_OFFER_ID_TT', 11),
-        'orange' => env('EKLEKTIK_OFFER_ID_ORANGE', 12),
-        'promo_3_days' => env('EKLEKTIK_OFFER_ID_3_DAYS', 82),
-        'promo_15_days' => env('EKLEKTIK_OFFER_ID_15_DAYS', 87), 
-        'promo_30_days' => env('EKLEKTIK_OFFER_ID_30_DAYS', 88),
+    'eklectic' => [
+        'uri' => [
+            'prefix' => env('EKLECTIC_ENDPOINT_PREFIX', 'API'),
+            'host' => env('EKLECTIC_ENDPOINT_HOST', 'payment.eklectic.tn'),
+            'protocol' => env('EKLECTIC_ENDPOINT_PROTOCOL', 'https'),
+            'port' => env('EKLECTIC_ENDPOINT_PORT', '443'),
+        ],
+        'client_id' => env('EKLECTIC_ENDPOINT_CLIENT_ID', '0a2e605d-88f6-11ec-9feb-fa163e3dd8b3'),
+        'client_secret' => env('EKLECTIC_ENDPOINT_CLIENT_SECRET', 'ee60bb148a0e468a5053f9db41008780'),
+        'grant_type' => env('EKLECTIC_ENDPOINT_GRANT_TYPE', 'client_credentials'),
+        'tt_offer_id' => env('EKLECTIC_ENDPOINT_TT_OFFER_ID', '11'),
+        'orange_offer_id' => env('EKLECTIC_ENDPOINT_ORANGE_OFFER_ID', '82'),
+        'taraji_offer_id' => env('EKLECTIC_ENDPOINT_TARAJI_OFFER_ID', '26'),
+        'cache_ttl' => (int) env('EKLECTIC_CACHE_TTL', 300),
+        'timeout' => (int) env('EKLECTIC_TIMEOUT', 30),
     ],
     
-    // Liste complète des Offer IDs pour les tests
-    'all_offer_ids' => [11, 12, 82, 87, 88],
+    // Configuration pour l'API
+    'api_url' => 'https://payment.eklectic.tn/API',
     
-    'cache_ttl' => env('EKLEKTIK_CACHE_TTL', 300), // 5 minutes
+    'client_id' => '0a2e605d-88f6-11ec-9feb-fa163e3dd8b3',
     
-    'timeout' => env('EKLEKTIK_TIMEOUT', 30), // 30 seconds
+    'client_secret' => 'ee60bb148a0e468a5053f9db41008780',
     
-    'retry_attempts' => 3,
+    'offer_ids' => [
+        'tt' => '11',
+        'orange' => '82',
+        'taraji' => '26',
+    ],
+    
+    'cache_ttl' => (int) env('EKLEKTIK_CACHE_TTL', 300),
+    
+    'timeout' => (int) env('EKLEKTIK_TIMEOUT', 30),
     
     'endpoints' => [
         'auth' => '/oauth/token',
         'subscribers' => '/subscription/subscribers',
-        'find_subscription' => '/subscription/find',
-        'subscription_detail' => '/subscription',
-        'send_sms' => '/subscription/sendmt',
-        'oneshot' => '/subscription/oneshot'
+        'subscription_find' => '/subscription/find',
+        'subscription_otp' => '/subscription/otp',
+        'subscription_confirm' => '/subscription/confirm',
+        'subscription_oneClick' => '/subscription/oneClick',
+        'subscription_token' => '/subscription/token',
+        'subscription_sendmt' => '/subscription/sendmt',
+        'subscription_oneshot' => '/subscription/oneshot',
     ],
-    
-    /*
-    |--------------------------------------------------------------------------
-    | Field Mapping
-    |--------------------------------------------------------------------------
-    |
-    | Mappage des champs entre l'API Eklektik et notre structure interne
-    |
-    */
-    'field_mapping' => [
-        'phone_number' => 'phone_number',
-        'service_type' => 'service_type',
-        'status' => 'status',
-        'created_at' => 'created_at',
-        'last_activity' => 'last_activity',
-        'usage_count' => 'usage_count',
-        'usage_percentage' => 'usage_percentage'
-    ],
-    
-    /*
-    |--------------------------------------------------------------------------
-    | Service Type Mapping
-    |--------------------------------------------------------------------------
-    |
-    | Mappage des types de services
-    |
-    */
-    'service_types' => [
-        'SMS' => 'SUBSCRIPTION',
-        'USSD' => 'PROMOTION', 
-        'VOICE' => 'NOTIFICATION',
-        'DATA' => 'SUBSCRIPTION'
-    ],
-    
-    /*
-    |--------------------------------------------------------------------------
-    | Status Mapping
-    |--------------------------------------------------------------------------
-    |
-    | Mappage des statuts
-    |
-    */
-    'status_mapping' => [
-        'active' => 'ACTIVE',
-        'inactive' => 'INACTIVE',
-        'pending' => 'PENDING',
-        'suspended' => 'INACTIVE'
-    ]
 ];

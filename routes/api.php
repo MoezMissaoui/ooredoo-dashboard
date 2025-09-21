@@ -20,6 +20,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// API pour récupérer les opérateurs
+Route::middleware('auth')->get('/operators', [\App\Http\Controllers\Api\OperatorsController::class, 'getOperators'])->name('api.operators');
+
 // Dashboard API routes
 Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/data', [DataController::class, 'getDashboardData'])->name('data');
@@ -31,18 +34,11 @@ Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/subscriptions', [DataController::class, 'getSubscriptions'])->name('subscriptions');
 });
 
-// Eklektik API routes
+// Eklektik API routes - Contrôleur consolidé (sans auth pour test)
 Route::prefix('eklektik')->name('api.eklektik.')->group(function () {
-    Route::get('/numbers', [EklektikController::class, 'getNumbers'])->name('numbers');
-    Route::get('/status', [EklektikController::class, 'getApiStatus'])->name('status');
-    Route::post('/refresh', [EklektikController::class, 'refreshData'])->name('refresh');
-    Route::post('/test/{phoneNumber}', [EklektikController::class, 'testNumber'])->name('test');
-    Route::post('/test-all', [EklektikController::class, 'testAllNumbersSimple'])->name('test-all');
-    Route::get('/test-debug', [EklektikController::class, 'debugTest'])->name('test-debug');
-    Route::post('/test-endpoints', [EklektikController::class, 'testAllEklektikEndpoints'])->name('test-endpoints');
-    Route::post('/test-msisdn-offers', [EklektikController::class, 'testMsisdnWithAllOffers'])->name('test-msisdn-offers');
-    Route::get('/test-auth', [\App\Http\Controllers\Api\EklektikTestController::class, 'testAuth'])->name('test-auth');
-    Route::get('/test-all-endpoints', [\App\Http\Controllers\Api\EklektikTestController::class, 'testAllEndpoints'])->name('test-all-endpoints');
+    Route::get('/numbers', [EklektikController::class, 'getDashboardData'])->name('numbers');
+    Route::get('/dashboard-data', [EklektikController::class, 'getDashboardData'])->name('dashboard-data');
+    Route::get('/test', [EklektikController::class, 'getDashboardData'])->name('test');
 });
 
 // Routes optimisées additionnelles si présentes
