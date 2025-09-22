@@ -391,56 +391,12 @@ class User extends Authenticatable
             $primaryOperator = $this->primaryOperator();
             if (!$primaryOperator) return false;
             
-            // Récupérer dynamiquement les sub-stores depuis la base de données
-            $subStoreOperators = $this->getSubStoreOperators();
-            
-            return in_array($primaryOperator->operator_name, $subStoreOperators);
+            // Utiliser le service centralisé pour vérifier si c'est un sub-store
+            $subStoreService = app(\App\Services\SubStoreService::class);
+            return $subStoreService->isSubStoreOperator($primaryOperator->operator_name);
         }
         
         return false;
-    }
-    
-    /**
-     * Récupérer dynamiquement la liste des opérateurs sub-stores
-     * Utilise le cache pour optimiser les performances
-     */
-    private function getSubStoreOperators(): array
-    {
-        return \Cache::remember('sub_store_operators', 300, function () {
-            try {
-                // Récupérer les sub-stores depuis la table stores
-                $subStores = \DB::table('stores')
-                    ->where('is_sub_store', 1)
-                    ->where('store_active', 1)
-                    ->pluck('store_name')
-                    ->toArray();
-                
-                // Récupérer les opérateurs sub-stores depuis country_payments_methods
-                $subStorePaymentMethods = \DB::table('country_payments_methods')
-                    ->whereIn('country_payments_methods_name', [
-                        'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-                        'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom',
-                        'Université centrale'
-                    ])
-                    ->pluck('country_payments_methods_name')
-                    ->toArray();
-                
-                // Combiner les deux listes
-                return array_merge($subStores, $subStorePaymentMethods);
-                
-            } catch (\Exception $e) {
-                // Fallback : liste statique en cas d'erreur
-                \Log::warning('Erreur récupération sub-stores dynamiques, utilisation du fallback', [
-                    'error' => $e->getMessage()
-                ]);
-                
-                return [
-                    'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-                    'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom',
-                    'Université centrale'
-                ];
-            }
-        });
     }
 
     /**

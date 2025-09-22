@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\SubStoreService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -10,6 +11,13 @@ use Carbon\Carbon;
 
 class SubStoreController extends Controller
 {
+    protected $subStoreService;
+
+    public function __construct(SubStoreService $subStoreService)
+    {
+        $this->subStoreService = $subStoreService;
+    }
+
     /**
      * Afficher le dashboard sub-stores
      */
@@ -18,8 +26,8 @@ class SubStoreController extends Controller
         $user = auth()->user();
         
         // Déterminer les sub-stores accessibles selon le rôle
-        $availableSubStores = $this->getAvailableSubStoresForUser($user);
-        $defaultSubStore = $this->getDefaultSubStoreForUser($user);
+        $availableSubStores = $this->subStoreService->getAvailableSubStoresForUser($user);
+        $defaultSubStore = $this->subStoreService->getDefaultSubStoreForUser($user);
         
         return view('sub-stores.dashboard', compact('availableSubStores', 'defaultSubStore'));
     }
@@ -30,8 +38,8 @@ class SubStoreController extends Controller
     public function getSubStores()
     {
         $user = auth()->user();
-        $availableSubStores = $this->getAvailableSubStoresForUser($user);
-        $defaultSubStore = $this->getDefaultSubStoreForUser($user);
+        $availableSubStores = $this->subStoreService->getAvailableSubStoresForUser($user);
+        $defaultSubStore = $this->subStoreService->getDefaultSubStoreForUser($user);
         
         return response()->json([
             'sub_stores' => $availableSubStores,
@@ -40,65 +48,6 @@ class SubStoreController extends Controller
         ]);
     }
 
-    /**
-     * Obtenir les sub-stores disponibles pour un utilisateur
-     */
-    private function getAvailableSubStoresForUser($user)
-    {
-        // Super Admin : tous les sub-stores
-        if ($user->isSuperAdmin()) {
-            return DB::table('stores')
-                ->where('is_sub_store', 1)
-                ->select('store_name as name', 'store_id')
-                ->orderBy('store_name')
-                ->get()
-                ->toArray();
-        }
-        
-        // Admin Sub-Store ou Collaborateur : seulement leur sub-store assigné
-        $primaryOperator = $user->primaryOperator();
-        if ($primaryOperator && $primaryOperator->operator_name === 'Sofrecom') {
-            return [
-                ['name' => 'Sofrecom', 'store_id' => null]
-            ];
-        }
-        
-        // Autres cas : chercher par opérateur assigné
-        if ($primaryOperator) {
-            $subStores = DB::table('stores')
-                ->where('is_sub_store', 1)
-                ->where('store_name', 'LIKE', '%' . $primaryOperator->operator_name . '%')
-                ->select('store_name as name', 'store_id')
-                ->get()
-                ->toArray();
-                
-            if (!empty($subStores)) {
-                return $subStores;
-            }
-        }
-        
-        // Fallback : retourner une liste vide
-        return [];
-    }
-
-    /**
-     * Obtenir le sub-store par défaut pour un utilisateur
-     */
-    private function getDefaultSubStoreForUser($user)
-    {
-        // Super Admin : ALL par défaut
-        if ($user->isSuperAdmin()) {
-            return 'ALL';
-        }
-        
-        // Admin Sub-Store : leur opérateur assigné
-        $primaryOperator = $user->primaryOperator();
-        if ($primaryOperator) {
-            return $primaryOperator->operator_name;
-        }
-        
-        return null;
-    }
 
     /**
      * API async: Expirations par mois (léger, cache 10 min)

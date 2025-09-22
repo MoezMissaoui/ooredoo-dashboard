@@ -3,12 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\SubStoreService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class OperatorsController extends Controller
 {
+    protected $subStoreService;
+
+    public function __construct(SubStoreService $subStoreService)
+    {
+        $this->subStoreService = $subStoreService;
+    }
+
     /**
      * Récupérer la liste des opérateurs disponibles
      */
@@ -75,29 +83,8 @@ class OperatorsController extends Controller
      */
     private function getAllOperators()
     {
-        // Récupérer les opérateurs classiques
-        $operators = DB::table('country_payments_methods')
-            ->whereIn('country_payments_methods_name', [
-                "S'abonner via TT",
-                "S'abonner via Orange", 
-                "S'abonner via Taraji",
-                "S'abonner via Timwe",
-                "Solde téléphonique",
-                "Solde Taraji mobile"
-            ])
-            ->distinct()
-            ->pluck('country_payments_methods_name', 'country_payments_methods_name')
-            ->toArray();
-        
-        // Récupérer les sub-stores
-        $subStores = DB::table('stores')
-            ->where('is_sub_store', 1)
-            ->where('store_active', 1)
-            ->pluck('store_name', 'store_name')
-            ->toArray();
-        
-        // Combiner les deux listes
-        $allOperators = array_merge($operators, $subStores);
+        // Utiliser le service centralisé
+        $allOperators = $this->subStoreService->getAllOperators();
         
         // Ajouter "Tous les opérateurs" en premier
         return array_merge(['ALL' => 'Tous les opérateurs'], $allOperators);
@@ -144,12 +131,7 @@ class OperatorsController extends Controller
      */
     private function getBasicOperators()
     {
-        return [
-            "S'abonner via TT" => "S'abonner via TT",
-            "S'abonner via Orange" => "S'abonner via Orange",
-            "S'abonner via Taraji" => "S'abonner via Taraji",
-            "S'abonner via Timwe" => "S'abonner via Timwe"
-        ];
+        return $this->subStoreService->getClassicOperators();
     }
     
     /**
@@ -176,12 +158,7 @@ class OperatorsController extends Controller
      */
     private function getFallbackOperators()
     {
-        return [
-            'ALL' => 'Tous les opérateurs',
-            "S'abonner via TT" => "S'abonner via TT",
-            "S'abonner via Orange" => "S'abonner via Orange",
-            "S'abonner via Taraji" => "S'abonner via Taraji",
-            "S'abonner via Timwe" => "S'abonner via Timwe"
-        ];
+        $classicOperators = $this->subStoreService->getClassicOperators();
+        return array_merge(['ALL' => 'Tous les opérateurs'], $classicOperators);
     }
 }
