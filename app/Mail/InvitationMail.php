@@ -32,7 +32,7 @@ class InvitationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Invitation à rejoindre Ooredoo Club Privilèges Dashboard',
+            subject: 'Invitation à rejoindre Club Privilèges Dashboard',
         );
     }
 

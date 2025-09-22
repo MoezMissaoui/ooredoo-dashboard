@@ -1043,6 +1043,252 @@
     .operator-option {
       padding: 4px 12px;
     }
+    
+    /* Eklektik Integration Styles */
+    .eklektik-filters {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    
+    .api-status-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .status-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .status-indicator {
+      margin-right: 8px;
+    }
+    
+    .status-indicator.success {
+      color: var(--success);
+    }
+    
+    .status-indicator.warning {
+      color: var(--warning);
+    }
+    
+    .status-indicator.danger {
+      color: var(--danger);
+    }
+    
+    .loading-spinner {
+      color: var(--muted);
+      font-style: italic;
+    }
+    
+    /* Service and Status Badges */
+    .service-badge, .status-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .service-badge.service-subscription {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .service-badge.service-promotion {
+      background: #fed7d7;
+      color: #c53030;
+    }
+    
+    .service-badge.service-notification {
+      background: #fef5e7;
+      color: #d69e2e;
+    }
+    
+    .service-badge.service-unknown {
+      background: #f7fafc;
+      color: #4a5568;
+    }
+    
+    .status-badge.status-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-badge.status-inactive {
+      background: #fed7d7;
+      color: #c53030;
+    }
+    
+    .status-badge.status-pending {
+      background: #fef5e7;
+      color: #d69e2e;
+    }
+    
+    .status-badge.status-unknown {
+      background: #f7fafc;
+      color: #4a5568;
+    }
+    
+    /* Usage meter */
+    .usage-meter {
+      position: relative;
+      width: 100%;
+      max-width: 120px;
+    }
+    
+    .usage-bar {
+      height: 8px;
+      background: linear-gradient(90deg, #22c55e 0%, #eab308 70%, #ef4444 100%);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    .usage-text {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      display: block;
+    }
+    
+    /* Action buttons */
+    .action-buttons {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .btn-sm {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-sm.btn-primary {
+      background: var(--brand-red);
+      color: white;
+    }
+    
+    .btn-sm.btn-primary:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+    }
+    
+    .btn-sm.btn-secondary {
+      background: #f1f5f9;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-sm.btn-secondary:hover {
+      background: #e2e8f0;
+      transform: translateY(-1px);
+    }
+    
+    /* Test Statistics Cards */
+    .test-stat-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    /* Progress animations */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Button success style */
+    .btn-success {
+      background: #10b981;
+      color: white;
+      border: 1px solid #10b981;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .btn-success:hover {
+      background: #059669;
+      border-color: #059669;
+      transform: translateY(-1px);
+    }
+    
+    .btn-success:disabled {
+      background: #9ca3af;
+      border-color: #9ca3af;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Responsive Eklektik */
+    @media (max-width: 768px) {
+      .eklektik-filters {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .api-status-item {
+        padding: 12px;
+      }
+      
+      .status-label {
+        font-size: 11px;
+      }
+      
+      .status-value {
+        font-size: 14px;
+      }
+      
+      .usage-meter {
+        max-width: 80px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        gap: 2px;
+      }
+      
+      .btn-sm {
+        padding: 3px 6px;
+        font-size: 11px;
+      }
+    }
 
     .control-info {
       font-size: 12px;
@@ -1677,7 +1923,7 @@
           <a href="{{ route('password.change') }}" class="admin-btn" title="Changer mon mot de passe">🔒 Mot de passe</a>
           
           @if(Auth::user()->canAccessSubStoresDashboard())
-          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-color: #8b5cf6;">
+          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn">
             🏪 Sub-Stores
           </a>
           @endif
@@ -1698,6 +1944,7 @@
       <button class="nav-tab" onclick="showTab('subscriptions')">Subscriptions</button>
       <button class="nav-tab" onclick="showTab('transactions')">Transactions</button>
       <button class="nav-tab" onclick="showTab('merchants')">Merchants</button>
+      <button class="nav-tab" onclick="showTab('eklektik')">📞 Eklektik</button>
       <button class="nav-tab" onclick="showTab('comparison')">Comparison</button>
       <!-- <button class="nav-tab" onclick="showTab('insights')">Insights</button> -->
     </div>
@@ -1777,7 +2024,7 @@
                 </label>
               </div>
               <div class="operators-list" id="operators-list">
-                <!-- Les opérateurs seront chargés dynamiquement -->
+            <!-- Les opérateurs seront chargés dynamiquement -->
               </div>
             </div>
           </div>
@@ -2321,7 +2568,228 @@
       </div>
     </div>
 
-    <!-- Tab 5: Comparison -->
+    <!-- Tab 5: Eklektik Integration -->
+    <div id="eklektik" class="tab-content">
+      <!-- Eklektik Header -->
+      <div class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="chart-title">
+            📞 Intégration API Eklektik
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Vue d'ensemble des numéros et services liés à l'API Eklektik">ⓘ</span>
+          </div>
+          <p style="color: var(--muted); margin-bottom: 20px;">
+            Gestion et visualisation des numéros de téléphone liés aux services Club Privilèges via l'API Eklektik
+          </p>
+        </div>
+      </div>
+
+      <!-- Eklektik KPIs -->
+      <div class="grid">
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Total Numéros <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de numéros enregistrés dans Eklektik">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-totalNumbers">Loading...</div>
+          <div class="kpi-delta" id="eklektik-totalNumbersDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Numéros Actifs <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Numéros actuellement actifs et disponibles">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-activeNumbers">Loading...</div>
+          <div class="kpi-delta" id="eklektik-activeNumbersDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Services Liés <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de services Club Privilèges connectés">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-linkedServices">Loading...</div>
+          <div class="kpi-delta" id="eklektik-linkedServicesDelta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Taux de Succès <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Pourcentage de succès des appels API Eklektik">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-successRate">Loading...</div>
+          <div class="kpi-delta" id="eklektik-successRateDelta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Eklektik Numbers Table -->
+      <div class="grid">
+        <div class="card table-card" style="grid-column: span 12;">
+          <div class="chart-title">
+            📱 Liste des Numéros Eklektik
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Tous les numéros de téléphone gérés via l'API Eklektik">ⓘ</span>
+          </div>
+          
+          <!-- Filters for Eklektik -->
+          <div class="eklektik-filters" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <select id="eklektik-status-filter" class="enhanced-select" style="min-width: 150px;">
+              <option value="ALL">Tous les statuts</option>
+              <option value="ACTIVE">Actifs</option>
+              <option value="INACTIVE">Inactifs</option>
+              <option value="PENDING">En attente</option>
+            </select>
+            
+            <select id="eklektik-service-filter" class="enhanced-select" style="min-width: 150px;">
+              <option value="ALL">Tous les services</option>
+              <option value="SUBSCRIPTION">Abonnements</option>
+              <option value="PROMOTION">Promotions</option>
+              <option value="NOTIFICATION">Notifications</option>
+            </select>
+            
+            <button class="btn-primary enhanced-btn" onclick="refreshEklektikData()">
+              🔄 Actualiser
+            </button>
+            
+            <button class="btn-success enhanced-btn" onclick="startBulkTest()" id="bulk-test-btn">
+              🧪 Tester Tous les Numéros
+            </button>
+            
+            <button class="btn-secondary enhanced-btn" onclick="exportEklektikData()">
+              📥 Exporter
+            </button>
+          </div>
+          
+          <!-- Bulk Test Progress -->
+          <div id="bulk-test-progress" style="display: none; margin-bottom: 16px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div class="spinner" style="width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+              <span><strong>Test en cours...</strong></span>
+              <span id="test-progress-text">Préparation...</span>
+            </div>
+            <div class="progress-bar" style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+              <div id="test-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+          
+          <!-- Test Results Summary -->
+          <div id="test-results-summary" style="display: none; margin-bottom: 16px;">
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+              <div class="test-stat-card">
+                <div class="stat-label">Total Testé</div>
+                <div class="stat-value" id="test-stat-total">0</div>
+              </div>
+              <div class="test-stat-card">
+                <div class="stat-label">Abonnements Actifs</div>
+                <div class="stat-value" id="test-stat-active" style="color: #10b981;">0</div>
+              </div>
+              <div class="test-stat-card">
+                <div class="stat-label">Non Abonnés</div>
+                <div class="stat-value" id="test-stat-inactive" style="color: #6b7280;">0</div>
+              </div>
+              <div class="test-stat-card">
+                <div class="stat-label">Erreurs</div>
+                <div class="stat-value" id="test-stat-errors" style="color: #ef4444;">0</div>
+              </div>
+              <div class="test-stat-card">
+                <div class="stat-label">Taux de Succès</div>
+                <div class="stat-value" id="test-stat-success-rate">0%</div>
+              </div>
+              <div class="test-stat-card">
+                <div class="stat-label">Temps Moyen</div>
+                <div class="stat-value" id="test-stat-avg-time">0ms</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="table-wrapper">
+            <table class="enhanced-table" id="eklektik-numbers-table">
+              <thead>
+                <tr>
+                  <th>📞 Numéro</th>
+                  <th>🏷️ Service</th>
+                  <th>⚡ Statut Eklektik</th>
+                  <th>📱 Opérateur</th>
+                  <th>💳 Méthode de Paiement</th>
+                  <th>🧪 Tests API</th>
+                  <th>💰 Prix</th>
+                  <th>📊 Source</th>
+                  <th>🔧 Actions</th>
+                </tr>
+              </thead>
+              <tbody id="eklektik-numbers-tbody">
+                <tr>
+                  <td colspan="9" style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner">⏳ Chargement des données Eklektik...</div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="grid">
+        <div class="card" style="grid-column: span 12; padding: 16px;">
+          <div style="display: flex; justify-content: between; align-items: center; gap: 16px;">
+            <div class="pagination-info">
+              <span id="eklektik-pagination-info">Affichage des numéros 1-20 sur 0</span>
+            </div>
+            
+            <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-secondary enhanced-btn" onclick="changePage(-1)" id="prev-page-btn" disabled>
+                ⬅️ Précédent
+              </button>
+              
+              <select id="page-size-select" class="enhanced-select" onchange="changePageSize()" style="min-width: 120px;">
+                <option value="10">10 par page</option>
+                <option value="20" selected>20 par page</option>
+                <option value="50">50 par page</option>
+                <option value="100">100 par page</option>
+              </select>
+              
+              <button class="btn-secondary enhanced-btn" onclick="changePage(1)" id="next-page-btn" disabled>
+                Suivant ➡️
+              </button>
+            </div>
+            
+            <div class="auto-refresh-controls" style="display: flex; gap: 8px; align-items: center;">
+              <label style="display: flex; align-items: center; gap: 6px;">
+                <input type="checkbox" id="auto-refresh-checkbox" onchange="toggleAutoRefresh()">
+                <span style="font-size: 12px; color: var(--muted);">Auto-actualisation (30s)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Eklektik API Status -->
+      <div class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="chart-title">
+            🔗 Statut de l'API Eklektik
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="État de la connexion et performance de l'API Eklektik">ⓘ</span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+            <div class="api-status-item">
+              <div class="status-label">🔗 Connexion API</div>
+              <div class="status-value" id="eklektik-api-status">
+                <span class="status-indicator">⏳</span> Vérification...
+              </div>
+            </div>
+            
+            <div class="api-status-item">
+              <div class="status-label">⚡ Temps de Réponse</div>
+              <div class="status-value" id="eklektik-response-time">
+                <span class="status-indicator">⏳</span> Mesure...
+              </div>
+            </div>
+            
+            <div class="api-status-item">
+              <div class="status-label">📊 Dernière Sync</div>
+              <div class="status-value" id="eklektik-last-sync">
+                <span class="status-indicator">⏳</span> Chargement...
+              </div>
+            </div>
+            
+            <div class="api-status-item">
+              <div class="status-label">🔄 Statut Sync</div>
+              <div class="status-value" id="eklektik-sync-status">
+                <span class="status-indicator">⏳</span> Vérification...
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 6: Comparison -->
     <div id="comparison" class="tab-content">
       <div class="grid">
         <!-- Comparison Table -->
@@ -2620,6 +3088,8 @@
             }
           });
         }
+        
+        // Eklektik charts removed (they were buggy)
       }, 250);
     });
 
@@ -2688,10 +3158,10 @@
           showNotification('🔄 Dashboard actualisé via raccourci clavier', 'info', 2000);
         }
         
-        // Tab navigation: 1-4 for tabs
-        if (['1', '2', '3', '4'].includes(e.key)) {
+        // Tab navigation: 1-5 for tabs
+        if (['1', '2', '3', '4', '5'].includes(e.key)) {
           e.preventDefault();
-          const tabs = ['overview', 'subscriptions', 'transactions', 'merchants'];
+          const tabs = ['overview', 'subscriptions', 'transactions', 'merchants', 'eklektik'];
           const tabName = tabs[parseInt(e.key) - 1];
           if (tabName) {
             showTab(tabName);
@@ -2930,13 +3400,21 @@
       // Auto-scroll to center active tab on mobile
       centerActiveTab(event.target);
       
+      // Load data for specific tabs
+      if (tabName === 'eklektik') {
+        loadEklektikData();
+      }
+      
       // Resize charts when tab becomes visible
       setTimeout(() => {
+        // Resize main dashboard charts
         Object.values(charts).forEach(chart => {
           if (chart && typeof chart.resize === 'function') {
             chart.resize();
           }
         });
+        
+        // Eklektik charts removed - no need to resize
       }, 100);
     }
     
@@ -2954,6 +3432,595 @@
           behavior: 'smooth'
         });
       }
+    }
+
+    // Eklektik Integration Functions
+    async function loadEklektikData() {
+      try {
+        console.log('🔄 [EKLEKTIK] Début du chargement des données...');
+        showEklektikLoading();
+        
+        // API call to get Eklektik data
+        const response = await fetch('/api/eklektik/numbers', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ [EKLEKTIK] Données reçues de l\'API:', data);
+        
+        // Afficher la source des données avec emoji
+        const source = data.debug?.source || 'UNKNOWN';
+        const sourceEmoji = {
+          'REAL_EKLEKTIK_API': '🟢 API RÉELLE',
+          'FALLBACK_MOCK': '🟡 DONNÉES DE SECOURS',
+          'MOCK_API': '🔵 DONNÉES DE TEST'
+        };
+        
+        console.log(`📊 [EKLEKTIK] Source: ${sourceEmoji[source] || '❓ INCONNUE'}`);
+        console.log('📱 [EKLEKTIK] Nombre de numéros:', data.numbers?.length || 0);
+        console.log('🎯 [EKLEKTIK] KPIs:', data.kpis);
+        console.log('🔧 [EKLEKTIK] Debug:', data.debug);
+        
+        updateEklektikDisplay(data);
+        
+        console.log('✅ [EKLEKTIK] Affichage mis à jour avec succès');
+      } catch (error) {
+        console.error('❌ [EKLEKTIK] Erreur lors du chargement:', error);
+        console.log('🔄 [EKLEKTIK] Basculement vers les données de fallback');
+        showEklektikError('Erreur lors du chargement des données Eklektik');
+      }
+    }
+    
+    function showEklektikLoading() {
+      // Show loading state for KPIs
+      document.getElementById('eklektik-totalNumbers').textContent = 'Loading...';
+      document.getElementById('eklektik-activeNumbers').textContent = 'Loading...';
+      document.getElementById('eklektik-linkedServices').textContent = 'Loading...';
+      document.getElementById('eklektik-successRate').textContent = 'Loading...';
+      
+      // Show loading for table
+      const tbody = document.getElementById('eklektik-numbers-tbody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 40px;">
+            <div class="loading-spinner">⏳ Chargement des données Eklektik...</div>
+          </td>
+        </tr>
+      `;
+    }
+    
+    function updateEklektikDisplay(data) {
+      // Update KPIs
+      document.getElementById('eklektik-totalNumbers').textContent = data.kpis?.totalNumbers || '0';
+      document.getElementById('eklektik-activeNumbers').textContent = data.kpis?.activeNumbers || '0';
+      document.getElementById('eklektik-linkedServices').textContent = data.kpis?.linkedServices || '0';
+      document.getElementById('eklektik-successRate').textContent = `${data.kpis?.successRate || 0}%`;
+      
+      // Update deltas (if available)
+      const totalDelta = data.kpis?.totalNumbersDelta;
+      if (totalDelta !== undefined) {
+        const deltaEl = document.getElementById('eklektik-totalNumbersDelta');
+        deltaEl.textContent = `${totalDelta > 0 ? '+' : ''}${totalDelta}%`;
+        deltaEl.className = `kpi-delta ${totalDelta >= 0 ? 'positive' : 'negative'}`;
+      }
+      
+      // Update table
+      updateEklektikTable(data.numbers || []);
+      
+      // Update API status
+      updateEklektikApiStatus(data.apiStatus || {});
+      
+      // Setup pagination for the table
+      setupPagination(data.numbers || []);
+    }
+    
+    function updateEklektikTable(numbers) {
+      const tbody = document.getElementById('eklektik-numbers-tbody');
+      
+      if (!numbers || numbers.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 40px; color: var(--muted);">
+              📱 Aucun numéro Eklektik trouvé
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = numbers.map(number => `
+        <tr>
+          <td><strong>${number.phone_number}</strong></td>
+          <td>
+            <span class="service-badge service-${(number.service_type || 'unknown').toLowerCase()}">
+              ${getServiceIcon(number.service_type)} ${number.service_type || 'Unknown'}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge status-${(number.status || 'unknown').toLowerCase()}">
+              ${getStatusIcon(number.status)} ${number.status || 'Unknown'}
+            </span>
+          </td>
+          <td>
+            <span class="operator-badge operator-${(number.operator || 'unknown').toLowerCase()}">
+              ${number.operator === 'TT' ? '🔵' : number.operator === 'Orange' ? '🟠' : '❓'} ${number.operator || 'Unknown'}
+            </span>
+          </td>
+          <td style="font-size: 11px; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">
+            ${number.payment_method || 'Unknown'}
+          </td>
+          <td>
+            ${number.eklektik_summary ? `
+              <div style="font-size: 10px;">
+                <div>✅ ${number.eklektik_summary.active_offers ? number.eklektik_summary.active_offers.length : 0} actifs</div>
+                <div>📋 ${number.eklektik_summary.available_offers_count || 0} disponibles</div>
+                <div>❌ ${number.eklektik_summary.error_offers_count || 0} erreurs</div>
+              </div>
+            ` : '<span style="color: var(--muted); font-size: 11px;">Non testé</span>'}
+          </td>
+          <td>
+            <strong style="color: var(--primary);">${number.price || 0} TND</strong>
+            ${number.duration ? `<br><small>${number.duration} jours</small>` : ''}
+          </td>
+          <td>
+            <span class="source-badge source-${(number.source || 'unknown').toLowerCase()}" style="font-size: 10px;">
+              ${number.source === 'EKLEKTIK_API_TESTED' ? '🟢 API Testé' : 
+                number.source === 'LOCAL_DATABASE_EKLEKTIK_ONLY' ? '🔵 Local' : 
+                number.source === 'LOCAL_DATABASE_READY_FOR_API_TEST' ? '🟡 Prêt pour Test' :
+                number.source === 'FALLBACK_LOCAL_DATA' ? '🟡 Fallback' : '❓ Unknown'}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-sm btn-primary" onclick="viewEklektikDetails('${number.phone_number}')" title="Voir détails">
+                👁️
+              </button>
+              <button class="btn-sm btn-secondary" onclick="testEklektikNumber('${number.phone_number}')" title="Tester">
+                🧪
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+    
+    function updateEklektikApiStatus(apiStatus) {
+      // Connection status
+      const connectionEl = document.getElementById('eklektik-api-status');
+      const isConnected = apiStatus.connected !== false;
+      connectionEl.innerHTML = `
+        <span class="status-indicator ${isConnected ? 'success' : 'danger'}">
+          ${isConnected ? '✅' : '❌'}
+        </span>
+        ${isConnected ? 'Connecté' : 'Déconnecté'}
+      `;
+      
+      // Response time
+      const responseTimeEl = document.getElementById('eklektik-response-time');
+      const responseTime = apiStatus.responseTime || 0;
+      const timeStatus = responseTime < 1000 ? 'success' : responseTime < 3000 ? 'warning' : 'danger';
+      responseTimeEl.innerHTML = `
+        <span class="status-indicator ${timeStatus}">⚡</span>
+        ${responseTime}ms
+      `;
+      
+      // Last sync
+      const lastSyncEl = document.getElementById('eklektik-last-sync');
+      lastSyncEl.innerHTML = `
+        <span class="status-indicator">📊</span>
+        ${formatDate(apiStatus.lastSync) || 'Jamais'}
+      `;
+      
+      // Sync status
+      const syncStatusEl = document.getElementById('eklektik-sync-status');
+      const syncStatus = apiStatus.syncStatus || 'unknown';
+      const syncIcon = syncStatus === 'success' ? '✅' : syncStatus === 'error' ? '❌' : '⏳';
+      syncStatusEl.innerHTML = `
+        <span class="status-indicator">${syncIcon}</span>
+        ${syncStatus === 'success' ? 'OK' : syncStatus === 'error' ? 'Erreur' : 'En cours'}
+      `;
+    }
+    
+    function createEklektikCharts(chartsData) {
+      console.log('🔍 [EKLEKTIK DEBUG] Création des graphiques avec données:', chartsData);
+      
+      // Destroy existing charts to prevent conflicts
+      if (window.eklektikCharts) {
+        Object.values(window.eklektikCharts).forEach(chart => {
+          if (chart && typeof chart.destroy === 'function') {
+            chart.destroy();
+          }
+        });
+      }
+      window.eklektikCharts = {};
+      
+      // Usage by service chart
+      const usageCtx = document.getElementById('eklektik-usage-chart')?.getContext('2d');
+      if (usageCtx && chartsData.serviceUsage) {
+        console.log('📊 [EKLEKTIK] Création graphique usage service:', chartsData.serviceUsage);
+        window.eklektikCharts.usage = new Chart(usageCtx, {
+          type: 'doughnut',
+          data: {
+            labels: chartsData.serviceUsage.labels || [],
+            datasets: [{
+              data: chartsData.serviceUsage.data || [],
+              backgroundColor: ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6'],
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 1000
+            },
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      }
+      
+      // Timeline chart
+      const timelineCtx = document.getElementById('eklektik-timeline-chart')?.getContext('2d');
+      if (timelineCtx && chartsData.timeline) {
+        console.log('📈 [EKLEKTIK] Création graphique timeline:', chartsData.timeline);
+        window.eklektikCharts.timeline = new Chart(timelineCtx, {
+          type: 'line',
+          data: {
+            labels: chartsData.timeline.labels || [],
+            datasets: [{
+              label: 'Appels API',
+              data: chartsData.timeline.data || [],
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 1000
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0,0,0,0.1)'
+                }
+              },
+              x: {
+                grid: {
+                  color: 'rgba(0,0,0,0.1)'
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+    
+    // Variables globales pour la pagination
+    let currentPage = 1;
+    let pageSize = 20;
+    let totalNumbers = 0;
+    let allEklektikNumbers = [];
+    let autoRefreshInterval = null;
+
+    function setupPagination(numbers) {
+      allEklektikNumbers = numbers || [];
+      totalNumbers = allEklektikNumbers.length;
+      currentPage = 1;
+      
+      updatePaginationDisplay();
+      updateTableWithPagination();
+    }
+
+    function updatePaginationDisplay() {
+      const start = ((currentPage - 1) * pageSize) + 1;
+      const end = Math.min(currentPage * pageSize, totalNumbers);
+      
+      document.getElementById('eklektik-pagination-info').textContent = 
+        `Affichage des numéros ${start}-${end} sur ${totalNumbers}`;
+      
+      // Update button states
+      document.getElementById('prev-page-btn').disabled = currentPage <= 1;
+      document.getElementById('next-page-btn').disabled = currentPage >= Math.ceil(totalNumbers / pageSize);
+    }
+
+    function changePage(direction) {
+      const maxPages = Math.ceil(totalNumbers / pageSize);
+      
+      if (direction === 1 && currentPage < maxPages) {
+        currentPage++;
+      } else if (direction === -1 && currentPage > 1) {
+        currentPage--;
+      }
+      
+      updatePaginationDisplay();
+      updateTableWithPagination();
+    }
+
+    function changePageSize() {
+      pageSize = parseInt(document.getElementById('page-size-select').value);
+      currentPage = 1; // Reset to first page
+      updatePaginationDisplay();
+      updateTableWithPagination();
+    }
+
+    function updateTableWithPagination() {
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      const pageNumbers = allEklektikNumbers.slice(start, end);
+      
+      updateEklektikTable(pageNumbers);
+    }
+
+    function toggleAutoRefresh() {
+      const checkbox = document.getElementById('auto-refresh-checkbox');
+      
+      if (checkbox.checked) {
+        autoRefreshInterval = setInterval(() => {
+          console.log('🔄 Auto-actualisation Eklektik...');
+          refreshEklektikData();
+        }, 30000); // 30 secondes
+        console.log('✅ Auto-actualisation activée (30s)');
+      } else {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+        }
+        console.log('❌ Auto-actualisation désactivée');
+      }
+    }
+    
+    function refreshEklektikData() {
+      showNotification('🔄 Actualisation des données Eklektik...', 'info', 2000);
+      loadEklektikData();
+    }
+    
+    function exportEklektikData() {
+      showNotification('📥 Export des données Eklektik en cours...', 'info', 2000);
+      // TODO: Implement export functionality
+    }
+    
+    // Bulk test functionality
+    async function startBulkTest() {
+      try {
+        const btn = document.getElementById('bulk-test-btn');
+        const progressDiv = document.getElementById('bulk-test-progress');
+        const progressText = document.getElementById('test-progress-text');
+        const progressFill = document.getElementById('test-progress-fill');
+        const summaryDiv = document.getElementById('test-results-summary');
+        
+        // Disable button and show progress
+        btn.disabled = true;
+        btn.textContent = '🧪 Test en cours...';
+        progressDiv.style.display = 'block';
+        summaryDiv.style.display = 'none';
+        
+        progressText.textContent = 'Authentification...';
+        progressFill.style.width = '10%';
+        
+        console.log('🧪 [EKLEKTIK] Démarrage du test en masse...');
+        
+        // Start the bulk test
+        const response = await fetch('/api/eklektik/test-all', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            limit: 50, // Limit for demo
+            operator: 'ALL'
+          })
+        });
+        
+        progressText.textContent = 'Test des numéros en cours...';
+        progressFill.style.width = '50%';
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        progressText.textContent = 'Traitement des résultats...';
+        progressFill.style.width = '90%';
+        
+        console.log('✅ [EKLEKTIK] Test en masse terminé:', result);
+        
+        // Update results
+        updateBulkTestResults(result);
+        
+        progressText.textContent = 'Terminé !';
+        progressFill.style.width = '100%';
+        
+        // Hide progress after a moment
+        setTimeout(() => {
+          progressDiv.style.display = 'none';
+          btn.disabled = false;
+          btn.textContent = '🧪 Tester Tous les Numéros';
+        }, 2000);
+        
+        showNotification('✅ Test en masse terminé avec succès !', 'success', 3000);
+        
+      } catch (error) {
+        console.error('❌ [EKLEKTIK] Erreur lors du test en masse:', error);
+        
+        // Reset UI on error
+        const btn = document.getElementById('bulk-test-btn');
+        const progressDiv = document.getElementById('bulk-test-progress');
+        
+        progressDiv.style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = '🧪 Tester Tous les Numéros';
+        
+        showNotification('❌ Erreur lors du test en masse', 'error', 3000);
+      }
+    }
+    
+    function updateBulkTestResults(result) {
+      const summaryDiv = document.getElementById('test-results-summary');
+      const tableBody = document.getElementById('eklektik-numbers-tbody');
+      
+      if (!result.success || !result.statistics) {
+        showNotification('❌ Erreur dans les résultats du test', 'error', 3000);
+        return;
+      }
+      
+      const stats = result.statistics;
+      
+      // Update statistics
+      document.getElementById('test-stat-total').textContent = stats.total || 0;
+      document.getElementById('test-stat-active').textContent = stats.active || 0;
+      document.getElementById('test-stat-inactive').textContent = (stats.available || 0) + (stats.timeout || 0);
+      document.getElementById('test-stat-errors').textContent = stats.errors || 0;
+      document.getElementById('test-stat-success-rate').textContent = `${stats.success_rate || 0}%`;
+      document.getElementById('test-stat-avg-time').textContent = `${stats.avg_response_time || 0}ms`;
+      
+      // Afficher les timeouts séparément si présents
+      if (stats.timeout > 0) {
+        console.log(`⏱️ [EKLEKTIK] ${stats.timeout} timeout(s) détecté(s) - API Eklektik lente`);
+      }
+      
+      // Show summary
+      summaryDiv.style.display = 'block';
+      
+      // Update table with test results
+      if (result.results && result.results.length > 0) {
+        tableBody.innerHTML = result.results.map(testResult => `
+          <tr>
+            <td><strong>${testResult.msisdn}</strong></td>
+            <td>
+              <span class="service-badge service-subscription">
+                📱 SUBSCRIPTION
+              </span>
+            </td>
+            <td>
+              <span class="status-badge status-${(testResult.final_status || 'unknown').toLowerCase()}">
+                ${getStatusIcon(testResult.final_status)} ${testResult.final_status || 'Unknown'}
+              </span>
+            </td>
+            <td>
+              <span class="operator-badge operator-${(testResult.operator || 'unknown').toLowerCase()}">
+                ${testResult.operator === 'TT' ? '🔵' : testResult.operator === 'Orange' ? '🟠' : '❓'} ${testResult.operator || 'Unknown'}
+              </span>
+            </td>
+            <td style="font-size: 11px; max-width: 120px; overflow: hidden; text-overflow: ellipsis;">
+              ${testResult.payment_method || 'Unknown'}
+            </td>
+            <td>
+              <div style="font-size: 10px;">
+                <div>🧪 ${testResult.tests ? testResult.tests.length : 0} tests</div>
+                <div>✅ ${testResult.summary && testResult.summary.active_offers ? testResult.summary.active_offers.length : 0} actifs</div>
+                <div>📋 ${testResult.summary && testResult.summary.available_offers_count ? testResult.summary.available_offers_count : 0} disponibles</div>
+              </div>
+            </td>
+            <td>
+              <strong style="color: var(--primary);">${testResult.subscription_name || 'N/A'}</strong>
+              <br><small>${testResult.response_time_ms || 0}ms</small>
+            </td>
+            <td>
+              <span class="source-badge" style="font-size: 10px;">
+                🟢 API Réel Testé
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-sm btn-primary" onclick="viewTestDetails('${testResult.msisdn}')" title="Voir détails">
+                  👁️
+                </button>
+                <button class="btn-sm btn-secondary" onclick="testEklektikNumber('${testResult.msisdn}')" title="Tester">
+                  🧪
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      } else {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="9" style="text-align: center; padding: 40px; color: var(--muted);">
+              📱 Aucun résultat de test disponible
+            </td>
+          </tr>
+        `;
+      }
+    }
+    
+    function viewTestDetails(msisdn) {
+      showNotification(`👁️ Détails pour le test du numéro ${msisdn}`, 'info', 2000);
+      console.log(`[EKLEKTIK] Demande de détails pour ${msisdn}`);
+      // TODO: Implement detailed view
+    }
+    
+    function viewEklektikDetails(phoneNumber) {
+      showNotification(`👁️ Détails pour ${phoneNumber}`, 'info', 2000);
+      // TODO: Implement detail view
+    }
+    
+    function testEklektikNumber(phoneNumber) {
+      showNotification(`🧪 Test du numéro ${phoneNumber}...`, 'info', 2000);
+      // TODO: Implement number testing
+    }
+    
+    function showEklektikError(message) {
+      const tbody = document.getElementById('eklektik-numbers-tbody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 40px; color: var(--danger);">
+            ❌ ${message}
+          </td>
+        </tr>
+      `;
+    }
+    
+    // Helper functions
+    function getServiceIcon(serviceType) {
+      const icons = {
+        'SUBSCRIPTION': '📱',
+        'PROMOTION': '🎯',
+        'NOTIFICATION': '🔔',
+        'default': '📞'
+      };
+      return icons[serviceType] || icons.default;
+    }
+    
+    function getStatusIcon(status) {
+      const icons = {
+        'ACTIVE': '✅',
+        'INACTIVE': '❌',
+        'PENDING': '⏳',
+        'default': '❓'
+      };
+      return icons[status] || icons.default;
+    }
+    
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR') + ' ' + date.toLocaleTimeString('fr-FR', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
     }
 
     // Load dashboard data with simple loading

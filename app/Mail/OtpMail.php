@@ -35,8 +35,8 @@ class OtpMail extends Mailable
     public function envelope(): Envelope
     {
         $subject = $this->isInvitation 
-            ? 'Code de confirmation - Invitation Ooredoo Club Privilèges'
-            : 'Code de connexion - Ooredoo Club Privilèges Dashboard';
+            ? 'Code de confirmation - Invitation Club Privilèges'
+            : 'Code de connexion - Club Privilèges Dashboard';
             
         return new Envelope(
             subject: $subject,

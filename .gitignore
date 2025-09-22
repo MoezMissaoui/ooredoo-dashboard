@@ -5,7 +5,7 @@
 /public/storage
 /storage/*.key
 /vendor
-.env
+#.env
 .env.backup
 .env.production
 .phpunit.result.cache
@@ -25,3 +25,4 @@ storage/logs/**/*.log
 /backups/
 *.zip
 *.pdf
+.env

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\DataController;
+use App\Http\Controllers\Api\EklektikController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,6 +20,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+// API pour récupérer les opérateurs
+Route::middleware('auth')->get('/operators', [\App\Http\Controllers\Api\OperatorsController::class, 'getOperators'])->name('api.operators');
+
 // Dashboard API routes
 Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/data', [DataController::class, 'getDashboardData'])->name('data');
@@ -28,6 +32,13 @@ Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/merchants', [DataController::class, 'getMerchants'])->name('merchants');
     Route::get('/transactions', [DataController::class, 'getTransactions'])->name('transactions');
     Route::get('/subscriptions', [DataController::class, 'getSubscriptions'])->name('subscriptions');
+});
+
+// Eklektik API routes - Contrôleur consolidé (sans auth pour test)
+Route::prefix('eklektik')->name('api.eklektik.')->group(function () {
+    Route::get('/numbers', [EklektikController::class, 'getDashboardData'])->name('numbers');
+    Route::get('/dashboard-data', [EklektikController::class, 'getDashboardData'])->name('dashboard-data');
+    Route::get('/test', [EklektikController::class, 'getDashboardData'])->name('test');
 });
 
 // Routes optimisées additionnelles si présentes

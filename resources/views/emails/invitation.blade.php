@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invitation Ooredoo Club Privilèges</title>
+    <title>Invitation Club Privilèges</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -24,7 +24,7 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #E30613 0%, #c20510 100%);
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
             padding: 40px 30px;
             text-align: center;
             color: white;
@@ -62,12 +62,12 @@
             border-radius: 8px;
             padding: 20px;
             margin: 20px 0;
-            border-left: 4px solid #E30613;
+            border-left: 4px solid #8B5CF6;
         }
         
         .details h3 {
             margin: 0 0 15px 0;
-            color: #E30613;
+            color: #8B5CF6;
             font-size: 16px;
         }
         
@@ -78,7 +78,7 @@
         
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #E30613 0%, #c20510 100%);
+            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
             color: white;
             padding: 15px 30px;
             text-decoration: none;
@@ -87,7 +87,7 @@
             font-size: 16px;
             margin: 20px 0;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(227, 6, 19, 0.2);
+            box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2);
         }
         
         .cta-container {
@@ -167,7 +167,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Ooredoo Club Privilèges</h1>
+            <h1>Club Privilèges</h1>
             <p>Dashboard Administrateur</p>
         </div>
         
@@ -177,7 +177,7 @@
             </div>
             
             <div class="message">
-                <p>Vous avez été invité(e) à rejoindre la plateforme <strong>Ooredoo Club Privilèges Dashboard</strong> par <strong>{{ $invitation->invitedBy->name ?? 'un administrateur' }}</strong>.</p>
+                <p>Vous avez été invité(e) à rejoindre la plateforme <strong>Club Privilèges Dashboard</strong> par <strong>{{ $invitation->invitedBy->name ?? 'un administrateur' }}</strong>.</p>
                 
                 @if($invitation->additional_data && isset($invitation->additional_data['message']))
                     <div class="details">
@@ -220,11 +220,11 @@
         </div>
         
         <div class="footer">
-            <p><strong>Ooredoo Club Privilèges</strong></p>
+            <p><strong>Club Privilèges</strong></p>
             <p>Dashboard Administrateur</p>
             <p style="margin-top: 15px;">
                 Si vous avez des questions, contactez-nous à : 
-                <a href="mailto:{{ config('mail.from_address') }}" style="color: #E30613;">{{ config('mail.from_address') }}</a>
+                <a href="mailto:{{ config('mail.from_address') }}" style="color: #8B5CF6;">{{ config('mail.from_address') }}</a>
             </p>
         </div>
     </div>
