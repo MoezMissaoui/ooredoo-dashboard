@@ -357,12 +357,9 @@ class User extends Authenticatable
         $primaryOperator = $this->primaryOperator();
         if (!$primaryOperator) return false;
         
-        // Liste des opérateurs considérés comme "sub-stores"
-        $subStoreOperators = [
-            'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-            'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom',
-            'Université centrale'
-        ];
+        // Utiliser le service centralisé pour vérifier si c'est un sub-store
+        $subStoreService = app(\App\Services\SubStoreService::class);
+        return $subStoreService->isSubStoreOperator($primaryOperator->operator_name);
         
         return in_array($primaryOperator->operator_name, $subStoreOperators);
     }
