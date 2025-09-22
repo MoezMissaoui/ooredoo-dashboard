@@ -2,12 +2,20 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SubStoreService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class DashboardAccessMiddleware
 {
+    protected $subStoreService;
+
+    public function __construct(SubStoreService $subStoreService)
+    {
+        $this->subStoreService = $subStoreService;
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -62,13 +70,8 @@ class DashboardAccessMiddleware
             return false;
         }
         
-        // Liste des opérateurs considérés comme "sub-stores"
-        $subStoreOperators = [
-            'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-            'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom'
-        ];
-        
-        return in_array($primaryOperator->operator_name, $subStoreOperators);
+        // Utiliser le service centralisé pour vérifier si c'est un sub-store
+        return $this->subStoreService->isSubStoreOperator($primaryOperator->operator_name);
     }
     
     /**
@@ -85,13 +88,8 @@ class DashboardAccessMiddleware
             return false;
         }
         
-        // Liste des opérateurs considérés comme "sub-stores"
-        $subStoreOperators = [
-            'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-            'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom'
-        ];
-        
-        return in_array($primaryOperator->operator_name, $subStoreOperators);
+        // Utiliser le service centralisé pour vérifier si c'est un sub-store
+        return $this->subStoreService->isSubStoreOperator($primaryOperator->operator_name);
     }
     
     /**
