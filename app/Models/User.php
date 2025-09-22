@@ -360,7 +360,8 @@ class User extends Authenticatable
         // Liste des opérateurs considérés comme "sub-stores"
         $subStoreOperators = [
             'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-            'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom'
+            'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom',
+            'Université centrale'
         ];
         
         return in_array($primaryOperator->operator_name, $subStoreOperators);
@@ -393,7 +394,8 @@ class User extends Authenticatable
             // Liste des opérateurs considérés comme "sub-stores"
             $subStoreOperators = [
                 'Sub-Stores', 'Retail', 'Partnership', 'White Mark', 
-                'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom'
+                'Magasins', 'Boutiques', 'Points de Vente', 'Sofrecom',
+                'Université centrale'
             ];
             
             return in_array($primaryOperator->operator_name, $subStoreOperators);
