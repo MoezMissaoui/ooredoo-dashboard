@@ -360,8 +360,6 @@ class User extends Authenticatable
         // Utiliser le service centralisé pour vérifier si c'est un sub-store
         $subStoreService = app(\App\Services\SubStoreService::class);
         return $subStoreService->isSubStoreOperator($primaryOperator->operator_name);
-        
-        return in_array($primaryOperator->operator_name, $subStoreOperators);
     }
 
     /**
