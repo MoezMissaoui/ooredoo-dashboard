@@ -6,8 +6,10 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\InvitationController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\EklektikCronController;
 use App\Http\Controllers\SubStoreController;
 use App\Http\Controllers\Api\DataController;
+use App\Http\Controllers\EklektikSyncController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +48,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Routes d'invitation (accessibles même si connecté)
 Route::get('/invitation/{token}', [AuthController::class, 'processInvitation'])->name('auth.invitation');
+
+// Route de test des graphiques Eklektik
+// Routes de test supprimées - graphiques Eklektik intégrés au dashboard principal
 Route::post('/invitation/accept', [InvitationController::class, 'acceptInvitation'])->name('auth.invitation.accept');
 
 // Dashboard routes (protégées par authentification)
@@ -104,6 +109,28 @@ Route::middleware('auth')->group(function () {
         Route::post('/invitations/{invitation}/resend', [InvitationController::class, 'resend'])->name('invitations.resend');
         Route::patch('/invitations/{invitation}/cancel', [InvitationController::class, 'cancel'])->name('invitations.cancel');
         Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
+        
+        // Configuration du Cron Eklektik (Super Admin seulement)
+        Route::middleware('role:super_admin')->group(function () {
+            Route::get('/eklektik-cron', [EklektikCronController::class, 'index'])->name('admin.eklektik-cron');
+            Route::get('/eklektik-cron/config', [EklektikCronController::class, 'index'])->name('admin.eklektik-cron.config');
+            Route::post('/eklektik-cron/config', [EklektikCronController::class, 'updateConfig'])->name('admin.eklektik-cron.update');
+            Route::post('/eklektik-cron/test', [EklektikCronController::class, 'testCron'])->name('admin.eklektik-cron.test');
+            Route::post('/eklektik-cron/run', [EklektikCronController::class, 'runCron'])->name('admin.eklektik-cron.run');
+            Route::post('/eklektik-cron/reset', [EklektikCronController::class, 'resetToDefault'])->name('admin.eklektik-cron.reset');
+            Route::get('/eklektik-cron/statistics', [EklektikCronController::class, 'getCronStatus'])->name('admin.eklektik-cron.statistics');
+        });
+        
+        // Gestion des Synchronisations Eklektik (Super Admin et Admin)
+        Route::get('/eklektik-sync', [EklektikSyncController::class, 'index'])->name('eklektik.sync');
+        Route::post('/eklektik-sync', [EklektikSyncController::class, 'sync'])->name('eklektik.sync');
+        Route::get('/eklektik-sync/status', [EklektikSyncController::class, 'status'])->name('eklektik.status');
+        Route::get('/eklektik-sync/logs', [EklektikSyncController::class, 'logs'])->name('eklektik.logs');
+        
+        // Dashboard Eklektik Intégré (Super Admin et Admin)
+        Route::get('/eklektik-dashboard', function() {
+            return view('eklektik.dashboard');
+        })->name('eklektik.dashboard');
     });
 });
 

@@ -2570,223 +2570,107 @@
 
     <!-- Tab 5: Eklektik Integration -->
     <div id="eklektik" class="tab-content">
-      <!-- Eklektik Header -->
+
+      <!-- Boutons de Configuration Eklektik -->
       <div class="grid">
         <div class="card" style="grid-column: span 12;">
           <div class="chart-title">
-            📞 Intégration API Eklektik
-            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Vue d'ensemble des numéros et services liés à l'API Eklektik">ⓘ</span>
+            ⚙️ Configuration Eklektik
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Gestion et configuration du système Eklektik">ⓘ</span>
           </div>
-          <p style="color: var(--muted); margin-bottom: 20px;">
-            Gestion et visualisation des numéros de téléphone liés aux services Club Privilèges via l'API Eklektik
-          </p>
-        </div>
-      </div>
-
-      <!-- Eklektik KPIs -->
-      <div class="grid">
-        <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Total Numéros <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de numéros enregistrés dans Eklektik">ⓘ</span></div>
-          <div class="kpi-value" id="eklektik-totalNumbers">Loading...</div>
-          <div class="kpi-delta" id="eklektik-totalNumbersDelta">Loading...</div>
-        </div>
-        <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Numéros Actifs <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Numéros actuellement actifs et disponibles">ⓘ</span></div>
-          <div class="kpi-value" id="eklektik-activeNumbers">Loading...</div>
-          <div class="kpi-delta" id="eklektik-activeNumbersDelta">Loading...</div>
-        </div>
-        <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Services Liés <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de services Club Privilèges connectés">ⓘ</span></div>
-          <div class="kpi-value" id="eklektik-linkedServices">Loading...</div>
-          <div class="kpi-delta" id="eklektik-linkedServicesDelta">Loading...</div>
-        </div>
-        <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Taux de Succès <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Pourcentage de succès des appels API Eklektik">ⓘ</span></div>
-          <div class="kpi-value" id="eklektik-successRate">Loading...</div>
-          <div class="kpi-delta" id="eklektik-successRateDelta">Loading...</div>
-        </div>
-      </div>
-
-      <!-- Eklektik Numbers Table -->
-      <div class="grid">
-        <div class="card table-card" style="grid-column: span 12;">
-          <div class="chart-title">
-            📱 Liste des Numéros Eklektik
-            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Tous les numéros de téléphone gérés via l'API Eklektik">ⓘ</span>
-          </div>
-          
-          <!-- Filters for Eklektik -->
-          <div class="eklektik-filters" style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
-            <select id="eklektik-status-filter" class="enhanced-select" style="min-width: 150px;">
-              <option value="ALL">Tous les statuts</option>
-              <option value="ACTIVE">Actifs</option>
-              <option value="INACTIVE">Inactifs</option>
-              <option value="PENDING">En attente</option>
-            </select>
-            
-            <select id="eklektik-service-filter" class="enhanced-select" style="min-width: 150px;">
-              <option value="ALL">Tous les services</option>
-              <option value="SUBSCRIPTION">Abonnements</option>
-              <option value="PROMOTION">Promotions</option>
-              <option value="NOTIFICATION">Notifications</option>
-            </select>
-            
-            <button class="btn-primary enhanced-btn" onclick="refreshEklektikData()">
-              🔄 Actualiser
+          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+            <button class="btn-primary enhanced-btn" onclick="window.open('/admin/eklektik-dashboard', '_blank')">
+              📊 Dashboard Eklektik Complet
             </button>
-            
-            <button class="btn-success enhanced-btn" onclick="startBulkTest()" id="bulk-test-btn">
-              🧪 Tester Tous les Numéros
+            <button class="btn-secondary enhanced-btn" onclick="window.open('/admin/eklektik-sync', '_blank')">
+              🔄 Gestion des Synchronisations
             </button>
-            
-            <button class="btn-secondary enhanced-btn" onclick="exportEklektikData()">
-              📥 Exporter
+            <button class="btn-info enhanced-btn" onclick="checkEklektikSyncStatus()">
+              📈 Statut de Synchronisation
+            </button>
+            <button class="btn-warning enhanced-btn" onclick="clearEklektikCache()">
+              🗑️ Vider le Cache
             </button>
           </div>
-          
-          <!-- Bulk Test Progress -->
-          <div id="bulk-test-progress" style="display: none; margin-bottom: 16px; padding: 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-              <div class="spinner" style="width: 20px; height: 20px; border: 2px solid #e2e8f0; border-top: 2px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-              <span><strong>Test en cours...</strong></span>
-              <span id="test-progress-text">Préparation...</span>
-            </div>
-            <div class="progress-bar" style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-              <div id="test-progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s ease;"></div>
-            </div>
-          </div>
-          
-          <!-- Test Results Summary -->
-          <div id="test-results-summary" style="display: none; margin-bottom: 16px;">
-            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
-              <div class="test-stat-card">
-                <div class="stat-label">Total Testé</div>
-                <div class="stat-value" id="test-stat-total">0</div>
-              </div>
-              <div class="test-stat-card">
-                <div class="stat-label">Abonnements Actifs</div>
-                <div class="stat-value" id="test-stat-active" style="color: #10b981;">0</div>
-              </div>
-              <div class="test-stat-card">
-                <div class="stat-label">Non Abonnés</div>
-                <div class="stat-value" id="test-stat-inactive" style="color: #6b7280;">0</div>
-              </div>
-              <div class="test-stat-card">
-                <div class="stat-label">Erreurs</div>
-                <div class="stat-value" id="test-stat-errors" style="color: #ef4444;">0</div>
-              </div>
-              <div class="test-stat-card">
-                <div class="stat-label">Taux de Succès</div>
-                <div class="stat-value" id="test-stat-success-rate">0%</div>
-              </div>
-              <div class="test-stat-card">
-                <div class="stat-label">Temps Moyen</div>
-                <div class="stat-value" id="test-stat-avg-time">0ms</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="table-wrapper">
-            <table class="enhanced-table" id="eklektik-numbers-table">
-              <thead>
-                <tr>
-                  <th>📞 Numéro</th>
-                  <th>🏷️ Service</th>
-                  <th>⚡ Statut Eklektik</th>
-                  <th>📱 Opérateur</th>
-                  <th>💳 Méthode de Paiement</th>
-                  <th>🧪 Tests API</th>
-                  <th>💰 Prix</th>
-                  <th>📊 Source</th>
-                  <th>🔧 Actions</th>
-                </tr>
-              </thead>
-              <tbody id="eklektik-numbers-tbody">
-                <tr>
-                  <td colspan="9" style="text-align: center; padding: 40px;">
-                    <div class="loading-spinner">⏳ Chargement des données Eklektik...</div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
-      <!-- Pagination Controls -->
+      <!-- Statistiques Eklektik KPIs - 8 KPIs sur 2 lignes -->
       <div class="grid">
-        <div class="card" style="grid-column: span 12; padding: 16px;">
-          <div style="display: flex; justify-content: between; align-items: center; gap: 16px;">
-            <div class="pagination-info">
-              <span id="eklektik-pagination-info">Affichage des numéros 1-20 sur 0</span>
-            </div>
-            
-            <div class="pagination-controls" style="display: flex; gap: 8px; align-items: center;">
-              <button class="btn-secondary enhanced-btn" onclick="changePage(-1)" id="prev-page-btn" disabled>
-                ⬅️ Précédent
-              </button>
-              
-              <select id="page-size-select" class="enhanced-select" onchange="changePageSize()" style="min-width: 120px;">
-                <option value="10">10 par page</option>
-                <option value="20" selected>20 par page</option>
-                <option value="50">50 par page</option>
-                <option value="100">100 par page</option>
-              </select>
-              
-              <button class="btn-secondary enhanced-btn" onclick="changePage(1)" id="next-page-btn" disabled>
-                Suivant ➡️
-              </button>
-            </div>
-            
-            <div class="auto-refresh-controls" style="display: flex; gap: 8px; align-items: center;">
-              <label style="display: flex; align-items: center; gap: 6px;">
-                <input type="checkbox" id="auto-refresh-checkbox" onchange="toggleAutoRefresh()">
-                <span style="font-size: 12px; color: var(--muted);">Auto-actualisation (30s)</span>
-              </label>
-            </div>
-          </div>
+        <!-- Première ligne - 4 KPIs -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenus TTC <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenus totaux TTC générés via Eklektik">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-revenue-ttc">Loading...</div>
+          <div class="kpi-delta" id="eklektik-revenue-ttc-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenus HT <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenus hors taxes calculés selon les formules par opérateur">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-revenue-ht">Loading...</div>
+          <div class="kpi-delta" id="eklektik-revenue-ht-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">CA BigDeal <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Chiffre d'affaires BigDeal (part des revenus)">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-ca-bigdeal">Loading...</div>
+          <div class="kpi-delta" id="eklektik-ca-bigdeal-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Active Subs <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d'abonnés actifs">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-active-subs">Loading...</div>
+          <div class="kpi-delta" id="eklektik-active-subs-delta">Loading...</div>
         </div>
       </div>
 
-      <!-- Eklektik API Status -->
+      <div class="grid">
+        <!-- Deuxième ligne - 4 KPIs -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Nouveaux Abonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nouveaux abonnements créés">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-new-subscriptions">Loading...</div>
+          <div class="kpi-delta" id="eklektik-new-subscriptions-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Désabonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de désabonnements">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-unsubscriptions">Loading...</div>
+          <div class="kpi-delta" id="eklektik-unsubscriptions-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Simchurn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Perte d'abonnés (Simchurn)">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-simchurn">Loading...</div>
+          <div class="kpi-delta" id="eklektik-simchurn-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Abonnements Facturés <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d'abonnements facturés">ⓘ</span></div>
+          <div class="kpi-value" id="eklektik-facturation">Loading...</div>
+          <div class="kpi-delta" id="eklektik-facturation-delta">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Graphiques Eklektik - Utilisation du composant optimisé -->
       <div class="grid">
         <div class="card" style="grid-column: span 12;">
           <div class="chart-title">
-            🔗 Statut de l'API Eklektik
-            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="État de la connexion et performance de l'API Eklektik">ⓘ</span>
+            📊 Graphiques Eklektik Optimisés
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Graphiques Eklektik optimisés pour éliminer le sautillement">ⓘ</span>
           </div>
-          
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
-            <div class="api-status-item">
-              <div class="status-label">🔗 Connexion API</div>
-              <div class="status-value" id="eklektik-api-status">
-                <span class="status-indicator">⏳</span> Vérification...
-              </div>
-            </div>
-            
-            <div class="api-status-item">
-              <div class="status-label">⚡ Temps de Réponse</div>
-              <div class="status-value" id="eklektik-response-time">
-                <span class="status-indicator">⏳</span> Mesure...
-              </div>
-            </div>
-            
-            <div class="api-status-item">
-              <div class="status-label">📊 Dernière Sync</div>
-              <div class="status-value" id="eklektik-last-sync">
-                <span class="status-indicator">⏳</span> Chargement...
-              </div>
-            </div>
-            
-            <div class="api-status-item">
-              <div class="status-label">🔄 Statut Sync</div>
-              <div class="status-value" id="eklektik-sync-status">
-                <span class="status-indicator">⏳</span> Vérification...
-              </div>
+          {{-- Utiliser le composant graphiques Eklektik --}}
+          <x-eklektik-charts />
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card" style="grid-column: span 6;">
+          <div class="chart-title">
+            📊 Statistiques par Opérateur
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Détails des statistiques par opérateur">ⓘ</span>
+          </div>
+          <div id="eklektik-operators-stats" style="max-height: 200px; overflow-y: auto;">
+            <div class="text-center" style="padding: 20px;">
+              <i class="fas fa-spinner fa-spin"></i> Chargement...
             </div>
           </div>
         </div>
       </div>
+
+
     </div>
 
     <!-- Tab 6: Comparison -->
@@ -3095,6 +2979,59 @@
 
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
+      // Configuration globale Chart.js pour désactiver les animations
+      if (typeof Chart !== 'undefined') {
+        Chart.defaults.animation = false;
+        Chart.defaults.animations = {
+          duration: 0
+        };
+        Chart.defaults.transitions = {
+          active: {
+            animation: {
+              duration: 0
+            }
+          },
+          resize: {
+            animation: {
+              duration: 0
+            }
+          }
+        };
+        
+        // Désactiver complètement toutes les animations
+        Chart.defaults.plugins = Chart.defaults.plugins || {};
+        Chart.defaults.plugins.legend = Chart.defaults.plugins.legend || {};
+        Chart.defaults.plugins.legend.animation = false;
+        
+        // Désactiver les animations de survol
+        Chart.defaults.elements = Chart.defaults.elements || {};
+        Chart.defaults.elements.point = Chart.defaults.elements.point || {};
+        Chart.defaults.elements.point.hoverRadius = 0;
+        Chart.defaults.elements.line = Chart.defaults.elements.line || {};
+        Chart.defaults.elements.line.tension = 0;
+        Chart.defaults.responsive = true;
+        Chart.defaults.maintainAspectRatio = false;
+        Chart.defaults.interaction = {
+          intersect: false,
+          mode: 'index'
+        };
+        
+        // Configuration Chart.js pour un comportement normal (pas d'interception globale)
+        if (typeof Chart !== 'undefined') {
+          // Configuration légère pour améliorer les performances
+          Chart.defaults.maintainAspectRatio = false;
+          Chart.defaults.responsive = true;
+        }
+        
+        
+        
+        
+        
+        console.log('✅ Chart.js configuré avec succès');
+      } else {
+        console.error('❌ Chart.js non chargé');
+      }
+      
       setDefaultDates();
       updateDateRange();
       initializeDashboard();
@@ -3402,7 +3339,7 @@
       
       // Load data for specific tabs
       if (tabName === 'eklektik') {
-        loadEklektikData();
+        console.log('📊 Tab Eklektik activé - les graphiques se chargent automatiquement');
       }
       
       // Resize charts when tab becomes visible
@@ -3418,108 +3355,9 @@
       }, 100);
     }
     
-    // Center active tab in viewport (mobile scroll)
-    function centerActiveTab(activeTab) {
-      const navTabs = document.querySelector('.nav-tabs');
-      const tabRect = activeTab.getBoundingClientRect();
-      const navRect = navTabs.getBoundingClientRect();
-      
-      // Only auto-scroll on mobile/tablet
-      if (window.innerWidth <= 768) {
-        const scrollLeft = activeTab.offsetLeft - (navRect.width / 2) + (tabRect.width / 2);
-        navTabs.scrollTo({
-          left: Math.max(0, scrollLeft),
-          behavior: 'smooth'
-        });
-      }
-    }
 
-    // Eklektik Integration Functions
-    async function loadEklektikData() {
-      try {
-        console.log('🔄 [EKLEKTIK] Début du chargement des données...');
-        showEklektikLoading();
-        
-        // API call to get Eklektik data
-        const response = await fetch('/api/eklektik/numbers', {
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('✅ [EKLEKTIK] Données reçues de l\'API:', data);
-        
-        // Afficher la source des données avec emoji
-        const source = data.debug?.source || 'UNKNOWN';
-        const sourceEmoji = {
-          'REAL_EKLEKTIK_API': '🟢 API RÉELLE',
-          'FALLBACK_MOCK': '🟡 DONNÉES DE SECOURS',
-          'MOCK_API': '🔵 DONNÉES DE TEST'
-        };
-        
-        console.log(`📊 [EKLEKTIK] Source: ${sourceEmoji[source] || '❓ INCONNUE'}`);
-        console.log('📱 [EKLEKTIK] Nombre de numéros:', data.numbers?.length || 0);
-        console.log('🎯 [EKLEKTIK] KPIs:', data.kpis);
-        console.log('🔧 [EKLEKTIK] Debug:', data.debug);
-        
-        updateEklektikDisplay(data);
-        
-        console.log('✅ [EKLEKTIK] Affichage mis à jour avec succès');
-      } catch (error) {
-        console.error('❌ [EKLEKTIK] Erreur lors du chargement:', error);
-        console.log('🔄 [EKLEKTIK] Basculement vers les données de fallback');
-        showEklektikError('Erreur lors du chargement des données Eklektik');
-      }
-    }
     
-    function showEklektikLoading() {
-      // Show loading state for KPIs
-      document.getElementById('eklektik-totalNumbers').textContent = 'Loading...';
-      document.getElementById('eklektik-activeNumbers').textContent = 'Loading...';
-      document.getElementById('eklektik-linkedServices').textContent = 'Loading...';
-      document.getElementById('eklektik-successRate').textContent = 'Loading...';
-      
-      // Show loading for table
-      const tbody = document.getElementById('eklektik-numbers-tbody');
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" style="text-align: center; padding: 40px;">
-            <div class="loading-spinner">⏳ Chargement des données Eklektik...</div>
-          </td>
-        </tr>
-      `;
-    }
     
-    function updateEklektikDisplay(data) {
-      // Update KPIs
-      document.getElementById('eklektik-totalNumbers').textContent = data.kpis?.totalNumbers || '0';
-      document.getElementById('eklektik-activeNumbers').textContent = data.kpis?.activeNumbers || '0';
-      document.getElementById('eklektik-linkedServices').textContent = data.kpis?.linkedServices || '0';
-      document.getElementById('eklektik-successRate').textContent = `${data.kpis?.successRate || 0}%`;
-      
-      // Update deltas (if available)
-      const totalDelta = data.kpis?.totalNumbersDelta;
-      if (totalDelta !== undefined) {
-        const deltaEl = document.getElementById('eklektik-totalNumbersDelta');
-        deltaEl.textContent = `${totalDelta > 0 ? '+' : ''}${totalDelta}%`;
-        deltaEl.className = `kpi-delta ${totalDelta >= 0 ? 'positive' : 'negative'}`;
-      }
-      
-      // Update table
-      updateEklektikTable(data.numbers || []);
-      
-      // Update API status
-      updateEklektikApiStatus(data.apiStatus || {});
-      
-      // Setup pagination for the table
-      setupPagination(data.numbers || []);
-    }
     
     function updateEklektikTable(numbers) {
       const tbody = document.getElementById('eklektik-numbers-tbody');
@@ -3790,15 +3628,6 @@
       }
     }
     
-    function refreshEklektikData() {
-      showNotification('🔄 Actualisation des données Eklektik...', 'info', 2000);
-      loadEklektikData();
-    }
-    
-    function exportEklektikData() {
-      showNotification('📥 Export des données Eklektik en cours...', 'info', 2000);
-      // TODO: Implement export functionality
-    }
     
     // Bulk test functionality
     async function startBulkTest() {
@@ -3992,6 +3821,1038 @@
         </tr>
       `;
     }
+
+    // ========================================
+    // NOUVELLES FONCTIONS POUR STATISTIQUES EKLEKTIK
+    // ========================================
+
+    // Variables globales pour les graphiques Eklektik
+    let eklektikCharts = {};
+
+    // Variables globales pour les opérateurs
+    let availableOperators = [];
+    let selectedOperators = ['ALL'];
+
+    // Center active tab on mobile
+    function centerActiveTab(activeTab) {
+      const navTabs = document.querySelector('.nav-tabs');
+      const tabRect = activeTab.getBoundingClientRect();
+      const navRect = navTabs.getBoundingClientRect();
+      
+      // Only auto-scroll on mobile/tablet
+      if (window.innerWidth <= 768) {
+        const scrollLeft = activeTab.offsetLeft - (navRect.width / 2) + (tabRect.width / 2);
+        navTabs.scrollTo({
+          left: Math.max(0, scrollLeft),
+          behavior: 'smooth'
+        });
+      }
+    }
+
+
+    // Fonction obsolète supprimée - utilisez le composant eklektik-charts
+
+    // Fonction utilitaire pour récupérer les statistiques
+    async function fetchEklektikStats(endpoint, params) {
+      const url = new URL(endpoint, window.location.origin);
+      Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+      
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    }
+
+    // Afficher l'état de chargement des statistiques
+    function showEklektikStatsLoading() {
+      const elements = [
+        'eklektik-revenue-ttc', 'eklektik-revenue-ht', 'eklektik-ca-bigdeal', 'eklektik-bigdeal-percentage',
+        'eklektik-new-subscriptions', 'eklektik-unsubscriptions', 'eklektik-simchurn', 'eklektik-facturation'
+      ];
+      
+      elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = 'Loading...';
+        }
+      });
+    }
+
+    // Mettre à jour l'affichage des statistiques
+    function updateEklektikStatsDisplay(data) {
+      // Mettre à jour les KPIs avec les nouvelles données
+      if (data.total_revenue_ttc !== undefined) {
+        document.getElementById('eklektik-revenue-ttc').textContent = 
+          new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ttc);
+        document.getElementById('eklektik-revenue-ttc-delta').textContent = 'Revenus TTC';
+      }
+      
+      if (data.total_revenue_ht !== undefined) {
+        document.getElementById('eklektik-revenue-ht').textContent = 
+          new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ht);
+        document.getElementById('eklektik-revenue-ht-delta').textContent = 'Revenus HT';
+      }
+      
+      if (data.total_ca_bigdeal !== undefined) {
+        document.getElementById('eklektik-ca-bigdeal').textContent = 
+          new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_ca_bigdeal);
+        document.getElementById('eklektik-ca-bigdeal-delta').textContent = 'CA BigDeal';
+      }
+      
+      if (data.total_active_subscribers !== undefined) {
+        document.getElementById('eklektik-active-subs').textContent = 
+          new Intl.NumberFormat('fr-FR').format(data.total_active_subscribers);
+        document.getElementById('eklektik-active-subs-delta').textContent = 'Abonnés Actifs';
+      }
+      
+      if (data.total_new_subscriptions !== undefined) {
+        document.getElementById('eklektik-new-subscriptions').textContent = data.total_new_subscriptions;
+        document.getElementById('eklektik-new-subscriptions-delta').textContent = 'nouveaux';
+      }
+      
+      if (data.total_unsubscriptions !== undefined) {
+        document.getElementById('eklektik-unsubscriptions').textContent = data.total_unsubscriptions;
+        document.getElementById('eklektik-unsubscriptions-delta').textContent = 'désabonnements';
+      }
+      
+      if (data.total_simchurn !== undefined) {
+        document.getElementById('eklektik-simchurn').textContent = data.total_simchurn;
+        document.getElementById('eklektik-simchurn-delta').textContent = 'simchurn';
+      }
+      
+        if (data.total_facturation !== undefined) {
+          document.getElementById('eklektik-facturation').textContent = new Intl.NumberFormat('fr-FR').format(data.total_facturation);
+          document.getElementById('eklektik-facturation-delta').textContent = 'Abonnements Facturés';
+        }
+    }
+
+    // Créer les graphiques des statistiques Eklektik
+    async function createEklektikStatsCharts(data) {
+      const { overviewChart, revenueEvolution, revenueDistribution } = data;
+      
+      console.log('🎨 [CHARTS] Création des graphiques avec données:', data);
+      
+      // Détruire les graphiques existants
+      console.log('🗑️ [CHARTS] Destruction des graphiques existants:', Object.keys(eklektikCharts));
+      Object.values(eklektikCharts).forEach(chart => {
+        if (chart) {
+          console.log('🗑️ [CHARTS] Destruction d\'un graphique');
+          chart.destroy();
+        }
+      });
+      eklektikCharts = {};
+      
+      console.log('📊 [CHARTS] Création des nouveaux graphiques...');
+      
+      // Attendre un peu avant de créer les graphiques pour éviter les conflits
+      setTimeout(() => {
+        // Graphique multi-axes principal (Vue d'ensemble)
+        createEklektikOverviewChart(overviewChart?.chart);
+        
+        // Graphique d'évolution des revenus
+        createEklektikRevenueEvolutionChart(revenueEvolution?.chart);
+        
+        // Graphique de répartition par opérateur
+        createEklektikOperatorsDistributionChart(revenueDistribution?.pie_chart);
+        
+        // Graphique CA par partenaire
+        createEklektikCAPartnersChart(revenueDistribution?.bar_chart);
+        
+        // Afficher les statistiques par opérateur
+        if (revenueDistribution?.data?.distribution) {
+          displayEklektikOperatorsStats(revenueDistribution.data.distribution);
+        } else {
+          console.warn('❌ [OPERATORS STATS] Données de distribution manquantes:', revenueDistribution);
+        }
+      }, 50); // Délai de 50ms pour éviter les conflits de rendu
+    }
+
+    // Graphique multi-axes principal (Vue d'ensemble)
+    function createEklektikOverviewChart(chartData) {
+      const ctx = document.getElementById('eklektik-overview-chart');
+      if (!ctx || !chartData) {
+        console.log('❌ [OVERVIEW CHART] Pas de données ou contexte manquant');
+        return;
+      }
+      
+      // Vérifier si le graphique existe déjà et a les mêmes données
+      if (eklektikCharts.overview && eklektikCharts.overview.data) {
+        const currentData = JSON.stringify(eklektikCharts.overview.data);
+        const newData = JSON.stringify(chartData);
+        if (currentData === newData) {
+          console.log('🔄 [OVERVIEW CHART] Données identiques, pas de recréation');
+          return;
+        }
+      }
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.overview) {
+        console.log('🗑️ [OVERVIEW CHART] Destruction du graphique existant');
+        eklektikCharts.overview.destroy();
+        eklektikCharts.overview = null;
+      }
+      
+      // Attendre un peu avant de créer le nouveau graphique
+      setTimeout(() => {
+      console.log('🎨 [DEBUG] Création du graphique multi-axes avec données:', chartData);
+      
+      // Créer le graphique avec des options ultra-strictes
+      const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        animations: {
+          duration: 0
+        },
+        // Désactiver complètement toutes les animations
+        transitions: {
+          active: {
+            animation: {
+              duration: 0
+            }
+          },
+          resize: {
+            animation: {
+              duration: 0
+            }
+          }
+        },
+        elements: {
+          point: {
+            hoverRadius: 0
+          },
+          line: {
+            tension: 0
+          }
+        },
+        plugins: {
+          legend: {
+            animation: false
+          },
+          tooltip: {
+            animation: false
+          }
+        },
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        scales: {
+          x: {
+            display: true,
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          'y-revenue': {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Revenue TTC (K TND)',
+              color: 'rgb(54, 162, 235)'
+            },
+            ticks: {
+              color: 'rgb(54, 162, 235)',
+              callback: function(value) {
+                return value + 'K';
+              }
+            },
+            grid: {
+              drawOnChartArea: false,
+            }
+          },
+          'y-active': {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Active Sub',
+              color: 'rgb(255, 99, 132)'
+            },
+            ticks: {
+              color: 'rgb(255, 99, 132)',
+              callback: function(value) {
+                return new Intl.NumberFormat('fr-FR').format(value);
+              }
+            },
+            grid: {
+              drawOnChartArea: false,
+            }
+          },
+          'y-rate': {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Taux Facturation / Part BigDeal (%)',
+              color: 'rgb(75, 192, 192)'
+            },
+            ticks: {
+              color: 'rgb(75, 192, 192)',
+              callback: function(value) {
+                return value.toFixed(1) + '%';
+              }
+            },
+            grid: {
+              drawOnChartArea: false,
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 20
+            }
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                
+                if (context.dataset.yAxisID === 'y-revenue') {
+                  label += new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(context.parsed.y * 1000);
+                } else if (context.dataset.yAxisID === 'y-active') {
+                  label += new Intl.NumberFormat('fr-FR').format(context.parsed.y);
+                } else if (context.dataset.yAxisID === 'y-rate') {
+                  label += context.parsed.y.toFixed(2) + '%';
+                }
+                
+                return label;
+              }
+            }
+          }
+        }
+      };
+      
+      console.log('🔧 [DEBUG] Options du graphique:', chartOptions);
+      
+      // Créer le graphique avec interception de requestAnimationFrame
+      // Pas d'interception globale - laissons les autres graphiques fonctionner normalement
+      
+      try {
+        eklektikCharts.overview = new Chart(ctx, {
+          type: 'bar',
+          data: chartData,
+          options: chartOptions
+        });
+      } catch (error) {
+        console.error('❌ [OVERVIEW CHART] Erreur lors de la création:', error);
+      } finally {
+        // Restaurer requestAnimationFrame
+        window.requestAnimationFrame = originalRAF;
+        window.cancelAnimationFrame = originalCAF;
+      }
+      
+      console.log('✅ [OVERVIEW CHART] Graphique multi-axes créé avec succès');
+      console.log('🔍 [DEBUG] Graphique overview:', eklektikCharts.overview);
+      }, 10); // Délai de 10ms pour éviter les conflits de rendu
+    }
+
+    // Graphique d'évolution des revenus
+    function createEklektikRevenueEvolutionChart(chartData) {
+      const ctx = document.getElementById('eklektik-revenue-evolution-chart');
+      if (!ctx || !chartData) {
+        console.log('❌ [REVENUE EVOLUTION CHART] Pas de données ou contexte manquant');
+        return;
+      }
+      
+      // Vérifier si le graphique existe déjà et a les mêmes données
+      if (eklektikCharts.revenueEvolution && eklektikCharts.revenueEvolution.data) {
+        const currentData = JSON.stringify(eklektikCharts.revenueEvolution.data);
+        const newData = JSON.stringify(chartData);
+        if (currentData === newData) {
+          console.log('🔄 [REVENUE EVOLUTION CHART] Données identiques, pas de recréation');
+          return;
+        }
+      }
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.revenueEvolution) {
+        console.log('🗑️ [REVENUE EVOLUTION CHART] Destruction du graphique existant');
+        eklektikCharts.revenueEvolution.destroy();
+        eklektikCharts.revenueEvolution = null;
+      }
+      
+      eklektikCharts.revenueEvolution = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          animations: {
+            duration: 0
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(value);
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + 
+                    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(context.parsed.y);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique de répartition par opérateur
+    function createEklektikOperatorsDistributionChart(chartData) {
+      const ctx = document.getElementById('eklektik-operators-distribution-chart');
+      if (!ctx || !chartData) {
+        console.log('❌ [OPERATORS DISTRIBUTION CHART] Pas de données ou contexte manquant');
+        return;
+      }
+      
+      // Vérifier si le graphique existe déjà et a les mêmes données
+      if (eklektikCharts.operatorsDistribution && eklektikCharts.operatorsDistribution.data) {
+        const currentData = JSON.stringify(eklektikCharts.operatorsDistribution.data);
+        const newData = JSON.stringify(chartData);
+        if (currentData === newData) {
+          console.log('🔄 [OPERATORS DISTRIBUTION CHART] Données identiques, pas de recréation');
+          return;
+        }
+      }
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.operatorsDistribution) {
+        console.log('🗑️ [OPERATORS DISTRIBUTION CHART] Destruction du graphique existant');
+        eklektikCharts.operatorsDistribution.destroy();
+        eklektikCharts.operatorsDistribution = null;
+      }
+      
+      eklektikCharts.operatorsDistribution = new Chart(ctx, {
+        type: 'doughnut',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          animations: {
+            duration: 0
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.label + ': ' + 
+                    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(context.parsed);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique CA par partenaire
+    function createEklektikCAPartnersChart(chartData) {
+      const ctx = document.getElementById('eklektik-ca-partners-chart');
+      if (!ctx || !chartData) {
+        console.log('❌ [CA PARTNERS CHART] Pas de données ou contexte manquant');
+        return;
+      }
+      
+      // Vérifier si le graphique existe déjà et a les mêmes données
+      if (eklektikCharts.caPartners && eklektikCharts.caPartners.data) {
+        const currentData = JSON.stringify(eklektikCharts.caPartners.data);
+        const newData = JSON.stringify(chartData);
+        if (currentData === newData) {
+          console.log('🔄 [CA PARTNERS CHART] Données identiques, pas de recréation');
+          return;
+        }
+      }
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.caPartners) {
+        console.log('🗑️ [CA PARTNERS CHART] Destruction du graphique existant');
+        eklektikCharts.caPartners.destroy();
+        eklektikCharts.caPartners = null;
+      }
+      
+      eklektikCharts.caPartners = new Chart(ctx, {
+        type: 'bar',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          animations: {
+            duration: 0
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(value);
+                }
+              }
+            }
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + 
+                    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(context.parsed.y);
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Afficher les statistiques par opérateur
+    function displayEklektikOperatorsStats(distribution) {
+      const container = document.getElementById('eklektik-operators-stats');
+      if (!container || !distribution) {
+        console.log('❌ [OPERATORS STATS] Pas de données ou conteneur manquant');
+        return;
+      }
+      
+      let html = '';
+      
+      for (const [operator, data] of Object.entries(distribution)) {
+        html += `
+          <div class="card mb-2" style="border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+            <div class="card-body" style="padding: 0;">
+              <h6 class="card-title" style="margin: 0 0 8px 0; font-weight: 600; color: var(--brand-dark);">${operator}</h6>
+              <div style="font-size: 12px; line-height: 1.4;">
+                <div><strong>Revenus TTC:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.revenue_ttc)}</div>
+                <div><strong>Revenus HT:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.revenue_ht)}</div>
+                <div><strong>CA BigDeal:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_bigdeal)}</div>
+                <div><strong>CA Opérateur:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_operateur)}</div>
+                <div><strong>CA Agrégateur:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_agregateur)}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      
+      container.innerHTML = html;
+    }
+
+    // Fonctions pour les boutons de configuration
+    async function checkEklektikSyncStatus() {
+      try {
+        const response = await fetch('/api/eklektik-dashboard/sync-status');
+        const data = await response.json();
+        
+        if (data.success) {
+          const status = data.data;
+          const statusColor = status.status === 'healthy' ? 'success' : 
+                             status.status === 'warning' ? 'warning' : 'danger';
+          
+          const lastSync = status.last_sync ? 
+            new Date(status.last_sync).toLocaleString('fr-FR') : 'Jamais';
+          
+          alert(`Statut Eklektik: ${status.status.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${status.total_records}`);
+        }
+      } catch (error) {
+        console.error('❌ [EKLEKTIK SYNC] Erreur lors de la vérification du statut:', error);
+        alert('Erreur lors de la vérification du statut de synchronisation');
+      }
+    }
+
+    async function clearEklektikCache() {
+      try {
+        const response = await fetch('/api/eklektik-dashboard/clear-cache', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          alert('Cache vidé avec succès!');
+          console.log('Cache vidé - les graphiques vont se recharger automatiquement');
+        } else {
+          alert('Erreur lors du vidage du cache: ' + data.message);
+        }
+      } catch (error) {
+        console.error('❌ [EKLEKTIK CACHE] Erreur lors du vidage du cache:', error);
+        alert('Erreur lors du vidage du cache');
+      }
+    }
+
+    // Graphique d'évolution des abonnements
+    function createEklektikSubscriptionsChart(data) {
+      const ctx = document.getElementById('eklektik-subscriptions-chart');
+      if (!ctx || !data) {
+        console.log('❌ [SUBSCRIPTIONS CHART] Pas de données ou contexte manquant', { ctx: !!ctx, data: data });
+        return;
+      }
+      
+      console.log('📊 [SUBSCRIPTIONS CHART] Données reçues:', data);
+      console.log('📊 [SUBSCRIPTIONS CHART] Contexte canvas:', { 
+        width: ctx.width, 
+        height: ctx.height, 
+        offsetWidth: ctx.offsetWidth, 
+        offsetHeight: ctx.offsetHeight 
+      });
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.subscriptions) {
+        console.log('🗑️ [SUBSCRIPTIONS CHART] Destruction du graphique existant');
+        eklektikCharts.subscriptions.destroy();
+        eklektikCharts.subscriptions = null;
+      }
+      
+      eklektikCharts.subscriptions = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Nouveaux', 'Actifs', 'Désabonnements'],
+          datasets: [{
+            label: 'Abonnements',
+            data: [
+              data.kpis?.sub_count || 0,
+              data.kpis?.active_subscriptions || 0,
+              data.kpis?.unsub_count || 0
+            ],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique d'évolution des revenus
+    function createEklektikRevenueChart(data) {
+      const ctx = document.getElementById('eklektik-revenue-chart');
+      if (!ctx || !data) {
+        console.log('❌ [REVENUE CHART] Pas de données ou contexte manquant', { ctx: !!ctx, data: data });
+        return;
+      }
+      
+      console.log('📊 [REVENUE CHART] Données reçues:', data);
+      console.log('📊 [REVENUE CHART] Contexte canvas:', { 
+        width: ctx.width, 
+        height: ctx.height, 
+        offsetWidth: ctx.offsetWidth, 
+        offsetHeight: ctx.offsetHeight 
+      });
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.revenue) {
+        console.log('🗑️ [REVENUE CHART] Destruction du graphique existant');
+        eklektikCharts.revenue.destroy();
+        eklektikCharts.revenue = null;
+      }
+      
+      eklektikCharts.revenue = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['RENEW', 'CHARGE'],
+          datasets: [{
+            label: 'Revenus (TND)',
+            data: [
+              data.revenue_by_action?.RENEW || 0,
+              data.revenue_by_action?.CHARGE || 0
+            ],
+            backgroundColor: ['#10b981', '#f59e0b']
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Graphique de répartition par action
+    function createEklektikActionsPieChart(data) {
+      const ctx = document.getElementById('eklektik-actions-pie-chart');
+      if (!ctx || !data?.kpis) {
+        console.log('❌ [ACTIONS CHART] Pas de données ou contexte manquant', { ctx: !!ctx, data: data });
+        return;
+      }
+      
+      if (typeof Chart === 'undefined') {
+        console.error('❌ [ACTIONS CHART] Chart.js non chargé');
+        return;
+      }
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.actions) {
+        eklektikCharts.actions.destroy();
+        eklektikCharts.actions = null;
+      }
+      
+      const kpis = data.kpis;
+      console.log('📊 [ACTIONS CHART] Données KPIs:', kpis);
+      console.log('📊 [ACTIONS CHART] Contexte canvas:', { 
+        width: ctx.width, 
+        height: ctx.height, 
+        offsetWidth: ctx.offsetWidth, 
+        offsetHeight: ctx.offsetHeight 
+      });
+      
+      const actions = [
+        { label: 'SUB', value: kpis.new_subscriptions || 0, color: '#3b82f6' },
+        { label: 'RENEW', value: kpis.renewals || 0, color: '#10b981' },
+        { label: 'CHARGE', value: kpis.charges || 0, color: '#f59e0b' },
+        { label: 'UNSUB', value: kpis.unsubscriptions || 0, color: '#ef4444' }
+      ];
+      
+      console.log('📊 [ACTIONS CHART] Actions calculées:', actions);
+      
+      // Filtrer les actions avec des valeurs > 0
+      const filteredActions = actions.filter(action => action.value > 0);
+      
+      console.log('📊 [ACTIONS CHART] Actions filtrées:', filteredActions);
+      
+      if (filteredActions.length === 0) {
+        console.log('⚠️ [ACTIONS CHART] Aucune action avec valeur > 0');
+        return;
+      }
+      
+      console.log('📊 [ACTIONS CHART] Création du graphique avec données:', {
+        labels: filteredActions.map(action => action.label),
+        data: filteredActions.map(action => action.value)
+      });
+      
+      eklektikCharts.actions = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: filteredActions.map(action => action.label),
+          datasets: [{
+            label: 'Nombre d\'actions',
+            data: filteredActions.map(action => action.value),
+            backgroundColor: filteredActions.map(action => action.color),
+            borderColor: filteredActions.map(action => action.color),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed.y;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          },
+          animation: false,
+          transitions: {
+            active: {
+              animation: {
+                duration: 0
+              }
+            },
+            resize: {
+              animation: {
+                duration: 0
+              }
+            }
+          },
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10
+            }
+          }
+        }
+      });
+      
+      console.log('✅ [ACTIONS CHART] Graphique créé avec succès');
+    }
+
+    // Graphique de répartition par opérateur
+    async function createEklektikOperatorsChart(data) {
+      const ctx = document.getElementById('eklektik-operators-chart');
+      if (!ctx || !data?.operators_distribution) {
+        console.log('❌ [OPERATORS CHART] Pas de données ou contexte manquant', { ctx: !!ctx, data: data });
+        return;
+      }
+      
+      if (typeof Chart === 'undefined') {
+        console.error('❌ [OPERATORS CHART] Chart.js non chargé');
+        return;
+      }
+      
+      console.log('📊 [OPERATORS CHART] Données opérateurs:', data.operators_distribution);
+      console.log('📊 [OPERATORS CHART] Contexte canvas:', { 
+        width: ctx.width, 
+        height: ctx.height, 
+        offsetWidth: ctx.offsetWidth, 
+        offsetHeight: ctx.offsetHeight 
+      });
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.operators) {
+        console.log('🗑️ [OPERATORS CHART] Destruction du graphique existant');
+        try {
+          eklektikCharts.operators.destroy();
+        } catch (e) {
+          console.warn('Erreur lors de la destruction du graphique opérateurs:', e);
+        }
+        eklektikCharts.operators = null;
+      }
+      
+      // Attendre un tick pour éviter les conflits de rendu
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
+      // Extraire les données des opérateurs
+      const operatorsData = data.operators_distribution;
+      const operators = Object.keys(operatorsData);
+      const values = operators.map(op => operatorsData[op].total);
+      
+      console.log('📊 [OPERATORS CHART] Opérateurs extraits:', operators);
+      console.log('📊 [OPERATORS CHART] Valeurs extraites:', values);
+      
+      // Couleurs pour chaque opérateur
+      const colors = {
+        'Orange': '#FF9500',
+        'TT': '#FF6384',
+        'Taraji': '#4BC0C0',
+        'Timwe': '#36A2EB',
+        'Ooredoo': '#FFCE56',
+        'Unknown': '#9E9E9E'
+      };
+      
+      eklektikCharts.operators = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: operators,
+          datasets: [{
+            label: 'Transactions par Opérateur',
+            data: values,
+            backgroundColor: operators.map(op => colors[op] || '#9E9E9E'),
+            borderColor: operators.map(op => colors[op] || '#9E9E9E'),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed.y;
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                  const operatorData = operatorsData[label];
+                  return `${label}: ${value} transactions (${percentage}%)\n` +
+                         `- Abonnements: ${operatorData.sub}\n` +
+                         `- Renouvellements: ${operatorData.renew}\n` +
+                         `- Facturations: ${operatorData.charge}\n` +
+                         `- Revenus: ${operatorData.revenue} TND`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              }
+            }
+          },
+          layout: {
+            padding: {
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10
+            }
+          },
+          animation: false,
+          transitions: {
+            active: {
+              animation: {
+                duration: 0
+              }
+            },
+            resize: {
+              animation: {
+                duration: 0
+              }
+            }
+          }
+        }
+      });
+      
+      console.log('✅ [OPERATORS CHART] Graphique créé avec succès');
+    }
+
+    // Graphique du taux de facturation
+    function createEklektikBillingRateChart(data) {
+      const ctx = document.getElementById('eklektik-billing-rate-chart');
+      if (!ctx || !data) {
+        console.log('❌ [BILLING RATE CHART] Pas de données ou contexte manquant', { ctx: !!ctx, data: data });
+        return;
+      }
+      
+      console.log('📊 [BILLING RATE CHART] Données reçues:', data);
+      console.log('📊 [BILLING RATE CHART] Contexte canvas:', { 
+        width: ctx.width, 
+        height: ctx.height, 
+        offsetWidth: ctx.offsetWidth, 
+        offsetHeight: ctx.offsetHeight 
+      });
+      
+      // Détruire le graphique existant s'il existe
+      if (eklektikCharts.billingRate) {
+        console.log('🗑️ [BILLING RATE CHART] Destruction du graphique existant');
+        eklektikCharts.billingRate.destroy();
+        eklektikCharts.billingRate = null;
+      }
+      
+      eklektikCharts.billingRate = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Taux de Facturation'],
+          datasets: [{
+            label: 'Taux (%)',
+            data: [data.billing_rate || 0],
+            backgroundColor: '#10b981'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    }
+
+    // Afficher l'erreur des statistiques
+    function showEklektikStatsError(message) {
+      const elements = [
+        'eklektik-billing-rate', 'eklektik-revenue', 'eklektik-active-subscriptions',
+        'eklektik-new-subscriptions', 'eklektik-unsubscriptions', 'eklektik-renewals', 'eklektik-charges', 'eklektik-billed-clients'
+      ];
+      
+      elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = 'Erreur';
+        }
+      });
+      
+      console.error('❌ [EKLEKTIK STATS]', message);
+    }
+
+    // Exporter les statistiques Eklektik
+    function exportEklektikStats() {
+      showNotification('📥 Export des statistiques Eklektik en cours...', 'info', 2000);
+      // TODO: Implémenter l'export des statistiques
+    }
+
+    // Debug pour les événements de redimensionnement (désactivé pour éviter les boucles)
+    // window.addEventListener('resize', function() {
+    //   console.log('📏 [RESIZE] Redimensionnement détecté');
+    //   clearTimeout(resizeTimeout);
+    //   resizeTimeout = setTimeout(() => {
+    //     console.log('📏 [RESIZE] Redimensionnement terminé, recréation des graphiques');
+    //     if (Object.keys(eklektikCharts).length > 0) {
+    //       // Les graphiques se rechargent automatiquement
+    //     }
+    //   }, 300);
+    // });
+
+    // Initialisation du dashboard - les graphiques Eklektik se chargent automatiquement
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🏁 [INIT] Initialisation du dashboard - configuration terminée');
+    });
     
     // Helper functions
     function getServiceIcon(serviceType) {
@@ -4428,10 +5289,6 @@
         throw error;
       }
     }
-    
-    // Variables globales pour les opérateurs
-    let availableOperators = [];
-    let selectedOperators = ['ALL'];
     
     // Toggle operator dropdown
     function toggleOperatorDropdown() {

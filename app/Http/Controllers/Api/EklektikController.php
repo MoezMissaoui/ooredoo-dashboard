@@ -532,4 +532,654 @@ class EklektikController extends Controller
             'taraji' => '26'
         ];
     }
+
+    // ========================================
+    // MÉTHODES PRIVÉES POUR LE PARSING
+    // ========================================
+
+    /**
+     * Parser les transactions Eklektik depuis la table transactions_history
+     * Utilise le cache pour optimiser les performances
+     */
+    private function parseEklektikTransactions($startDate, $endDate, $operator = 'ALL')
+    {
+        try {
+            // Créer une clé de cache unique
+            $cacheKey = "eklektik_transactions_{$startDate}_{$endDate}_{$operator}";
+
+            // Vérifier le cache d'abord
+            return Cache::remember($cacheKey, 300, function () use ($startDate, $endDate, $operator) {
+                $query = DB::table('transactions_history')
+                    ->where('created_at', '>=', $startDate . ' 00:00:00')
+                    ->where('created_at', '<=', $endDate . ' 23:59:59')
+                    ->where(function($q) {
+                        $q->where('status', 'LIKE', '%ORANGE%')
+                          ->orWhere('status', 'LIKE', '%TT%')
+                          ->orWhere('status', 'LIKE', '%TIMWE%')
+                          ->orWhere('status', 'LIKE', '%TARAJI%')
+                          ->orWhere('status', 'LIKE', '%OOREDOO%');
+                    });
+
+                // Filtrer par opérateur si spécifié
+                if ($operator !== 'ALL') {
+                    $query->where('status', 'LIKE', "%{$operator}%");
+                }
+
+                $transactions = $query->get();
+
+                $parsedTransactions = [];
+                foreach ($transactions as $transaction) {
+                    $parsed = $this->parseTransactionResult($transaction->result, $transaction->status);
+                    if ($parsed) {
+                        $parsedTransactions[] = array_merge($parsed, [
+                            'transaction_id' => $transaction->transaction_history_id,
+                            'client_id' => $transaction->client_id,
+                            'order_id' => $transaction->order_id,
+                            'reference' => $transaction->reference,
+                            'status' => $transaction->status,
+                            'created_at' => $transaction->created_at,
+                            'updated_at' => $transaction->updated_at
+                        ]);
+                    }
+                }
+
+                return $parsedTransactions;
+            });
+
+        } catch (\Exception $e) {
+            Log::error('Erreur parsing transactions Eklektik', ['error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    /**
+     * Parser le résultat JSON d'une transaction Eklektik
+     */
+    private function parseTransactionResult($result, $status)
+    {
+        if (empty($result)) return null;
+
+        try {
+            $data = json_decode($result, true);
+            if (!$data) return null;
+
+            // Analyser le statut pour déterminer l'action
+            $action = $this->mapStatusToAction($status);
+            
+            // Extraire les informations pertinentes
+            $parsed = [
+                'action' => $action,
+                'amount' => $this->extractAmount($data),
+                'subscriptionid' => $this->extractSubscriptionId($data),
+                'msisdn' => $this->extractMsisdn($data),
+                'operator' => $this->extractOperator($status)
+            ];
+
+            return $parsed;
+
+        } catch (\Exception $e) {
+            Log::warning('Erreur parsing transaction result', [
+                'error' => $e->getMessage(),
+                'status' => $status,
+                'result' => substr($result, 0, 100)
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Mapper le statut vers une action
+     */
+    private function mapStatusToAction($status)
+    {
+        $statusMap = [
+            // Nouveaux abonnements (actions de création)
+            'ORANGE_CREATE_SUBSCRIPTION' => 'SUB',
+            'ORANGE_NEW_SUBSCRIPTION' => 'SUB',
+            'TT_CREATE_SUBSCRIPTION' => 'SUB',
+            'TT_NEW_SUBSCRIPTION' => 'SUB',
+            'TIMWE_CREATE_SUBSCRIPTION' => 'SUB',
+            'TIMWE_NEW_SUBSCRIPTION' => 'SUB',
+            'OOREDOO_CREATE_SUBSCRIPTION' => 'SUB',
+            'OOREDOO_NEW_SUBSCRIPTION' => 'SUB',
+            'TARAJI_CREATE_SUBSCRIPTION' => 'SUB',
+            'TARAJI_NEW_SUBSCRIPTION' => 'SUB',
+            
+            // Vérifications et récupérations (ne pas compter comme nouveaux)
+            'ORANGE_CHECK_USER' => 'CHECK',
+            'ORANGE_GET_SUBSCRIPTION' => 'CHECK',
+            'TT_CHECK_USER' => 'CHECK',
+            'TT_GET_SUBSCRIPTION' => 'CHECK',
+            'TIMWE_CHECK_STATUS' => 'CHECK',
+            'TIMWE_GET_SUBSCRIPTION' => 'CHECK',
+            'OOREDOO_CHECK_USER' => 'CHECK',
+            'OOREDOO_GET_SUBSCRIPTION' => 'CHECK',
+            
+            // Renouvellements
+            'TIMWE_RENEWED_NOTIF' => 'RENEW',
+            'ORANGE_RENEWED' => 'RENEW',
+            'TT_RENEWED' => 'RENEW',
+            'OOREDOO_RENEWED' => 'RENEW',
+            'TARAJI_RENEWED' => 'RENEW',
+            
+            // Facturations
+            'TIMWE_CHARGE_DELIVERED' => 'CHARGE',
+            'ORANGE_CHARGE_DELIVERED' => 'CHARGE',
+            'TT_CHARGE_DELIVERED' => 'CHARGE',
+            'OOREDOO_CHARGE_DELIVERED' => 'CHARGE',
+            'TARAJI_CHARGE_DELIVERED' => 'CHARGE',
+            
+            // Désabonnements
+            'ORANGE_UNSUBSCRIBE' => 'UNSUB',
+            'TT_UNSUBSCRIBE' => 'UNSUB',
+            'TIMWE_UNSUBSCRIBE' => 'UNSUB',
+            'OOREDOO_UNSUBSCRIBE' => 'UNSUB',
+            'TARAJI_UNSUBSCRIBE' => 'UNSUB',
+            
+            // Actions de demande (peuvent être des nouveaux abonnements)
+            'TIMWE_REQUEST_SUBSCRIPTION' => 'SUB',
+            'OOREDOO_PAYMENT_OFFLINE_INIT' => 'SUB'
+        ];
+
+        return $statusMap[$status] ?? 'CHECK'; // Par défaut, ne pas compter comme nouveau
+    }
+
+    /**
+     * Extraire le montant du JSON
+     */
+    private function extractAmount($data)
+    {
+        $amountFields = ['amount', 'price', 'cost', 'value', 'total'];
+        
+        foreach ($amountFields as $field) {
+            if (isset($data[$field])) {
+                return floatval($data[$field]);
+            }
+        }
+
+        if (isset($data['user']['amount'])) {
+            return floatval($data['user']['amount']);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Extraire l'ID de souscription
+     */
+    private function extractSubscriptionId($data)
+    {
+        $idFields = ['subscription_id', 'subscriptionid', 'id', 'user_id'];
+        
+        foreach ($idFields as $field) {
+            if (isset($data[$field])) {
+                return $data[$field];
+            }
+        }
+
+        if (isset($data['user']['id'])) {
+            return $data['user']['id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Extraire le MSISDN
+     */
+    private function extractMsisdn($data)
+    {
+        $msisdnFields = ['msisdn', 'phone', 'telephone', 'mobile'];
+        
+        foreach ($msisdnFields as $field) {
+            if (isset($data[$field])) {
+                return $data[$field];
+            }
+        }
+
+        if (isset($data['user']['msisdn'])) {
+            return $data['user']['msisdn'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Extraire l'opérateur du statut
+     */
+    private function extractOperator($status)
+    {
+        if (strpos($status, 'ORANGE') !== false) return 'Orange';
+        if (strpos($status, 'TT') !== false) return 'TT';
+        if (strpos($status, 'TIMWE') !== false) return 'Timwe';
+        if (strpos($status, 'OOREDOO') !== false) return 'Ooredoo';
+        if (strpos($status, 'TARAJI') !== false) return 'Taraji';
+        
+        return 'Unknown';
+    }
+
+    /**
+     * Calculer les KPIs Eklektik à partir des transactions
+     */
+    private function calculateEklektikKPIs($transactions)
+    {
+        $stats = [
+            'total_transactions' => count($transactions),
+            'new_subscriptions' => 0,        // Nouveaux abonnements (SUB)
+            'unsubscriptions' => 0,          // Désabonnements (UNSUB)
+            'renewals' => 0,                 // Renouvellements (RENEW)
+            'charges' => 0,                  // Facturations (CHARGE)
+            'total_revenue' => 0,            // Chiffre d'affaires total
+            'unique_billed_clients' => [],   // Clients facturés uniques
+            'billing_rate' => 0,             // Taux de facturation
+            'operators_distribution' => []   // Répartition par opérateur
+        ];
+
+        foreach ($transactions as $transaction) {
+            $action = $transaction['action'] ?? '';
+            $amount = floatval($transaction['amount'] ?? 0);
+            $subscriptionId = $transaction['subscriptionid'] ?? $transaction['order_id'] ?? '';
+            $clientId = $transaction['client_id'] ?? '';
+            $operator = $transaction['operator'] ?? 'Unknown';
+
+            // Compter par opérateur
+            if (!isset($stats['operators_distribution'][$operator])) {
+                $stats['operators_distribution'][$operator] = [
+                    'total' => 0,
+                    'sub' => 0,
+                    'unsub' => 0,
+                    'renew' => 0,
+                    'charge' => 0,
+                    'revenue' => 0
+                ];
+            }
+            $stats['operators_distribution'][$operator]['total']++;
+
+            switch ($action) {
+                case 'SUB':
+                case 'SUBSCRIPTION':
+                    $stats['new_subscriptions']++;
+                    $stats['operators_distribution'][$operator]['sub']++;
+                    break;
+                case 'UNSUB':
+                case 'UNSUBSCRIPTION':
+                    $stats['unsubscriptions']++;
+                    $stats['operators_distribution'][$operator]['unsub']++;
+                    break;
+                case 'RENEW':
+                case 'RENEWED':
+                    $stats['renewals']++;
+                    $stats['total_revenue'] += $amount;
+                    $stats['operators_distribution'][$operator]['renew']++;
+                    $stats['operators_distribution'][$operator]['revenue'] += $amount;
+                    if ($clientId) {
+                        $stats['unique_billed_clients'][$clientId] = true;
+                    }
+                    break;
+                case 'CHARGE':
+                case 'CHARGED':
+                    $stats['charges']++;
+                    $stats['total_revenue'] += $amount;
+                    $stats['operators_distribution'][$operator]['charge']++;
+                    $stats['operators_distribution'][$operator]['revenue'] += $amount;
+                    if ($clientId) {
+                        $stats['unique_billed_clients'][$clientId] = true;
+                    }
+                    break;
+                case 'CHECK':
+                    // Vérifications - ne pas compter dans les KPIs
+                    break;
+                default:
+                    // Actions inconnues - ne pas compter
+                    break;
+            }
+        }
+
+        // Calculer les abonnements actifs (nouveaux - désabonnements)
+        $stats['active_subscriptions'] = max(0, $stats['new_subscriptions'] - $stats['unsubscriptions']);
+        
+        // Calculer le nombre total de clients facturés
+        $stats['total_billed_clients'] = count($stats['unique_billed_clients']);
+        
+        // Calculer le taux de facturation (renouvellements + facturations) / (nouveaux + renouvellements + facturations)
+        $totalBilling = $stats['renewals'] + $stats['charges'];
+        $totalSubscriptions = $stats['new_subscriptions'] + $totalBilling;
+        $stats['billing_rate'] = $totalSubscriptions > 0 ? round(($totalBilling / $totalSubscriptions) * 100, 2) : 0;
+
+        return $stats;
+    }
+
+    // ========================================
+    // NOUVELLES MÉTHODES POUR STATISTIQUES EKLEKTIK
+    // ========================================
+
+    /**
+     * Vue d'ensemble des statistiques Eklektik
+     */
+    public function getEklektikStats(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            Log::info('📊 Récupération des statistiques Eklektik', [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'operator' => $operator
+            ]);
+
+            // Récupérer les transactions Eklektik
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            
+            // Calculer les KPIs
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ],
+                    'kpis' => $kpis,
+                    'total_transactions' => count($transactions),
+                    'source' => 'TRANSACTIONS_HISTORY',
+                    'last_updated' => now()->toISOString()
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération statistiques Eklektik', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des statistiques',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Taux de facturation Eklektik
+     */
+    public function getBillingRate(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'billing_rate' => $kpis['billing_rate'],
+                    'total_subscriptions' => $kpis['new_subscriptions'] + $kpis['renewals'] + $kpis['charges'],
+                    'total_billing' => $kpis['renewals'] + $kpis['charges'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération taux de facturation', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération du taux de facturation'
+            ], 500);
+        }
+    }
+
+    /**
+     * Revenus Eklektik
+     */
+    public function getRevenue(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'revenue' => $kpis['total_revenue'],
+                    'renewals' => $kpis['renewals'],
+                    'charges' => $kpis['charges'],
+                    'total_transactions' => $kpis['total_transactions'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération revenus', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des revenus'
+            ], 500);
+        }
+    }
+
+    /**
+     * Abonnements actifs Eklektik
+     */
+    public function getActiveSubscriptions(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'active_subscriptions' => $kpis['active_subscriptions'],
+                    'new_subscriptions' => $kpis['new_subscriptions'],
+                    'unsubscriptions' => $kpis['unsubscriptions'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération abonnements actifs', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des abonnements actifs'
+            ], 500);
+        }
+    }
+
+    /**
+     * Nouveaux abonnements Eklektik
+     */
+    public function getNewSubscriptions(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'new_subscriptions' => $kpis['new_subscriptions'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération nouveaux abonnements', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des nouveaux abonnements'
+            ], 500);
+        }
+    }
+
+    /**
+     * Désabonnements Eklektik
+     */
+    public function getUnsubscriptions(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'unsubscriptions' => $kpis['unsubscriptions'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération désabonnements', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des désabonnements'
+            ], 500);
+        }
+    }
+
+    /**
+     * Clients facturés Eklektik
+     */
+    public function getBilledClients(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'billed_clients' => $kpis['total_billed_clients'],
+                    'renewals' => $kpis['renewals'],
+                    'charges' => $kpis['charges'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération clients facturés', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des clients facturés'
+            ], 500);
+        }
+    }
+
+    /**
+     * Renouvellements Eklektik
+     */
+    public function getRenewals(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'renewals' => $kpis['renewals'],
+                    'charges' => $kpis['charges'],
+                    'total_billing' => $kpis['renewals'] + $kpis['charges'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération renouvellements', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération des renouvellements'
+            ], 500);
+        }
+    }
+
+    /**
+     * Répartition par opérateur Eklektik
+     */
+    public function getOperatorsDistribution(Request $request)
+    {
+        try {
+            $startDate = $request->get('start_date', now()->subDays(30)->format('Y-m-d'));
+            $endDate = $request->get('end_date', now()->format('Y-m-d'));
+            $operator = $request->get('operator', 'ALL');
+
+            $transactions = $this->parseEklektikTransactions($startDate, $endDate, $operator);
+            $kpis = $this->calculateEklektikKPIs($transactions);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'operators_distribution' => $kpis['operators_distribution'],
+                    'period' => [
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'operator' => $operator
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur récupération répartition opérateurs', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la récupération de la répartition par opérateur'
+            ], 500);
+        }
+    }
 }
