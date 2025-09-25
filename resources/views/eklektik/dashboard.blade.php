@@ -2,6 +2,10 @@
 
 @section('title', 'Dashboard Eklektik Intégré')
 
+@section('head')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+@endsection
+
 @section('content')
 <div class="container-fluid">
     <div class="row">
@@ -268,6 +272,11 @@ function loadSyncStatus() {
 }
 
 function createRevenueEvolutionChart(chartData) {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js n\'est pas chargé');
+        return;
+    }
+    
     const ctx = document.getElementById('revenue-evolution-chart').getContext('2d');
     
     if (revenueEvolutionChart) {
@@ -305,6 +314,11 @@ function createRevenueEvolutionChart(chartData) {
 }
 
 function createOperatorsDistributionChart(chartData) {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js n\'est pas chargé');
+        return;
+    }
+    
     const ctx = document.getElementById('operators-distribution-chart').getContext('2d');
     
     if (operatorsDistributionChart) {
@@ -332,6 +346,11 @@ function createOperatorsDistributionChart(chartData) {
 }
 
 function createCAPartnersChart(chartData) {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js n\'est pas chargé');
+        return;
+    }
+    
     const ctx = document.getElementById('ca-partners-chart').getContext('2d');
     
     if (caPartnersChart) {
@@ -392,18 +411,29 @@ function displayOperatorsStats(distribution) {
 }
 
 function displaySyncStatus(status) {
-    const statusColor = status.status === 'healthy' ? 'success' : 
-                       status.status === 'warning' ? 'warning' : 'danger';
+    // Vérifier que status existe et a les propriétés nécessaires
+    if (!status || typeof status !== 'object') {
+        console.error('Status invalide:', status);
+        return;
+    }
+    
+    const statusValue = status.status || 'unknown';
+    const statusColor = statusValue === 'healthy' ? 'success' : 
+                       statusValue === 'warning' ? 'warning' : 'danger';
     
     const lastSync = status.last_sync ? 
         new Date(status.last_sync).toLocaleString('fr-FR') : 'Jamais';
     
+    const totalRecords = status.total_records || 0;
+    const operatorsStatus = status.operators_status || {};
+    const operatorsWithData = Object.values(operatorsStatus).filter(op => op && op.has_data).length;
+    
     const html = `
         <div class="alert alert-${statusColor}">
-            <h6><i class="fas fa-info-circle"></i> Statut: ${status.status.toUpperCase()}</h6>
+            <h6><i class="fas fa-info-circle"></i> Statut: ${statusValue.toUpperCase()}</h6>
             <p><strong>Dernière synchronisation:</strong> ${lastSync}</p>
-            <p><strong>Total enregistrements:</strong> ${status.total_records}</p>
-            <p><strong>Opérateurs avec données:</strong> ${Object.values(status.operators_status).filter(op => op.has_data).length}/3</p>
+            <p><strong>Total enregistrements:</strong> ${totalRecords}</p>
+            <p><strong>Opérateurs avec données:</strong> ${operatorsWithData}/3</p>
         </div>
     `;
     
@@ -431,6 +461,25 @@ function clearCache() {
             alert('Erreur lors du vidage du cache');
         });
 }
+
+// Charger le dashboard au chargement de la page
+document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier que Chart.js est chargé
+    if (typeof Chart === 'undefined') {
+        console.error('❌ Chart.js n\'est pas chargé. Les graphiques ne fonctionneront pas.');
+        // Afficher un message d'erreur à l'utilisateur
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger';
+        errorDiv.innerHTML = '<strong>Erreur:</strong> Chart.js n\'est pas chargé. Veuillez recharger la page.';
+        document.querySelector('.card-body').insertBefore(errorDiv, document.querySelector('.card-body').firstChild);
+    } else {
+        console.log('✅ Chart.js chargé avec succès');
+    }
+    
+    loadDashboard();
+    loadSyncStatus();
+    loadOperatorsStats();
+});
 </script>
 @endsection
 
