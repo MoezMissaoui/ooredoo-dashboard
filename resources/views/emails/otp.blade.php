@@ -1,9 +1,16 @@
+@php
+    $theme = $theme ?? 'club_privileges';
+    $isOoredoo = $theme === 'ooredoo';
+    $brandName = $isOoredoo ? 'Ooredoo Privileges' : 'Club Privilèges';
+    $primaryColor = $isOoredoo ? '#E30613' : '#8B5CF6';
+    $secondaryColor = $isOoredoo ? '#DC2626' : '#7C3AED';
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code de vérification Club Privilèges</title>
+    <title>Code de vérification {{ $brandName }}</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -24,7 +31,7 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+            background: linear-gradient(135deg, {{ $primaryColor }} 0%, {{ $secondaryColor }} 100%);
             padding: 40px 30px;
             text-align: center;
             color: white;
@@ -73,7 +80,7 @@
         
         .otp-container {
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border: 3px solid #8B5CF6;
+            border: 3px solid {{ $primaryColor }};
             border-radius: 12px;
             padding: 30px;
             margin: 30px 0;
@@ -92,7 +99,7 @@
         .otp-code {
             font-size: 48px;
             font-weight: bold;
-            color: #8B5CF6;
+            color: {{ $primaryColor }};
             letter-spacing: 8px;
             font-family: 'Courier New', monospace;
             margin: 10px 0;
@@ -204,7 +211,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Club Privilèges</h1>
+            <h1>{{ $brandName }}</h1>
             <p>{{ $isInvitation ? 'Confirmation d\'invitation' : 'Code de connexion' }}</p>
         </div>
         
@@ -225,9 +232,9 @@
             
             <div class="message">
                 @if($isInvitation)
-                    <p>Voici votre code de vérification pour confirmer votre invitation à rejoindre le dashboard Club Privilèges :</p>
+                    <p>Voici votre code de vérification pour confirmer votre invitation à rejoindre le dashboard {{ $brandName }} :</p>
                 @else
-                    <p>Voici votre code de vérification pour vous connecter au dashboard Club Privilèges :</p>
+                    <p>Voici votre code de vérification pour vous connecter au dashboard {{ $brandName }} :</p>
                 @endif
             </div>
             
@@ -270,11 +277,11 @@
         </div>
         
         <div class="footer">
-            <p><strong>Club Privilèges</strong></p>
+            <p><strong>{{ $brandName }}</strong></p>
             <p>Dashboard Administrateur</p>
             <p style="margin-top: 15px;">
                 Si vous avez des questions, contactez-nous à : 
-                <a href="mailto:{{ config('mail.from_address') }}" style="color: #8B5CF6;">{{ config('mail.from_address') }}</a>
+                <a href="mailto:{{ config('mail.from_address') }}" style="color: {{ $primaryColor }};">{{ config('mail.from_address') }}</a>
             </p>
         </div>
     </div>

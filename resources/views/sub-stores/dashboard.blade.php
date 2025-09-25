@@ -1106,31 +1106,28 @@
         <span>{{ Auth::user()->isSuperAdmin() ? 'Vue Globale' : 'Vue Sub-Stores' }}</span>
             
             <div class="user-menu">
-                <div class="user-info">
-            <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
-            <div class="user-role">{{ Auth::user()->role->display_name ?? 'Aucun rôle' }}</div>
+                <div class="user-info" id="profileMenuToggle" style="cursor: pointer;">
+                  <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
+                  <div class="user-role">{{ Auth::user()->role->display_name ?? 'Aucun rôle' }}</div>
                 </div>
-                
-          @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
-            <a href="{{ route('admin.users.index') }}" class="admin-btn">Utilisateurs</a>
-            <a href="{{ route('admin.invitations.index') }}" class="admin-btn">Invitations</a>
-          @endif
-          
-          <a href="{{ route('password.change') }}" class="admin-btn" title="Changer mon mot de passe">🔒 Mot de passe</a>
-          
-          @if(Auth::user()->canAccessOperatorsDashboard())
-          <a href="{{ route('dashboard') }}" class="admin-btn">
-                    📊 Dashboard Opérateurs
-                    </a>
-                @endif
-                
-                <form action="{{ route('auth.logout') }}" method="POST" style="display: inline;">
+                <div id="profileDropdown" class="dropdown" style="display:none; position:absolute; right:20px; top:60px; background: var(--card); border:1px solid var(--border); border-radius: 8px; min-width: 220px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
+                  @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
+                  <a href="{{ route('admin.users.index') }}" class="admin-btn" style="display:block; margin:8px;">Utilisateurs</a>
+                  <a href="{{ route('admin.invitations.index') }}" class="admin-btn" style="display:block; margin:8px;">Invitations</a>
+                  @endif
+                  <a href="{{ route('password.change') }}" class="admin-btn" style="display:block; margin:8px;">🔒 Mot de passe</a>
+                  @if(Auth::user()->canAccessOperatorsDashboard())
+                  <a href="{{ route('dashboard') }}" class="admin-btn" style="display:block; margin:8px;">📊 Dashboard Opérateurs</a>
+                  @endif
+                  @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+                  <a href="{{ route('admin.eklektik-cron') }}" class="admin-btn" style="display:block; margin:8px;">⚙️ Configuration Eklektik</a>
+                  @endif
+                  <form action="{{ route('auth.logout') }}" method="POST" style="display:block; margin:8px;">
                     @csrf
-            <button type="submit" class="logout-btn" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
-              Déconnexion
-            </button>
-                </form>
-        </div>
+                    <button type="submit" class="logout-btn" style="width:100%;" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</button>
+                  </form>
+                </div>
+            </div>
             </div>
         </div>
 
@@ -1425,6 +1422,20 @@
     @endif
 
     <script>
+    // Dropdown profil (mêmes interactions que dashboard principal)
+    document.addEventListener('DOMContentLoaded', function() {
+      const toggle = document.getElementById('profileMenuToggle');
+      const dropdown = document.getElementById('profileDropdown');
+      if (toggle && dropdown) {
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', function() {
+          dropdown.style.display = 'none';
+        });
+      }
+    });
         // Global variables
     let currentData = null;
     let inscriptionsChart = null;
@@ -1498,8 +1509,41 @@
         
         console.log('📊 Chargement des données:', { startDate, endDate, subStore });
         
-        const response = await fetch(`/sub-stores/api/dashboard/data?start_date=${startDate}&end_date=${endDate}&sub_store=${subStore}`);
-                const data = await response.json();
+        // Calculer le timeout selon la période
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        const periodDays = Math.ceil((endDateObj - startDateObj) / (1000 * 60 * 60 * 24)) + 1;
+        const timeoutMs = periodDays > 90 ? 60000 : (periodDays > 30 ? 30000 : 15000); // 60s/30s/15s
+        
+        console.log(`🕐 Période: ${periodDays} jours, Timeout: ${timeoutMs/1000}s`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, timeoutMs);
+        
+        const response = await fetch(`/sub-stores/api/dashboard/data?start_date=${startDate}&end_date=${endDate}&sub_store=${subStore}`, {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('❌ Réponse non-JSON reçue:', text.substring(0, 200));
+            throw new Error('Le serveur a renvoyé du HTML au lieu de JSON. Vérifiez les logs du serveur.');
+        }
+        
+        const data = await response.json();
                 
         console.log('✅ Données reçues:', data);
         
@@ -1518,7 +1562,22 @@
             } catch (error) {
         console.error('❌ Erreur lors du chargement des données:', error);
         loadingIndicator.style.display = 'none';
-        showNotification('Erreur de connexion: ' + error.message, 'error');
+        
+        let errorMessage = 'Erreur de connexion';
+        if (error.name === 'AbortError') {
+            errorMessage = `⏱️ Timeout: La période est trop longue (${periodDays} jours). Essayez une période plus courte.`;
+        } else if (error.message.includes('JSON')) {
+            errorMessage = '🔧 Erreur serveur: Vérifiez les logs Laravel';
+        } else if (error.message.includes('400')) {
+            errorMessage = '📅 Période invalide ou trop longue (max 1 an)';
+        } else {
+            errorMessage = 'Erreur: ' + error.message;
+        }
+        
+        showNotification(errorMessage, 'error');
+        
+        // Afficher le contenu même en cas d'erreur
+        dashboardContent.style.display = 'block';
       }
     }
 
@@ -1860,7 +1919,18 @@
         const delta = merchant.delta || 0;
         let deltaClass = 'neutral';
         let deltaIcon = '→';
-        
+        const rank = startIndex + index + 1;
+
+        // Badge de rang (top 3)
+        let rankBadge = `<span class="badge badge-info">${rank}</span>`;
+        if (rank === 1) {
+          rankBadge = `<span class="badge badge-gold">🥇 ${rank}</span>`;
+        } else if (rank === 2) {
+          rankBadge = `<span class="badge badge-silver">🥈 ${rank}</span>`;
+        } else if (rank === 3) {
+          rankBadge = `<span class="badge badge-bronze">🥉 ${rank}</span>`;
+        }
+
         if (delta > 0) {
           deltaClass = 'positive';
           deltaIcon = '↗';
@@ -1871,7 +1941,7 @@
         
         return `
           <tr>
-            <td>${startIndex + index + 1}</td>
+            <td>${rankBadge}</td>
             <td><strong>${merchant.name}</strong></td>
             <td>${merchant.category}</td>
             <td>${merchant.current.toLocaleString()}</td>
@@ -2341,9 +2411,17 @@
     }
 
     // Event listeners
+    // Seul le sub-store déclenche un rechargement automatique
     document.getElementById('subStoreSelect').addEventListener('change', loadDashboardData);
-    document.getElementById('startDate').addEventListener('change', loadDashboardData);
-    document.getElementById('endDate').addEventListener('change', loadDashboardData);
+    
+    // Les dates ne déclenchent plus de mise à jour automatique
+    // Utiliser le bouton "Actualiser" pour mettre à jour les données
+    document.getElementById('startDate').addEventListener('change', function() {
+        console.log('📅 Date de début modifiée - cliquez sur Actualiser pour appliquer');
+    });
+    document.getElementById('endDate').addEventListener('change', function() {
+        console.log('📅 Date de fin modifiée - cliquez sur Actualiser pour appliquer');
+    });
     </script>
 </body>
 </html>

@@ -1,14 +1,28 @@
+@php
+    $theme = $theme ?? 'club_privileges';
+    $isOoredoo = $theme === 'ooredoo';
+    $isClubPrivileges = $theme === 'club_privileges';
+    $brandName = $isOoredoo ? 'Ooredoo Privileges' : 'Club Privilèges';
+@endphp
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérification OTP - Ooredoo Club Privilèges Dashboard</title>
+    <title>Vérification OTP - {{ $brandName }} Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         :root {
-            --brand-red: #E30613;
+            @if($isOoredoo)
+            --brand-primary: #E30613;
+            --brand-secondary: #DC2626;
+            --theme-name: 'Ooredoo';
+            @else
+            --brand-primary: #6B46C1;
+            --brand-secondary: #8B5CF6;
+            --theme-name: 'Club Privilèges';
+            @endif
             --brand-dark: #1f2937;
             --bg: #f8fafc;
             --card: #ffffff;
@@ -18,6 +32,8 @@
             --danger: #ef4444;
             --accent: #3b82f6;
             --border: #e2e8f0;
+            /* Backward compatibility */
+            --brand-red: var(--brand-primary);
         }
         
         * { box-sizing: border-box; }
@@ -50,7 +66,7 @@
         }
         
         .logo h1 {
-            color: var(--brand-red);
+            color: var(--brand-primary);
             font-size: 24px;
             font-weight: 700;
             margin: 0;
@@ -97,7 +113,7 @@
             padding: 12px;
             border-radius: 8px;
             font-weight: 500;
-            color: var(--brand-red);
+            color: var(--brand-primary);
             margin-bottom: 24px;
         }
         
@@ -122,20 +138,20 @@
         
         .otp-input:focus {
             outline: none;
-            border-color: var(--brand-red);
-            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px {{ $isOoredoo ? 'rgba(227, 6, 19, 0.1)' : 'rgba(107, 70, 193, 0.1)' }};
         }
         
         .otp-input.filled {
-            background: #fee2e2;
-            border-color: var(--brand-red);
-            color: var(--brand-red);
+            background: {{ $isOoredoo ? '#fee2e2' : '#f3f0ff' }};
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
         }
         
         .btn {
             width: 100%;
             padding: 14px 24px;
-            background: var(--brand-red);
+            background: var(--brand-primary);
             color: white;
             border: none;
             border-radius: 8px;
@@ -148,9 +164,9 @@
         }
         
         .btn:hover:not(:disabled) {
-            background: #c20510;
+            background: {{ $isOoredoo ? '#c20510' : '#553c9a' }};
             transform: translateY(-1px);
-            box-shadow: 0 10px 25px rgba(227, 6, 19, 0.2);
+            box-shadow: 0 10px 25px {{ $isOoredoo ? 'rgba(227, 6, 19, 0.2)' : 'rgba(107, 70, 193, 0.2)' }};
         }
         
         .btn:active {
@@ -172,8 +188,8 @@
         }
         
         .btn-secondary:hover:not(:disabled) {
-            border-color: var(--brand-red);
-            color: var(--brand-red);
+            border-color: var(--brand-primary);
+            color: var(--brand-primary);
         }
         
         .alert {
@@ -211,7 +227,7 @@
         }
         
         .resend-link {
-            color: var(--brand-red);
+            color: var(--brand-primary);
             text-decoration: none;
             font-size: 14px;
             font-weight: 500;
@@ -247,7 +263,26 @@
 <body>
     <div class="otp-container">
         <div class="logo">
-            <h1>Ooredoo Club Privilèges</h1>
+            @if($isOoredoo)
+            <img src="{{ asset('images/ooredoo-logo.png') }}" alt="Ooredoo" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" style="height: 60px; margin-bottom: 16px;">
+            <svg class="logo-fallback" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none; height: 60px; margin-bottom: 16px;">
+                <rect width="200" height="60" fill="var(--brand-primary)"/>
+                <text x="20" y="35" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">ooredoo</text>
+            </svg>
+            <h1>{{ $brandName }}</h1>
+            @else
+            <svg class="logo-img" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: 60px; margin-bottom: 16px;">
+                <defs>
+                    <linearGradient id="clubGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color: var(--brand-primary)"/>
+                        <stop offset="100%" style="stop-color: var(--brand-secondary)"/>
+                    </linearGradient>
+                </defs>
+                <rect width="200" height="60" fill="url(#clubGradient)" rx="8"/>
+                <text x="100" y="35" fill="white" font-family="Inter, sans-serif" font-size="20" font-weight="700" text-anchor="middle" dominant-baseline="middle">{{ $brandName }}</text>
+            </svg>
+            <h1>{{ $brandName }}</h1>
+            @endif
             <p>Dashboard Administrateur</p>
         </div>
         

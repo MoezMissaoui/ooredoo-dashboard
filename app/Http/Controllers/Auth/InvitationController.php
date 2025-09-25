@@ -407,21 +407,8 @@ class InvitationController extends Controller
      */
     private function getAllOperators(): array
     {
-        // Récupérer les opérateurs classiques
-        $operators = DB::table('country_payments_methods')
-                      ->distinct()
-                      ->pluck('country_payments_methods_name', 'country_payments_methods_name')
-                      ->toArray();
-        
-        // Récupérer les sub-stores
-        $subStores = DB::table('stores')
-                      ->where('is_sub_store', 1)
-                      ->where('store_active', 1)
-                      ->pluck('store_name', 'store_name')
-                      ->toArray();
-        
-        // Combiner les deux listes
-        return array_merge($operators, $subStores);
+        $subStoreService = app(\App\Services\SubStoreService::class);
+        return $subStoreService->getAllOperators();
     }
     
     /**
@@ -429,10 +416,8 @@ class InvitationController extends Controller
      */
     private function getOperators(): array
     {
-        return DB::table('country_payments_methods')
-                 ->distinct()
-                 ->pluck('country_payments_methods_name', 'country_payments_methods_name')
-                 ->toArray();
+        $subStoreService = app(\App\Services\SubStoreService::class);
+        return $subStoreService->getClassicOperators();
     }
     
     /**
@@ -440,10 +425,7 @@ class InvitationController extends Controller
      */
     private function getSubStores(): array
     {
-        return DB::table('stores')
-                 ->where('is_sub_store', 1)
-                 ->where('store_active', 1)
-                 ->pluck('store_name', 'store_name')
-                 ->toArray();
+        $subStoreService = app(\App\Services\SubStoreService::class);
+        return $subStoreService->getSubStores();
     }
 }
