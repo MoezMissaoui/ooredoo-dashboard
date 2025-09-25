@@ -1910,30 +1910,28 @@
         <span>{{ Auth::user()->isSuperAdmin() ? 'Vue Globale' : 'Vue ' . (Auth::user()->getPrimaryOperatorName() ?? 'Opérateur') }}</span>
         
         <div class="user-menu">
-          <div class="user-info">
+          <div class="user-info" id="profileMenuToggle" style="cursor: pointer;">
             <div class="user-name">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
             <div class="user-role">{{ Auth::user()->role->display_name ?? 'Aucun rôle' }}</div>
           </div>
-          
-          @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
-            <a href="{{ route('admin.users.index') }}" class="admin-btn">Utilisateurs</a>
-            <a href="{{ route('admin.invitations.index') }}" class="admin-btn">Invitations</a>
-          @endif
-          
-          <a href="{{ route('password.change') }}" class="admin-btn" title="Changer mon mot de passe">🔒 Mot de passe</a>
-          
-          @if(Auth::user()->canAccessSubStoresDashboard())
-          <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn">
-            🏪 Sub-Stores
-          </a>
-          @endif
-          
-          <form action="{{ route('auth.logout') }}" method="POST" style="display: inline;">
-            @csrf
-            <button type="submit" class="logout-btn" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">
-              Déconnexion
-            </button>
-          </form>
+
+          <div id="profileDropdown" class="dropdown" style="display:none; position:absolute; right:20px; top:60px; background: var(--card); border:1px solid var(--border); border-radius: 8px; min-width: 220px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
+            @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
+            <a href="{{ route('admin.users.index') }}" class="admin-btn" style="display:block; margin:8px;">Utilisateurs</a>
+            <a href="{{ route('admin.invitations.index') }}" class="admin-btn" style="display:block; margin:8px;">Invitations</a>
+            @endif
+            <a href="{{ route('password.change') }}" class="admin-btn" style="display:block; margin:8px;">🔒 Mot de passe</a>
+            @if(Auth::user()->canAccessSubStoresDashboard())
+            <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="display:block; margin:8px;">🏪 Sub-Stores</a>
+            @endif
+            @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+            <a href="{{ route('admin.eklektik-cron') }}" class="admin-btn" style="display:block; margin:8px;">⚙️ Configuration Eklektik</a>
+            @endif
+            <form action="{{ route('auth.logout') }}" method="POST" style="display:block; margin:8px;">
+              @csrf
+              <button type="submit" class="logout-btn" style="width:100%;" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')">Déconnexion</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
@@ -2979,6 +2977,18 @@
 
     // Initialize dashboard
     document.addEventListener('DOMContentLoaded', function() {
+      // Dropdown Profil
+      const toggle = document.getElementById('profileMenuToggle');
+      const dropdown = document.getElementById('profileDropdown');
+      if (toggle && dropdown) {
+        toggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        });
+        document.addEventListener('click', function() {
+          dropdown.style.display = 'none';
+        });
+      }
       // Configuration globale Chart.js pour désactiver les animations
       if (typeof Chart !== 'undefined') {
         Chart.defaults.animation = false;
@@ -3611,21 +3621,14 @@
     }
 
     function toggleAutoRefresh() {
-      const checkbox = document.getElementById('auto-refresh-checkbox');
-      
-      if (checkbox.checked) {
-        autoRefreshInterval = setInterval(() => {
-          console.log('🔄 Auto-actualisation Eklektik...');
-          refreshEklektikData();
-        }, 30000); // 30 secondes
-        console.log('✅ Auto-actualisation activée (30s)');
-      } else {
-        if (autoRefreshInterval) {
-          clearInterval(autoRefreshInterval);
-          autoRefreshInterval = null;
-        }
-        console.log('❌ Auto-actualisation désactivée');
+      // Auto-refresh désactivé pour stabilité (demande utilisateur)
+      if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
       }
+      const checkbox = document.getElementById('auto-refresh-checkbox');
+      if (checkbox) checkbox.checked = false;
+      console.log('❌ Auto-actualisation désactivée');
     }
     
     
@@ -4347,16 +4350,23 @@
       let html = '';
       
       for (const [operator, data] of Object.entries(distribution)) {
+        const newSubs = (data.new_subscriptions ?? data.new_subs ?? data.subscriptions ?? data.activated ?? 0);
+        const active = (data.active_subscribers ?? data.active ?? 0);
+        const fact = (data.facturation ?? 0);
+        const rev = (data.revenue_ttc ?? data.ca_bigdeal ?? 0);
+        const formattedNewSubs = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(newSubs);
+        const formattedActive = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(active);
+        const formattedFact = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(fact);
+        const formattedRev = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(rev);
         html += `
           <div class="card mb-2" style="border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
             <div class="card-body" style="padding: 0;">
               <h6 class="card-title" style="margin: 0 0 8px 0; font-weight: 600; color: var(--brand-dark);">${operator}</h6>
               <div style="font-size: 12px; line-height: 1.4;">
-                <div><strong>Revenus TTC:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.revenue_ttc)}</div>
-                <div><strong>Revenus HT:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.revenue_ht)}</div>
-                <div><strong>CA BigDeal:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_bigdeal)}</div>
-                <div><strong>CA Opérateur:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_operateur)}</div>
-                <div><strong>CA Agrégateur:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_agregateur)}</div>
+                <div><strong>Active subs:</strong> ${formattedActive}</div>
+                <div><strong>Nouveaux abonnements:</strong> ${formattedNewSubs}</div>
+                <div><strong>Facturations:</strong> ${formattedFact}</div>
+                <div><strong>Revenus TTC:</strong> ${formattedRev}</div>
               </div>
             </div>
           </div>

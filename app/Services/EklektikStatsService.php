@@ -178,7 +178,7 @@ class EklektikStatsService
         // Structure basée sur l'interface Eklektik:
         // [date, offer, new_sub, unsub, simchurn, rev_simchurn, active_sub, nb_facturation, taux_facturation, revenu_ttc_local, revenu_ttc_usd, revenu_ttc_tnd]
         
-        $offerName = $row[1];
+        $offerName = $row[1] ?? 'Offre Inconnue';
         $offerType = $this->extractOfferType($offerName);
         $revenuTtcTnd = (float) str_replace([' ', 'TND'], '', $row[11]);
         

@@ -48,6 +48,8 @@
     </div>
 </div>
 
+ 
+
 
 <script>
 // Configuration Chart.js optimisée pour éliminer le sautillement
@@ -99,7 +101,7 @@
             const element = document.getElementById('eklektik-revenue-ttc');
             const deltaElement = document.getElementById('eklektik-revenue-ttc-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ttc);
+                element.textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(data.total_revenue_ttc);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'Revenus TTC';
@@ -111,7 +113,7 @@
             const element = document.getElementById('eklektik-revenue-ht');
             const deltaElement = document.getElementById('eklektik-revenue-ht-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ht);
+                element.textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(data.total_revenue_ht);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'Revenus HT';
@@ -123,7 +125,7 @@
             const element = document.getElementById('eklektik-ca-bigdeal');
             const deltaElement = document.getElementById('eklektik-ca-bigdeal-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_ca_bigdeal);
+                element.textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(data.total_ca_bigdeal);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'CA BigDeal';
@@ -135,10 +137,13 @@
             const element = document.getElementById('eklektik-active-subs');
             const deltaElement = document.getElementById('eklektik-active-subs-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR').format(data.total_active_subscribers);
+                element.textContent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(data.total_active_subscribers);
             }
             if (deltaElement) {
-                deltaElement.textContent = 'Abonnés Actifs';
+                // Afficher le détail par opérateur si disponible
+                const byOp = data.active_subscribers_by_operator || {};
+                const parts = Object.entries(byOp).map(([op, val]) => `${op}: ${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(val)}`);
+                deltaElement.textContent = parts.length ? parts.join('  |  ') : 'Abonnés Actifs';
             }
         }
         
@@ -147,7 +152,7 @@
             const element = document.getElementById('eklektik-new-subscriptions');
             const deltaElement = document.getElementById('eklektik-new-subscriptions-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR').format(data.total_new_subscriptions);
+                element.textContent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(data.total_new_subscriptions);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'Nouveaux abonnements';
@@ -159,7 +164,7 @@
             const element = document.getElementById('eklektik-unsubscriptions');
             const deltaElement = document.getElementById('eklektik-unsubscriptions-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR').format(data.total_unsubscriptions);
+                element.textContent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(data.total_unsubscriptions);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'Désabonnements';
@@ -171,7 +176,7 @@
             const element = document.getElementById('eklektik-simchurn');
             const deltaElement = document.getElementById('eklektik-simchurn-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR').format(data.total_simchurn);
+                element.textContent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(data.total_simchurn);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'Simchurn';
@@ -183,7 +188,7 @@
             const element = document.getElementById('eklektik-facturation');
             const deltaElement = document.getElementById('eklektik-facturation-delta');
             if (element) {
-                element.textContent = new Intl.NumberFormat('fr-FR').format(data.total_facturation);
+                element.textContent = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(data.total_facturation);
             }
             if (deltaElement) {
                 deltaElement.textContent = 'Abonnements Facturés';
@@ -560,6 +565,7 @@
         
         try {
             const operator = document.getElementById('eklektik-operator-select')?.value || 'ALL';
+            const operatorForKPIs = 'ALL'; // Active Subs et KPIs globaux: somme tous opérateurs
             
             // Utiliser les dates de la section "Sélection des Périodes"
             const startDateElement = document.getElementById('start-date');
@@ -587,7 +593,7 @@
             
             // Charger les vraies données de l'API Eklektik
             const [kpis, overviewChart, revenueEvolution, revenueDistribution, subsEvolution] = await Promise.all([
-                fetchData('/api/eklektik-dashboard/kpis', { start_date: startDateStr, end_date: endDateStr, operator }),
+                fetchData('/api/eklektik-dashboard/kpis', { start_date: startDateStr, end_date: endDateStr, operator: operatorForKPIs }),
                 fetchData('/api/eklektik-dashboard/overview-chart', { start_date: startDateStr, end_date: endDateStr, operator }),
                 fetchData('/api/eklektik-dashboard/revenue-evolution', { start_date: startDateStr, end_date: endDateStr, operator }),
                 fetchData('/api/eklektik-dashboard/revenue-distribution', { start_date: startDateStr, end_date: endDateStr }),
@@ -610,19 +616,13 @@
             // Modifier les couleurs du graphique Overview avec la palette cohérente
             if (overviewChart.data?.chart?.datasets) {
                 overviewChart.data.chart.datasets.forEach((dataset, index) => {
-                    switch(dataset.label) {
-                        case 'Active Sub':
-                            dataset.backgroundColor = eklektikColors.primaryAlpha;
-                            dataset.borderColor = eklektikColors.primary;
-                            break;
-                        case 'CA BigDeal':
-                            dataset.backgroundColor = eklektikColors.warningAlpha;
-                            dataset.borderColor = eklektikColors.warning;
-                            break;
-                        default:
-                            dataset.backgroundColor = operatorColors[index % operatorColors.length] + '80';
-                            dataset.borderColor = operatorColors[index % operatorColors.length];
-                    }
+                    // Harmoniser avec couleurs Overview: barres violettes/grises
+                    const violet = '#8b5cf6';
+                    const violetAlpha = 'rgba(139, 92, 246, 0.6)';
+                    const gray = '#9ca3af';
+                    const grayAlpha = 'rgba(156, 163, 175, 0.6)';
+                    dataset.backgroundColor = index % 2 === 0 ? violetAlpha : grayAlpha;
+                    dataset.borderColor = index % 2 === 0 ? violet : gray;
                 });
             }
             
@@ -766,8 +766,14 @@
             
             // Modifier les couleurs du graphique Operators Distribution
             if (revenueDistribution.data?.pie_chart?.datasets?.[0]) {
-                revenueDistribution.data.pie_chart.datasets[0].backgroundColor = operatorColors;
-                revenueDistribution.data.pie_chart.datasets[0].borderColor = operatorColors;
+                // Couleurs spécifiques: TT (dégradé bleu→blanc), Orange (orange), Taraji (rouge→jaune)
+                const colors = [
+                    'rgba(59, 130, 246, 0.9)', // TT - bleu
+                    '#f97316',                 // Orange
+                    'rgba(239, 68, 68, 0.9)'  // Taraji - rouge
+                ];
+                revenueDistribution.data.pie_chart.datasets[0].backgroundColor = colors;
+                revenueDistribution.data.pie_chart.datasets[0].borderColor = colors;
                 revenueDistribution.data.pie_chart.datasets[0].borderWidth = 2;
             }
             
@@ -791,6 +797,18 @@
                     intersect: false
                 }
             }, 300);
+
+            // Mettre à jour la carte "Statistiques par Opérateur" (si la fonction globale existe)
+            try {
+                if (typeof window.displayEklektikOperatorsStats === 'function') {
+                    const dist = revenueDistribution?.data?.distribution || revenueDistribution?.distribution || null;
+                    if (dist) {
+                        window.displayEklektikOperatorsStats(dist);
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ Impossible de mettre à jour Statistiques par Opérateur:', e);
+            }
             
             // Modifier les couleurs du graphique Subs Evolution
             if (subsEvolution.data?.chart?.datasets) {
@@ -861,7 +879,8 @@
                     }
                 }
             }, 400);
-            // Ancien code CA Partners supprimé - remplacé par Subs Evolution
+
+            // (Supprimé) Graphique Active Subs cumulés
             
             
         } catch (error) {

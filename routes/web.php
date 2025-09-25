@@ -22,6 +22,14 @@ use App\Http\Controllers\EklektikSyncController;
 |
 */
 
+// Route racine publique - redirection intelligente
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('auth.login');
+})->name('home');
+
 // Routes d'authentification (publiques)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('auth.login');
@@ -56,8 +64,7 @@ Route::post('/invitation/accept', [InvitationController::class, 'acceptInvitatio
 // Dashboard routes (protégées par authentification)
 Route::middleware('auth')->group(function () {
     // Route principale avec redirection intelligente selon le rôle
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.view');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/config', [DashboardController::class, 'getConfig'])->name('dashboard.config');
     
     // Dashboard Opérateur (accès restreint)
@@ -111,19 +118,21 @@ Route::middleware('auth')->group(function () {
         Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
         
         // Configuration du Cron Eklektik (Super Admin seulement)
+        // Attention: le groupe a déjà le préfixe de nom "admin.",
+        // donc les routes internes doivent être nommées sans le préfixe "admin." pour éviter "admin.admin.*"
         Route::middleware('role:super_admin')->group(function () {
-            Route::get('/eklektik-cron', [EklektikCronController::class, 'index'])->name('admin.eklektik-cron');
-            Route::get('/eklektik-cron/config', [EklektikCronController::class, 'index'])->name('admin.eklektik-cron.config');
-            Route::post('/eklektik-cron/config', [EklektikCronController::class, 'updateConfig'])->name('admin.eklektik-cron.update');
-            Route::post('/eklektik-cron/test', [EklektikCronController::class, 'testCron'])->name('admin.eklektik-cron.test');
-            Route::post('/eklektik-cron/run', [EklektikCronController::class, 'runCron'])->name('admin.eklektik-cron.run');
-            Route::post('/eklektik-cron/reset', [EklektikCronController::class, 'resetToDefault'])->name('admin.eklektik-cron.reset');
-            Route::get('/eklektik-cron/statistics', [EklektikCronController::class, 'getCronStatus'])->name('admin.eklektik-cron.statistics');
+            Route::get('/eklektik-cron', [EklektikCronController::class, 'index'])->name('eklektik-cron');
+            Route::get('/eklektik-cron/config', [EklektikCronController::class, 'index'])->name('eklektik-cron.config');
+            Route::post('/eklektik-cron/config', [EklektikCronController::class, 'updateConfig'])->name('eklektik-cron.update');
+            Route::post('/eklektik-cron/test', [EklektikCronController::class, 'testCron'])->name('eklektik-cron.test');
+            Route::post('/eklektik-cron/run', [EklektikCronController::class, 'runCron'])->name('eklektik-cron.run');
+            Route::post('/eklektik-cron/reset', [EklektikCronController::class, 'resetToDefault'])->name('eklektik-cron.reset');
+            Route::get('/eklektik-cron/statistics', [EklektikCronController::class, 'getCronStatus'])->name('eklektik-cron.statistics');
         });
         
         // Gestion des Synchronisations Eklektik (Super Admin et Admin)
         Route::get('/eklektik-sync', [EklektikSyncController::class, 'index'])->name('eklektik.sync');
-        Route::post('/eklektik-sync', [EklektikSyncController::class, 'sync'])->name('eklektik.sync');
+        Route::post('/eklektik-sync', [EklektikSyncController::class, 'sync'])->name('eklektik.sync.post');
         Route::get('/eklektik-sync/status', [EklektikSyncController::class, 'status'])->name('eklektik.status');
         Route::get('/eklektik-sync/logs', [EklektikSyncController::class, 'logs'])->name('eklektik.logs');
         

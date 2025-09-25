@@ -187,8 +187,8 @@ class EklektikDashboardController extends Controller
             foreach ($stats as $stat) {
                 $chartData['labels'][] = Carbon::parse($stat['date'])->format('d/m');
                 
-                // Abonnés actifs (estimation basée sur les nouvelles souscriptions)
-                $activeSubs = $stat['total_active_subscribers'] ?? ($stat['total_new_subscriptions'] * 10);
+                // Abonnés actifs (valeur réelle agrégée du jour)
+                $activeSubs = $stat['total_active_subscribers'] ?? 0;
                 $chartData['datasets'][0]['data'][] = $activeSubs;
                 
                 // Abonnements facturés
@@ -200,7 +200,7 @@ class EklektikDashboardController extends Controller
                 'data' => [
                     'chart' => $chartData,
                     'summary' => [
-                        'total_active_subs' => $stats->sum('total_active_subscribers') ?? ($stats->sum('total_new_subscriptions') * 10),
+                        'total_active_subs' => $stats->sum('total_active_subscribers'),
                         'total_facturation' => $stats->sum('total_facturation'),
                         'period' => [
                             'start' => $startDate,
@@ -259,8 +259,8 @@ class EklektikDashboardController extends Controller
             foreach ($stats as $stat) {
                 $chartData['labels'][] = Carbon::parse($stat['date'])->format('d/m');
                 
-                // Abonnés actifs (simulation basée sur les données disponibles)
-                $activeSubs = $stat['total_active_subscribers'] ?? ($stat['total_new_subscriptions'] * 10);
+                // Abonnés actifs (valeur réelle agrégée du jour)
+                $activeSubs = $stat['total_active_subscribers'] ?? 0;
                 $chartData['datasets'][0]['data'][] = $activeSubs;
                 
                 // CA BigDeal (en TND)
@@ -273,7 +273,7 @@ class EklektikDashboardController extends Controller
                     'chart' => $chartData,
                     'summary' => [
                         'total_revenue_ttc' => $stats->sum('total_revenue_ttc'),
-                        'total_active_subscribers' => $stats->avg('total_active_subscribers'),
+                        'total_active_subscribers' => $stats->sum('total_active_subscribers'),
                         'average_billing_rate' => $stats->avg('average_billing_rate'),
                         'average_bigdeal_percentage' => $stats->sum('total_revenue_ht') > 0 ? 
                             ($stats->sum('total_ca_bigdeal') / $stats->sum('total_revenue_ht')) * 100 : 0

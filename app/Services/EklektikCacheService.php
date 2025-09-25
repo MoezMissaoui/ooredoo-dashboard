@@ -91,6 +91,16 @@ class EklektikCacheService
             ];
         }
 
+        // Déterminer le snapshot de fin de période pour Active Subs (ou dernier jour disponible)
+        $endDayRows = $stats->where('date', $endDate);
+        if ($endDayRows->isEmpty()) {
+            $latestDate = optional($stats->sortBy('date')->last())->date;
+            $endDayRows = $latestDate ? $stats->where('date', $latestDate) : collect();
+        }
+        $activeByOperator = $endDayRows->groupBy('operator')->map(function ($rows) {
+            return $rows->sum('active_subscribers');
+        })->toArray();
+
         $kpis = [
             'total_new_subscriptions' => $stats->sum('new_subscriptions'),
             'total_unsubscriptions' => $stats->sum('unsubscriptions'),
@@ -102,7 +112,9 @@ class EklektikCacheService
             'total_ca_agregateur' => $stats->sum('ca_agregateur'),
             'total_ca_bigdeal' => $stats->sum('ca_bigdeal'),
             'average_billing_rate' => $stats->avg('billing_rate'),
-            'total_active_subscribers' => $stats->max('active_subscribers'),
+            // Active subs = somme du snapshot de fin
+            'total_active_subscribers' => $endDayRows->sum('active_subscribers'),
+            'active_subscribers_by_operator' => $activeByOperator,
             'operators_distribution' => []
         ];
 
@@ -115,6 +127,7 @@ class EklektikCacheService
                 'unsubscriptions' => $operatorStats->sum('unsubscriptions'),
                 'simchurn' => $operatorStats->sum('simchurn'),
                 'facturation' => $operatorStats->sum('nb_facturation'),
+                'active_subscribers' => $operatorStats->where('date', $endDayRows->first()->date ?? $endDate)->sum('active_subscribers'),
                 'revenue_ttc' => $operatorStats->sum('revenu_ttc_tnd'),
                 'revenue_ht' => $operatorStats->sum('montant_total_ht'),
                 'ca_operateur' => $operatorStats->sum('ca_operateur'),
@@ -144,6 +157,8 @@ class EklektikCacheService
         $dailyStats = $stats->groupBy('date')->map(function ($dayStats) {
             return [
                 'date' => $dayStats->first()->date,
+                // Somme réelle des abonnés actifs pour la date
+                'total_active_subscribers' => $dayStats->sum('active_subscribers'),
                 'total_new_subscriptions' => $dayStats->sum('new_subscriptions'),
                 'total_unsubscriptions' => $dayStats->sum('unsubscriptions'),
                 'total_simchurn' => $dayStats->sum('simchurn'),

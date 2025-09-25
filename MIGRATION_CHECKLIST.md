@@ -126,7 +126,7 @@ Cette checklist garantit une migration réussie du Dashboard avec l'intégration
   ```
 - [ ] **Synchronisation complète** : Période complète
   ```bash
-  php artisan eklektik:sync-stats --start-date=2025-09-01 --end-date=2025-09-24
+  php artisan eklektik:sync-stats --start-date=2025-09-01 --end-date=2025-09-24 --force
   ```
 
 ---

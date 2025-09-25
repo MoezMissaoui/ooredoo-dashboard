@@ -91,25 +91,25 @@ function updateEklektikStatsDisplay(data) {
   // Mettre à jour les KPIs avec les nouvelles données
   if (data.total_revenue_ttc !== undefined) {
     document.getElementById('eklektik-revenue-ttc').textContent = 
-      new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ttc);
+      new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(data.total_revenue_ttc);
     document.getElementById('eklektik-revenue-ttc-delta').textContent = 'Revenus TTC';
   }
   
   if (data.total_revenue_ht !== undefined) {
     document.getElementById('eklektik-revenue-ht').textContent = 
-      new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ht);
+      new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(data.total_revenue_ht);
     document.getElementById('eklektik-revenue-ht-delta').textContent = 'Revenus HT';
   }
   
   if (data.total_ca_bigdeal !== undefined) {
     document.getElementById('eklektik-ca-bigdeal').textContent = 
-      new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_ca_bigdeal);
+      new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND', maximumFractionDigits: 0 }).format(data.total_ca_bigdeal);
     document.getElementById('eklektik-ca-bigdeal-delta').textContent = 'CA BigDeal';
   }
   
   if (data.total_revenue_ht > 0) {
     const percentage = (data.total_ca_bigdeal / data.total_revenue_ht) * 100;
-    document.getElementById('eklektik-bigdeal-percentage').textContent = percentage.toFixed(2) + '%';
+    document.getElementById('eklektik-bigdeal-percentage').textContent = Math.round(percentage) + '%';
     document.getElementById('eklektik-bigdeal-percentage-delta').textContent = 'Part BigDeal';
   }
   
