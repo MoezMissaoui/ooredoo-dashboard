@@ -844,6 +844,75 @@
       margin-top: 20px;
     }
 
+    /* Colonnes triables */
+    .sortable {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      transition: background-color 0.2s ease;
+    }
+
+    .sortable:hover {
+      background-color: var(--hover-bg) !important;
+    }
+
+    .sort-indicator {
+      margin-left: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      transition: color 0.2s ease;
+    }
+
+    .sort-indicator.asc {
+      color: var(--primary);
+    }
+
+    .sort-indicator.desc {
+      color: var(--primary);
+    }
+
+    /* Badges de rang */
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0 auto;
+    }
+
+    .rank-badge.gold {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+    }
+
+    .rank-badge.silver {
+      background: linear-gradient(135deg, #C0C0C0, #A8A8A8);
+      box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+    }
+
+    .rank-badge.bronze {
+      background: linear-gradient(135deg, #CD7F32, #B8860B);
+      box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
+    }
+
+    .rank-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: var(--muted-bg);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: bold;
+      margin: 0 auto;
+    }
+
     .pagination-row {
       display: flex;
       justify-content: space-between;
@@ -1521,7 +1590,7 @@
               <div class="kpi-content">
                 <div class="kpi-title">Total Users <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d'utilisateurs inscrits.">ⓘ</span></div>
                 <div class="kpi-value" id="users-totalUsers">Loading...</div>
-                <div class="kpi-delta" id="users-totalUsersDelta" style="display: none;">→ 0.0%</div>
+                <div class="kpi-delta" id="users-totalUsersDelta" style="display: none;"></div>
               </div>
             </div>
             
@@ -1530,7 +1599,7 @@
               <div class="kpi-content">
                 <div class="kpi-title">Active Users <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Utilisateurs actifs dans la période.">ⓘ</span></div>
                 <div class="kpi-value" id="users-activeUsers">Loading...</div>
-                <div class="kpi-delta" id="users-activeUsersDelta">→ 0.0%</div>
+                <div class="kpi-delta" id="users-activeUsersDelta" style="display: none;"></div>
               </div>
             </div>
             
@@ -1539,7 +1608,7 @@
               <div class="kpi-content">
                 <div class="kpi-title">Total Transactions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions des utilisateurs.">ⓘ</span></div>
                 <div class="kpi-value" id="users-totalTransactions">Loading...</div>
-                <div class="kpi-delta" id="users-totalTransactionsDelta">→ 0.0%</div>
+                <div class="kpi-delta" id="users-totalTransactionsDelta" style="display: none;"></div>
               </div>
             </div>
             
@@ -1548,7 +1617,7 @@
               <div class="kpi-content">
                 <div class="kpi-title">Avg Transactions/User <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Moyenne de transactions par utilisateur.">ⓘ</span></div>
                 <div class="kpi-value" id="users-avgTransactionsPerUser">Loading...</div>
-                <div class="kpi-delta" id="users-avgTransactionsPerUserDelta">→ 0.0%</div>
+                <div class="kpi-delta" id="users-avgTransactionsPerUserDelta" style="display: none;"></div>
               </div>
             </div>
             <div class="card kpi-card users-kpi">
@@ -1556,7 +1625,7 @@
               <div class="kpi-content">
                 <div class="kpi-title">Total Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total d'abonnements des utilisateurs.">ⓘ</span></div>
                 <div class="kpi-value" id="users-totalSubscriptions">Loading...</div>
-                <div class="kpi-delta" id="users-totalSubscriptionsDelta">→ 0.0%</div>
+                <div class="kpi-delta" id="users-totalSubscriptionsDelta" style="display: none;"></div>
               </div>
             </div>
             
@@ -1570,11 +1639,11 @@
             </div>
             
             <div class="card kpi-card users-kpi">
-              <div class="kpi-icon">💰</div>
+              <div class="kpi-icon">💳</div>
               <div class="kpi-content">
-                <div class="kpi-title">Total Revenue <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenus totaux générés par les utilisateurs.">ⓘ</span></div>
-                <div class="kpi-value" id="users-totalRevenue">Loading...</div>
-                <div class="kpi-delta" id="users-totalRevenueDelta">→ 0.0%</div>
+                <div class="kpi-title">Transactions (Cohorte) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de transactions effectuées par les utilisateurs dans la période sélectionnée (même que TRANSACTIONS COHORTE vue d'ensemble).">ⓘ</span></div>
+                <div class="kpi-value" id="users-transactionsCohorte">Loading...</div>
+                <div class="kpi-delta" id="users-transactionsCohorteDelta">→ 0.0%</div>
               </div>
             </div>
             
@@ -1583,7 +1652,7 @@
               <div class="kpi-content">
                 <div class="kpi-title">Retention Rate <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Taux de rétention des utilisateurs.">ⓘ</span></div>
                 <div class="kpi-value" id="users-retentionRate">Loading...</div>
-                <div class="kpi-delta" id="users-retentionRateDelta">→ 0.0%</div>
+                <div class="kpi-delta" id="users-retentionRateDelta" style="display: none;"></div>
               </div>
             </div>
           </div>
@@ -1591,33 +1660,43 @@
           <!-- Users Table Section -->
           <div class="card table-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-              <div class="chart-title">Users Summary</div>
+              <div class="chart-title">Top Users Performance</div>
               <button class="btn btn-secondary" onclick="exportUsersTable()">
                 <span>📤</span> Exporter
               </button>
             </div>
-            
-            <div class="table-responsive">
-              <table class="table table-striped" id="usersTable">
+            <div class="table-wrapper">
+              <table class="enhanced-table">
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>User ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Registration Date</th>
-                    <th>Total Transactions</th>
-                    <th>Total Subscriptions</th>
-                    <th>Last Activity</th>
-                    <th>Status</th>
+                    <th onclick="sortUsersTable('rank')" class="sortable">Rang <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('name')" class="sortable">Nom de l'Utilisateur <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('sub_store_name')" class="sortable">Sub-Store <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('total_transactions')" class="sortable">Transactions <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('total_subscriptions')" class="sortable">Abonnements <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('last_activity')" class="sortable">Dernière Activité <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('status')" class="sortable">Statut <span class="sort-indicator"></span></th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <td colspan="9" class="text-center">Loading users data...</td>
-                  </tr>
+                <tbody id="usersTableBody">
+                  <!-- Table rows will be populated by JavaScript -->
                 </tbody>
               </table>
+            </div>
+            <!-- Pagination -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                Affichage de <span id="usersStartIndex">1</span> à <span id="usersEndIndex">20</span> sur <span id="usersTotalCount">0</span> utilisateurs
+              </div>
+              <div class="pagination-controls">
+                <button id="usersPrevBtn" onclick="changeUsersPage(-1)" disabled>
+                  <span>‹</span> Précédent
+                </button>
+                <span id="usersPageInfo">Page 1 de 1</span>
+                <button id="usersNextBtn" onclick="changeUsersPage(1)" disabled>
+                  Suivant <span>›</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1645,8 +1724,12 @@
       if (valueElement) {
         valueElement.textContent = kpiData.current + suffix;
         
+        // Masquer les deltas des KPIs globaux
+        const globalKPIs = ['users-totalUsers', 'users-activeUsers', 'users-totalTransactions', 'users-avgTransactionsPerUser', 'users-totalSubscriptions', 'users-retentionRate'];
+        const isGlobalKPI = globalKPIs.includes(id);
+        
         // Gérer le delta si disponible
-        if (deltaElement && kpiData.change !== undefined) {
+        if (deltaElement && kpiData.change !== undefined && !isGlobalKPI) {
           const change = parseFloat(kpiData.change);
           if (!isNaN(change)) {
             const changeText = change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
@@ -1656,6 +1739,9 @@
           } else {
             deltaElement.style.display = 'none';
           }
+        } else if (deltaElement && isGlobalKPI) {
+          // Masquer le delta pour les KPIs globaux
+          deltaElement.style.display = 'none';
         }
       } else {
         console.warn(`⚠️ Élément KPI non trouvé: ${id}`);
@@ -1680,39 +1766,179 @@
       updateSingleKPI('users-avgTransactionsPerUser', normalizeKPI(usersData.avgTransactionsPerUser));
       updateSingleKPI('users-totalSubscriptions', normalizeKPI(usersData.totalSubscriptions));
       updateSingleKPI('users-newUsers', normalizeKPI(usersData.newUsers));
-      updateSingleKPI('users-totalRevenue', normalizeKPI(usersData.totalRevenue), '€');
+      updateSingleKPI('users-transactionsCohorte', normalizeKPI(usersData.transactionsCohorte));
       updateSingleKPI('users-retentionRate', normalizeKPI(usersData.retentionRate), '%');
       
       console.log('✅ Tous les KPIs Users ont été mis à jour');
     }
 
+    // Variables globales pour la pagination et le tri des utilisateurs
+    let allUsers = [];
+    let currentUsersPage = 1;
+    let usersPageSize = 20; // Augmenter la taille de page pour gérer plus d'utilisateurs
+    let usersSortColumn = 'total_transactions';
+    let usersSortDirection = 'desc';
+
     function updateUsersTable(users) {
-      console.log('📊 Mise à jour du tableau Users avec', users.length, 'utilisateurs');
+      console.log('👥 Mise à jour du tableau Users:', users);
       
-      const tableBody = document.querySelector('#usersTable tbody');
-      if (!tableBody) {
-        console.warn('⚠️ Tableau Users non trouvé');
+      if (!users || !Array.isArray(users)) {
+        console.log('❌ Pas de données users valides');
         return;
       }
       
-      if (!users || users.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">Aucun utilisateur trouvé</td></tr>';
+      // Stocker tous les utilisateurs pour la pagination
+      allUsers = users;
+      currentUsersPage = 1; // Reset à la première page
+      
+      // Afficher la page actuelle
+      renderUsersPage();
+    }
+
+    function renderUsersPage() {
+      const tbody = document.getElementById('usersTableBody');
+      if (!tbody) return;
+      
+      if (allUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Aucune donnée utilisateur disponible</td></tr>';
+        updateUsersPagination();
         return;
       }
       
-      tableBody.innerHTML = users.map((user, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${user.id}</td>
-          <td>${user.name || 'N/A'}</td>
-          <td>${user.email || 'N/A'}</td>
-          <td>${user.registration_date ? new Date(user.registration_date).toLocaleDateString('fr-FR') : 'N/A'}</td>
-          <td>${user.total_transactions || 0}</td>
-          <td>${user.total_subscriptions || 0}</td>
-          <td>${user.last_activity ? new Date(user.last_activity).toLocaleDateString('fr-FR') : 'N/A'}</td>
-          <td><span class="badge ${user.status === 'active' ? 'badge-success' : 'badge-secondary'}">${user.status || 'inactive'}</span></td>
-        </tr>
-      `).join('');
+      // Calculer les indices de début et fin pour la page actuelle
+      const startIndex = (currentUsersPage - 1) * usersPageSize;
+      const endIndex = Math.min(startIndex + usersPageSize, allUsers.length);
+      const currentPageUsers = allUsers.slice(startIndex, endIndex);
+
+      tbody.innerHTML = currentPageUsers.map((user, index) => {
+        const globalIndex = startIndex + index + 1;
+        
+        // Badge de rang pour les 3 premiers
+        let rankBadge = '';
+        if (globalIndex === 1) {
+          rankBadge = '<span class="rank-badge gold">🥇</span>';
+        } else if (globalIndex === 2) {
+          rankBadge = '<span class="rank-badge silver">🥈</span>';
+        } else if (globalIndex === 3) {
+          rankBadge = '<span class="rank-badge bronze">🥉</span>';
+        } else {
+          rankBadge = `<span class="rank-number">${globalIndex}</span>`;
+        }
+        
+        return `
+          <tr>
+            <td>${rankBadge}</td>
+            <td>${user.name}</td>
+            <td>${user.sub_store_name || 'N/A'}</td>
+            <td>${user.total_transactions}</td>
+            <td>${user.total_subscriptions}</td>
+            <td>${user.last_activity}</td>
+            <td>
+              <span class="badge badge-${user.status === 'active' ? 'success' : 'secondary'}">
+                ${user.status === 'active' ? 'Actif' : 'Inactif'}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      updateUsersPagination();
+    }
+
+    function updateUsersPagination() {
+      const totalPages = Math.ceil(allUsers.length / usersPageSize);
+      const startIndex = (currentUsersPage - 1) * usersPageSize + 1;
+      const endIndex = Math.min(currentUsersPage * usersPageSize, allUsers.length);
+      
+      // Mettre à jour les informations de pagination
+      document.getElementById('usersStartIndex').textContent = allUsers.length > 0 ? startIndex : 0;
+      document.getElementById('usersEndIndex').textContent = endIndex;
+      document.getElementById('usersTotalCount').textContent = allUsers.length;
+      document.getElementById('usersPageInfo').textContent = `Page ${currentUsersPage} de ${totalPages}`;
+      
+      // Gérer les boutons de pagination
+      document.getElementById('usersPrevBtn').disabled = currentUsersPage <= 1;
+      document.getElementById('usersNextBtn').disabled = currentUsersPage >= totalPages;
+    }
+
+    function changeUsersPage(direction) {
+      const totalPages = Math.ceil(allUsers.length / usersPageSize);
+      const newPage = currentUsersPage + direction;
+      
+      if (newPage >= 1 && newPage <= totalPages) {
+        currentUsersPage = newPage;
+        renderUsersPage();
+      }
+    }
+
+    function sortUsersTable(column) {
+      console.log('🔄 Tri des utilisateurs par:', column);
+      
+      // Déterminer la direction du tri
+      if (usersSortColumn === column) {
+        usersSortDirection = usersSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        usersSortColumn = column;
+        usersSortDirection = 'desc'; // Par défaut, tri décroissant
+      }
+      
+      // Trier les utilisateurs
+      allUsers.sort((a, b) => {
+        let aValue = a[column];
+        let bValue = b[column];
+        
+        // Gestion spéciale pour les colonnes numériques
+        if (column === 'total_transactions' || column === 'total_subscriptions') {
+          aValue = parseInt(aValue) || 0;
+          bValue = parseInt(bValue) || 0;
+        }
+        
+        // Gestion spéciale pour les dates
+        if (column === 'last_activity') {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+        
+        // Gestion spéciale pour le statut
+        if (column === 'status') {
+          aValue = aValue === 'active' ? 1 : 0;
+          bValue = bValue === 'active' ? 1 : 0;
+        }
+        
+        if (usersSortDirection === 'asc') {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+      
+      // Réinitialiser à la première page et re-render
+      currentUsersPage = 1;
+      renderUsersPage();
+      
+      // Mettre à jour les indicateurs de tri
+      updateSortIndicators('users', column, usersSortDirection);
+    }
+
+    function updateSortIndicators(tableType, column, direction) {
+      // Supprimer tous les indicateurs de tri
+      document.querySelectorAll(`#${tableType}TableBody`).forEach(table => {
+        const indicators = table.parentElement.querySelectorAll('.sort-indicator');
+        indicators.forEach(indicator => {
+          indicator.textContent = '';
+          indicator.className = 'sort-indicator';
+        });
+      });
+      
+      // Ajouter l'indicateur pour la colonne active
+      const activeHeader = document.querySelector(`th[onclick="sortUsersTable('${column}')"]`);
+      if (activeHeader) {
+        const indicator = activeHeader.querySelector('.sort-indicator');
+        if (indicator) {
+          indicator.textContent = direction === 'asc' ? '↑' : '↓';
+          indicator.className = `sort-indicator ${direction}`;
+        }
+      }
     }
 
     function createUsersLoadingKPIs() {
@@ -1726,14 +1952,14 @@
       
       // Toujours recréer les KPIs pour s'assurer qu'ils existent
       const kpisData = [
-        { id: 'users-totalUsers', title: 'Total Users', icon: '👥', tooltip: 'Nombre total d\'utilisateurs inscrits.' },
-        { id: 'users-activeUsers', title: 'Active Users', icon: '⚡', tooltip: 'Utilisateurs actifs dans la période.' },
-        { id: 'users-totalTransactions', title: 'Total Transactions', icon: '💳', tooltip: 'Nombre total de transactions des utilisateurs.' },
-        { id: 'users-avgTransactionsPerUser', title: 'Avg Transactions/User', icon: '📊', tooltip: 'Moyenne de transactions par utilisateur.' },
-        { id: 'users-totalSubscriptions', title: 'Total Subscriptions', icon: '🎯', tooltip: 'Nombre total d\'abonnements des utilisateurs.' },
-        { id: 'users-newUsers', title: 'New Users', icon: '👤', tooltip: 'Nouveaux utilisateurs dans la période.' },
-        { id: 'users-totalRevenue', title: 'Total Revenue', icon: '💰', tooltip: 'Revenus totaux générés par les utilisateurs.' },
-        { id: 'users-retentionRate', title: 'Retention Rate', icon: '🔄', tooltip: 'Taux de rétention des utilisateurs.' }
+            { id: 'users-totalUsers', title: 'Total Users', icon: '👥', tooltip: 'Nombre total d\'utilisateurs inscrits avec cartes de recharge (même que INSCRIPTIONS vue d\'ensemble).', showDelta: false },
+            { id: 'users-activeUsers', title: 'Active Users', icon: '⚡', tooltip: 'Utilisateurs avec abonnements actifs dans la période sélectionnée (même logique que ACTIVE USERS COHORTE).', showDelta: false },
+            { id: 'users-totalTransactions', title: 'Total Transactions', icon: '💳', tooltip: 'Nombre total de transactions lifetime (toutes périodes, même que TRANSACTIONS vue d\'ensemble).', showDelta: false },
+            { id: 'users-avgTransactionsPerUser', title: 'Avg Transactions/User', icon: '📊', tooltip: 'Moyenne de transactions par utilisateur actif dans la période.', showDelta: false },
+            { id: 'users-totalSubscriptions', title: 'Total Subscriptions', icon: '🎯', tooltip: 'Nombre total d\'abonnements actifs (toutes périodes, même que ABONNEMENTS vue d\'ensemble).', showDelta: false },
+            { id: 'users-newUsers', title: 'New Users', icon: '👤', tooltip: 'Nouveaux utilisateurs inscrits dans la période (même que INSCRIPTIONS COHORTE).' },
+            { id: 'users-transactionsCohorte', title: 'Transactions (Cohorte)', icon: '💳', tooltip: 'Nombre de transactions effectuées par les utilisateurs dans la période sélectionnée (même que TRANSACTIONS COHORTE vue d\'ensemble).' },
+            { id: 'users-retentionRate', title: 'Retention Rate', icon: '🔄', tooltip: 'Pourcentage d\'utilisateurs actifs par rapport au total (ACTIVE USERS / TOTAL USERS).', showDelta: false }
       ];
       
       kpisContainer.innerHTML = kpisData.map(kpi => `
@@ -1742,7 +1968,7 @@
           <div class="kpi-content">
             <div class="kpi-title">${kpi.title} <span style="margin-left:4px; cursor: help; color: var(--muted);" title="${kpi.tooltip}">ⓘ</span></div>
             <div class="kpi-value" id="${kpi.id}">⏳ Chargement...</div>
-            <div class="kpi-delta" id="${kpi.id}Delta" style="display: none;">→ 0.0%</div>
+            <div class="kpi-delta" id="${kpi.id}Delta" style="display: ${kpi.showDelta === false ? 'none' : 'block'};"></div>
           </div>
         </div>
       `).join('');
@@ -1786,6 +2012,9 @@
         
         const data = await response.json();
         console.log('✅ Données utilisateurs reçues:', data);
+        
+        // Sauvegarder les données en cache
+        window.usersKPIsData = data;
         
         // Mettre à jour les KPIs Users
         if (data.kpis) {
@@ -2070,18 +2299,26 @@
       }, 300); // Attendre que l'onglet soit visible
     }
     
-    // Si on active l'onglet Users, charger les données utilisateurs
+    // Si on active l'onglet Users, utiliser les données en cache si disponibles
     if (tabName === 'users') {
       console.log('👥 Activation onglet Users');
       
       // Attendre que l'onglet soit visible dans le DOM
       setTimeout(() => {
-        // Créer les KPIs de chargement s'ils n'existent pas
-        createUsersLoadingKPIs();
-        
-        // Charger les données utilisateurs
-        loadUsersData();
-      }, 300);
+        // Vérifier si on a des données Users en cache
+        if (window.usersKPIsData) {
+          console.log('💾 Utilisation des données en cache pour Users');
+          // Forcer la mise à jour même si les données sont en cache
+          updateUsersKPIs(window.usersKPIsData.kpis);
+          updateUsersTable(window.usersKPIsData.users);
+        } else {
+          console.log('🔄 Pas de données Users en cache, rechargement nécessaire');
+          // Créer les KPIs de chargement s'ils n'existent pas
+          createUsersLoadingKPIs();
+          // Charger les données utilisateurs
+          loadUsersData();
+        }
+      }, 300); // Attendre que l'onglet soit visible
     }
     }
 
@@ -2227,6 +2464,13 @@
         updateSubStoresRankingTable(data.sub_stores);
       } else {
         console.warn('⚠️ Pas de sub-stores dans les données');
+      }
+      
+      // Charger les données Users si l'onglet Users est actif
+      const activeTab = document.querySelector('.nav-tab.active');
+      if (activeTab && activeTab.textContent.includes('Users')) {
+        console.log('👥 Onglet Users actif, chargement des données utilisateurs');
+        loadUsersData();
       }
       
       if (data.categoryDistribution) {
@@ -3116,6 +3360,10 @@
       window.datesChanged = true;
       window.lastDashboardLoadTime = 0; // Forcer le rechargement
       
+      // Effacer tous les caches
+      window.merchantKPIsData = null;
+      window.usersKPIsData = null;
+      
       // Recharger les données principales
       loadDashboardData();
       
@@ -3281,8 +3529,12 @@
       if (valueElement) {
         valueElement.textContent = kpiData.current + suffix;
         
+        // Masquer les deltas des KPIs globaux
+        const globalKPIs = ['users-totalUsers', 'users-activeUsers', 'users-totalTransactions', 'users-avgTransactionsPerUser', 'users-totalSubscriptions', 'users-retentionRate'];
+        const isGlobalKPI = globalKPIs.includes(id);
+        
         // Gérer le delta si disponible
-        if (deltaElement && kpiData.change !== undefined) {
+        if (deltaElement && kpiData.change !== undefined && !isGlobalKPI) {
           const change = parseFloat(kpiData.change);
           if (!isNaN(change)) {
             const changeText = change > 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
@@ -3292,6 +3544,9 @@
           } else {
             deltaElement.style.display = 'none';
           }
+        } else if (deltaElement && isGlobalKPI) {
+          // Masquer le delta pour les KPIs globaux
+          deltaElement.style.display = 'none';
         }
       } else {
         console.warn(`⚠️ Élément KPI non trouvé: ${id}`);
@@ -3316,46 +3571,12 @@
       updateSingleKPI('users-avgTransactionsPerUser', normalizeKPI(usersData.avgTransactionsPerUser));
       updateSingleKPI('users-totalSubscriptions', normalizeKPI(usersData.totalSubscriptions));
       updateSingleKPI('users-newUsers', normalizeKPI(usersData.newUsers));
-      updateSingleKPI('users-totalRevenue', normalizeKPI(usersData.totalRevenue), '€');
+      updateSingleKPI('users-transactionsCohorte', normalizeKPI(usersData.transactionsCohorte));
       updateSingleKPI('users-retentionRate', normalizeKPI(usersData.retentionRate), '%');
       
       console.log('✅ Tous les KPIs Users ont été mis à jour');
     }
 
-    function updateUsersTable(users) {
-      console.log('📊 Mise à jour du tableau Users avec', users.length, 'utilisateurs');
-      
-      const tableBody = document.querySelector('#usersTable tbody');
-      if (!tableBody) {
-        console.log('❌ Tableau Users non trouvé');
-        return;
-      }
-      
-      if (!users || users.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">Aucun utilisateur trouvé</td></tr>';
-        return;
-      }
-      
-      tableBody.innerHTML = users.map((user, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${user.id || 'N/A'}</td>
-          <td>${user.name || 'N/A'}</td>
-          <td>${user.email || 'N/A'}</td>
-          <td>${user.registration_date || 'N/A'}</td>
-          <td>${user.total_transactions || 0}</td>
-          <td>${user.total_subscriptions || 0}</td>
-          <td>${user.last_activity || 'N/A'}</td>
-          <td>
-            <span class="badge ${user.status === 'active' ? 'badge-success' : 'badge-secondary'}">
-              ${user.status || 'unknown'}
-            </span>
-          </td>
-        </tr>
-      `).join('');
-      
-      console.log('✅ Tableau Users mis à jour');
-    }
 
     function exportUsersTable() {
       console.log('📤 Export du tableau Users');
@@ -3369,7 +3590,7 @@
       const usersKPIs = [
         'users-totalUsers', 'users-activeUsers', 'users-totalTransactions', 
         'users-avgTransactionsPerUser', 'users-totalSubscriptions', 
-        'users-newUsers', 'users-totalRevenue', 'users-retentionRate'
+        'users-newUsers', 'users-transactionsCohorte', 'users-retentionRate'
       ];
       
       usersKPIs.forEach(kpiId => {
@@ -3418,6 +3639,9 @@
         const data = await response.json();
         console.log('✅ Données utilisateurs reçues:', data);
         
+        // Sauvegarder les données en cache
+        window.usersKPIsData = data;
+        
         // Mettre à jour les KPIs Users
         if (data.kpis) {
           updateUsersKPIs(data.kpis);
@@ -3448,7 +3672,15 @@
 
     // Event listeners
     // Seul le sub-store déclenche un rechargement automatique
-    document.getElementById('subStoreSelect').addEventListener('change', loadDashboardData);
+    document.getElementById('subStoreSelect').addEventListener('change', function() {
+        console.log('🏪 Sub-Store modifié, rechargement de toutes les données');
+        // Effacer tous les caches
+        window.merchantKPIsData = null;
+        window.usersKPIsData = null;
+        window.lastDashboardLoadTime = 0;
+        // Recharger toutes les données
+        loadDashboardData();
+    });
     
     // Les changements de dates ne déclenchent plus d'actualisation automatique
     // L'utilisateur doit cliquer sur "Actualiser" pour appliquer les nouvelles dates
