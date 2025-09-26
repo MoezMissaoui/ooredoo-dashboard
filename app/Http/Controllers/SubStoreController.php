@@ -77,11 +77,11 @@ class SubStoreController extends Controller
         try {
             Log::info("=== DÉBUT API SubStore getDashboardData ===");
             
-            // Période par défaut avec données réelles sub-stores : 2025-08-18 → 2025-08-24 (clients avec cartes)
-            $startDate = $request->input("start_date", "2025-08-18");
-            $endDate = $request->input("end_date", "2025-08-24");
-            $comparisonStartDate = $request->input("comparison_start_date", "2025-08-11");
-            $comparisonEndDate = $request->input("comparison_end_date", "2025-08-17");
+            // Période dynamique : 30 derniers jours par défaut
+            $startDate = $request->input("start_date", Carbon::now()->subDays(29)->format('Y-m-d'));
+            $endDate = $request->input("end_date", Carbon::now()->format('Y-m-d'));
+            $comparisonStartDate = $request->input("comparison_start_date", Carbon::parse($startDate)->subDays(30)->format('Y-m-d'));
+            $comparisonEndDate = $request->input("comparison_end_date", Carbon::parse($endDate)->subDays(30)->format('Y-m-d'));
             $selectedSubStore = $request->input("sub_store", "ALL");
             
             // Vérification des permissions
@@ -116,7 +116,8 @@ class SubStoreController extends Controller
             
             $ttl = $periodDays > 180 ? 300 : ($periodDays > 90 ? 180 : ($periodDays > 30 ? 120 : 60)); // 5min/3min/2min/1min
             
-            $data = Cache::remember($cacheKey, $ttl, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedSubStore, $periodDays) {
+            // Forcer le recalcul des données réelles (pas de cache)
+            $data = Cache::remember($cacheKey, 0, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedSubStore, $periodDays) {
                 Log::info("Cache MISS - Récupération des données sub-stores depuis la base");
                 Log::info("Période demandée: $periodDays jours");
                 
@@ -186,19 +187,51 @@ class SubStoreController extends Controller
                 
                 Log::info("KPIs de base - Distribué: $distributed, Inscriptions: $inscriptions, Actifs: $activeUsers");
                 
-                // KPIs avec dates - requêtes RÉELLES optimisées pour longues périodes
-                $activeUsersCohorte = $this->getActiveUsersWithCardsCohorte($selectedSubStore, $startDate, $endDate);
-                $transactionsCohorte = $this->getTransactionsWithCardsCohorte($selectedSubStore, $startDate, $endDate);
-                $inscriptionsCohorte = $this->getInscriptionsWithCardsCohorte($selectedSubStore, $startDate, $endDate);
-                $transactionsCohorteComparison = $this->getTransactionsWithCardsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+                // KPIs avec dates - requêtes OPTIMISÉES pour longues périodes
+                $activeUsersCohorte = $this->getOptimizedActiveUsersCohorte($selectedSubStore, $startDate, $endDate);
+                $transactionsCohorte = $this->getOptimizedTransactionsCohorte($selectedSubStore, $startDate, $endDate);
+                $inscriptionsCohorte = $this->getOptimizedInscriptionsCohorte($selectedSubStore, $startDate, $endDate);
+                $transactionsCohorteComparison = $this->getOptimizedTransactionsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
                 
                 Log::info("KPIs cohorte - Actifs: $activeUsersCohorte, Transactions: $transactionsCohorte, Inscriptions: $inscriptionsCohorte");
+                
+                // TOTAL ABONNEMENTS (toutes périodes) - comme le mode normal
+                $totalSubscriptions = $this->getTotalSubscriptions($selectedSubStore);
+                Log::info("Total abonnements: $totalSubscriptions");
                 
                 $conversionRate = $distributed > 0 ? round(($inscriptions / $distributed) * 100, 1) : 0;
                 
                 // Renouvellement RÉEL optimisé
                 $renewal = $this->getRenewalStats($selectedSubStore, $startDate, $endDate);
                 $renewalRate = $renewal['renewal_rate'];
+                
+                // === DONNÉES DE COMPARAISON ===
+                $distributedComparison = $this->getDistributedCards($selectedSubStore);
+                $inscriptionsComparison = $this->getInscriptionsWithCards($selectedSubStore);
+                $activeUsersComparison = $this->getActiveUsersWithCards($selectedSubStore);
+                $transactionsComparison = $this->getTransactionsWithCards($selectedSubStore);
+                $totalSubscriptionsComparison = $this->getTotalSubscriptions($selectedSubStore);
+                
+                // Pour les KPIs avec filtre de date, on calcule pour la période de comparaison
+                $activeUsersCohorteComparison = $this->getOptimizedActiveUsersCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+                $transactionsCohorteComparison = $this->getOptimizedTransactionsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+                $inscriptionsCohorteComparison = $this->getOptimizedInscriptionsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+                
+                $conversionRateComparison = $distributedComparison > 0 ? round(($inscriptionsCohorteComparison / $distributedComparison) * 100, 1) : 0;
+                $renewalComparison = $this->getRenewalStats($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+                $renewalRateComparison = $renewalComparison['renewal_rate'];
+                
+                // === CALCUL DES VARIATIONS ===
+                $distributedChange = $this->calculatePercentageChange($distributedComparison, $distributed);
+                $inscriptionsChange = $this->calculatePercentageChange($inscriptionsComparison, $inscriptions);
+                $activeUsersChange = $this->calculatePercentageChange($activeUsersComparison, $activeUsers);
+                $activeUsersCohorteChange = $this->calculatePercentageChange($activeUsersCohorteComparison, $activeUsersCohorte);
+                $transactionsChange = $this->calculatePercentageChange($transactionsComparison, $transactions);
+                $transactionsCohorteChange = $this->calculatePercentageChange($transactionsCohorteComparison, $transactionsCohorte);
+                $inscriptionsCohorteChange = $this->calculatePercentageChange($inscriptionsCohorteComparison, $inscriptionsCohorte);
+                $conversionRateChange = $this->calculatePercentageChange($conversionRateComparison, $conversionRate);
+                $totalSubscriptionsChange = $this->calculatePercentageChange($totalSubscriptionsComparison, $totalSubscriptions);
+                $renewalRateChange = $this->calculatePercentageChange($renewalRateComparison, $renewalRate);
                 
                 // === COMPARAISONS OPTIMISÉES ===
                 $previousDistributed = $this->getDistributedCards($selectedSubStore); // Même valeur car pas de filtre date
@@ -216,6 +249,12 @@ class SubStoreController extends Controller
                 
                 // Tendances d'inscription optimisées
                 $inscriptionTrends = $this->getOptimizedInscriptionTrends($selectedSubStore, $startDate, $endDate);
+
+                // === DONNÉES MERCHANT OPTIMISÉES ===
+                $merchantData = $this->getMerchantData($selectedSubStore, $startDate, $endDate, $comparisonStartDate, $comparisonEndDate);
+                Log::info("Structure merchantData optimisée:", ['keys' => array_keys($merchantData)]);
+                Log::info("Structure merchantData kpis:", ['keys' => array_keys($merchantData['kpis'] ?? [])]);
+                Log::info("Nombre de merchants optimisés:", ['count' => count($merchantData['merchants'] ?? [])]);
 
                 // === RETOUR AVEC VRAIES DONNÉES ===
 
@@ -236,13 +275,13 @@ class SubStoreController extends Controller
                         ],
                         'conversionRate' => [
                             'current' => $conversionRate,
-                            'previous' => 0, // Pas de comparaison pour le taux
-                            'change' => 0
+                            'previous' => $conversionRateComparison,
+                            'change' => $conversionRateChange
                         ],
                         'transactions' => [
-                            'current' => $transactionsCohorte,
-                            'previous' => $transactionsCohorteComparison,
-                            'change' => $transactionsCohorteComparison > 0 ? round((($transactionsCohorte - $transactionsCohorteComparison) / $transactionsCohorteComparison) * 100, 1) : 0
+                            'current' => $transactions,
+                            'previous' => $transactionsComparison,
+                            'change' => $transactionsComparison > 0 ? round((($transactions - $transactionsComparison) / $transactionsComparison) * 100, 1) : 0
                         ],
                         'activeUsers' => [
                             'current' => $activeUsers,
@@ -251,29 +290,44 @@ class SubStoreController extends Controller
                         ],
                         'activeUsersCohorte' => [
                             'current' => $activeUsersCohorte,
-                            'previous' => 0,
-                            'change' => 0
+                            'previous' => $activeUsersCohorteComparison,
+                            'change' => $activeUsersCohorteChange
                         ],
                         'transactionsCohorte' => [
                             'current' => $transactionsCohorte,
-                            'previous' => 0,
-                            'change' => 0
+                            'previous' => $transactionsCohorteComparison,
+                            'change' => $transactionsCohorteChange
                         ],
                         'inscriptionsCohorte' => [
                             'current' => $inscriptionsCohorte,
-                            'previous' => 0,
-                            'change' => 0
+                            'previous' => $inscriptionsCohorteComparison,
+                            'change' => $inscriptionsCohorteChange
+                        ],
+                        'totalSubscriptions' => [
+                            'current' => $totalSubscriptions,
+                            'previous' => $totalSubscriptionsComparison,
+                            'change' => $totalSubscriptionsComparison > 0 ? round((($totalSubscriptions - $totalSubscriptionsComparison) / $totalSubscriptionsComparison) * 100, 1) : 0
                         ],
                         'renewalRate' => [
                             'current' => $renewalRate,
-                            'previous' => 82,
-                            'change' => 3.7
-                        ]
+                            'previous' => $renewalRateComparison,
+                            'change' => $renewalRateComparison > 0 ? round((($renewalRate - $renewalRateComparison) / $renewalRateComparison) * 100, 1) : 0
+                        ],
+                        // Fusionner les KPIs Merchant
+                        'totalPartners' => $merchantData['kpis']['totalPartners'],
+                        'activeMerchants' => $merchantData['kpis']['activeMerchants'],
+                        'totalLocationsActive' => $merchantData['kpis']['totalLocationsActive'],
+                        'activeMerchantRatio' => $merchantData['kpis']['activeMerchantRatio'],
+                        'totalTransactions' => $merchantData['kpis']['totalTransactions'],
+                        'transactionsPerMerchant' => $merchantData['kpis']['transactionsPerMerchant'],
+                        'topMerchantShare' => $merchantData['kpis']['topMerchantShare'],
+                        'diversity' => $merchantData['kpis']['diversity']
                     ],
-                    'sub_stores' => $topSubStores,
-                    'categoryDistribution' => $categoryDistribution,
-                    'inscriptionTrends' => $inscriptionTrends,
-                    'insights' => [
+                'sub_stores' => $topSubStores,
+                'categoryDistribution' => $categoryDistribution,
+                'inscriptionsTrend' => $inscriptionTrends,
+                'merchants' => $merchantData['merchants'],
+                'insights' => [
                         'positive' => ['Performance stable sur période longue', 'Conversion optimisée'],
                         'negative' => ['Données estimées pour période longue'],
                         'recommendations' => ['Utiliser des périodes plus courtes pour plus de précision']
@@ -300,31 +354,28 @@ class SubStoreController extends Controller
     private function getOptimizedActiveUsersCohorte(string $selectedSubStore, string $startDate, string $endDate): int
     {
         try {
-            // Version simplifiée temporaire pour éviter les blocages
-            Log::info("ActiveUsersCohorte: Utilisation version simplifiée pour éviter blocage");
+            // Utiliser la MÊME logique que le mode normal
+            Log::info("ActiveUsersCohorte: Utilisation de la logique normale optimisée");
             
-            // Requête de base sans whereExists pour tester
-            $query = DB::table('client_abonnement')
-                ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
+            $query = DB::table('carte_recharge_client')
+                ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+                ->join('client_abonnement', 'client.client_id', '=', 'client_abonnement.client_id')
                 ->where('stores.is_sub_store', 1)
                 ->where('client_abonnement.client_abonnement_expiration', '>', Carbon::now())
                 ->whereBetween('client_abonnement.client_abonnement_creation', [
                     Carbon::parse($startDate)->startOfDay(),
                     Carbon::parse($endDate)->endOfDay()
-                ]);
+                ])
+                ->distinct(); // Éviter les doublons
             
             if ($selectedSubStore !== 'ALL') {
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
 
-            $result = $query->count();
-            Log::info("Optimized ActiveUsersCohorte (sans cartes): $result");
-            
-            // Pour l'instant, on estime 20% ont des cartes de recharge
-            $estimated = round($result * 0.2);
-            Log::info("Optimized ActiveUsersCohorte (estimé avec cartes): $estimated");
-            return $estimated;
+            $result = $query->distinct('client.client_id')->count();
+            Log::info("Optimized ActiveUsersCohorte (avec cartes): $result");
+            return $result;
 
         } catch (\Exception $e) {
             Log::error("Erreur getOptimizedActiveUsersCohorte: " . $e->getMessage());
@@ -335,13 +386,14 @@ class SubStoreController extends Controller
     private function getOptimizedTransactionsCohorte(string $selectedSubStore, string $startDate, string $endDate): int
     {
         try {
-            // Version simplifiée temporaire 
-            Log::info("TransactionsCohorte: Utilisation version simplifiée pour éviter blocage");
+            // Utiliser la MÊME logique que le mode normal
+            Log::info("TransactionsCohorte: Utilisation de la logique normale optimisée");
             
             $query = DB::table('history')
                 ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->where('stores.is_sub_store', 1)
                 ->whereBetween('history.time', [
                     Carbon::parse($startDate)->startOfDay(),
@@ -352,13 +404,9 @@ class SubStoreController extends Controller
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
 
-            $result = $query->count();
-            Log::info("Optimized TransactionsCohorte (sans cartes): $result");
-            
-            // Estimation : 15% des transactions sont avec cartes de recharge
-            $estimated = round($result * 0.15);
-            Log::info("Optimized TransactionsCohorte (estimé avec cartes): $estimated");
-            return $estimated;
+            $result = $query->distinct('history.history_id')->count();
+            Log::info("Optimized TransactionsCohorte (avec cartes): $result");
+            return $result;
 
         } catch (\Exception $e) {
             Log::error("Erreur getOptimizedTransactionsCohorte: " . $e->getMessage());
@@ -369,28 +417,26 @@ class SubStoreController extends Controller
     private function getOptimizedInscriptionsCohorte(string $selectedSubStore, string $startDate, string $endDate): int
     {
         try {
-            // Version simplifiée temporaire
-            Log::info("InscriptionsCohorte: Utilisation version simplifiée pour éviter blocage");
+            // Utiliser la MÊME logique que le mode normal
+            Log::info("InscriptionsCohorte: Utilisation de la logique normale optimisée");
             
-            $query = DB::table('client')
+            $query = DB::table('carte_recharge_client')
+                ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->where('stores.is_sub_store', 1)
                 ->whereBetween('client.created_at', [
                     Carbon::parse($startDate)->startOfDay(),
                     Carbon::parse($endDate)->endOfDay()
-                ]);
+                ])
+                ->distinct(); // Éviter les doublons
             
             if ($selectedSubStore !== 'ALL') {
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
 
-            $result = $query->count();
-            Log::info("Optimized InscriptionsCohorte (sans cartes): $result");
-            
-            // Estimation : 25% des inscriptions ont des cartes de recharge
-            $estimated = round($result * 0.25);
-            Log::info("Optimized InscriptionsCohorte (estimé avec cartes): $estimated");
-            return $estimated;
+            $result = $query->distinct('client.client_id')->count();
+            Log::info("Optimized InscriptionsCohorte (avec cartes): $result");
+            return $result;
 
         } catch (\Exception $e) {
             Log::error("Erreur getOptimizedInscriptionsCohorte: " . $e->getMessage());
@@ -421,11 +467,7 @@ class SubStoreController extends Controller
                 ->select('stores.store_name', DB::raw('COUNT(client.client_id) as client_count'))
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->where('stores.is_sub_store', 1)
-                ->whereExists(function($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('carte_recharge_client')
-                        ->whereRaw('carte_recharge_client.client_id = client.client_id');
-                })
+                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->groupBy('stores.store_id', 'stores.store_name')
                 ->orderBy('client_count', 'desc')
                 ->limit(5);
@@ -449,34 +491,8 @@ class SubStoreController extends Controller
     private function getOptimizedCategoryDistribution(string $selectedSubStore, string $startDate, string $endDate): array
     {
         try {
-            // Requête optimisée pour distribution par catégorie
-            $query = DB::table('client')
-                ->select('stores.store_type', DB::raw('COUNT(client.client_id) as client_count'))
-                ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
-                ->whereExists(function($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('carte_recharge_client')
-                        ->whereRaw('carte_recharge_client.client_id = client.client_id');
-                })
-                ->groupBy('stores.store_type')
-                ->orderBy('client_count', 'desc');
-
-            if ($selectedSubStore !== 'ALL') {
-                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
-            }
-
-            $results = $query->get();
-            $total = $results->sum('client_count');
-
-            return $results->map(function($item) use ($total) {
-                return [
-                    'category' => ucfirst($item->store_type),
-                    'value' => $item->client_count,
-                    'percentage' => $total > 0 ? round(($item->client_count / $total) * 100, 1) : 0
-                ];
-            })->toArray();
-
+            // Utiliser la MÊME logique que le mode normal
+            return $this->getCategoryDistribution($startDate, $endDate, $selectedSubStore);
         } catch (\Exception $e) {
             Log::error("Erreur getOptimizedCategoryDistribution: " . $e->getMessage());
             return [];
@@ -499,11 +515,7 @@ class SubStoreController extends Controller
                     Carbon::parse($startDate)->startOfDay(),
                     Carbon::parse($endDate)->endOfDay()
                 ])
-                ->whereExists(function($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('carte_recharge_client')
-                        ->whereRaw('carte_recharge_client.client_id = client.client_id');
-                })
+                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->groupBy('period')
                 ->orderBy('period')
                 ->limit(20); // Limiter pour performance
@@ -880,6 +892,7 @@ class SubStoreController extends Controller
             $query = DB::table('client_abonnement')
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->where('stores.is_sub_store', 1);
             if ($selectedSubStore !== 'ALL') {
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
@@ -1047,6 +1060,7 @@ class SubStoreController extends Controller
                 ->join("partner", "promotion.partner_id", "=", "partner.partner_id")
                 ->join("partner_category", "partner.partner_category_id", "=", "partner_category.partner_category_id")
                 ->join("stores", "client.sub_store", "=", "stores.store_id")
+                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->select(
                     "partner_category.partner_category_name",
                     DB::raw("COUNT(DISTINCT history.history_id) as utilizations")
@@ -1541,11 +1555,7 @@ class SubStoreController extends Controller
                 ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->whereExists(function($sub) {
-                    $sub->select(DB::raw(1))
-                        ->from('carte_recharge_client')
-                        ->whereRaw('carte_recharge_client.client_id = client.client_id');
-                })
+                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->where('stores.is_sub_store', 1)
                 ->whereBetween('history.time', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
@@ -1762,6 +1772,7 @@ class SubStoreController extends Controller
             // Top merchant info
             $topMerchant = $allMerchants->first();
             $topMerchantShare = $totalTransactions > 0 && $topMerchant ? round(($topMerchant->transactions_count / $totalTransactions) * 100, 1) : 0;
+            $topMerchantName = $topMerchant ? $topMerchant->partner_name : 'N/A';
             
             // Diversity (basé sur le nombre de marchands actifs)
             $diversity = $this->calculateDiversityLevel($activeMerchants);
@@ -1805,7 +1816,8 @@ class SubStoreController extends Controller
                     'topMerchantShare' => [
                         'current' => $topMerchantShare,
                         'previous' => $topMerchantShare,
-                        'change' => 0
+                        'change' => 0,
+                        'merchant_name' => $topMerchantName
                     ],
                     'diversity' => [
                         'current' => $diversity['level'],
@@ -1841,7 +1853,7 @@ class SubStoreController extends Controller
                     'activeMerchantRatio' => ['current' => 0, 'previous' => 0, 'change' => 0],
                     'totalTransactions' => ['current' => 0, 'previous' => 0, 'change' => 0],
                     'transactionsPerMerchant' => ['current' => 0, 'previous' => 0, 'change' => 0],
-                    'topMerchantShare' => ['current' => 0, 'previous' => 0, 'change' => 0],
+                    'topMerchantShare' => ['current' => 0, 'previous' => 0, 'change' => 0, 'merchant_name' => 'N/A'],
                     'diversity' => ['current' => 0, 'previous' => 0, 'change' => 0]
                 ],
                 'merchants' => []
@@ -1863,6 +1875,208 @@ class SubStoreController extends Controller
         } else {
             return ['level' => 'Faible', 'detail' => "$activeMerchants marchands"];
         }
+    }
+
+    /**
+     * API pour récupérer les données utilisateurs
+     */
+    public function getUsersData(Request $request)
+    {
+        try {
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+            $comparisonStartDate = $request->input('comparison_start_date');
+            $comparisonEndDate = $request->input('comparison_end_date');
+            $subStore = $request->input('sub_store', 'ALL');
+
+            // Validation des dates
+            if (!$startDate || !$endDate) {
+                return response()->json(['error' => 'Dates manquantes'], 400);
+            }
+
+            $startDateObj = Carbon::parse($startDate);
+            $endDateObj = Carbon::parse($endDate);
+            $comparisonStartDateObj = $comparisonStartDate ? Carbon::parse($comparisonStartDate) : null;
+            $comparisonEndDateObj = $comparisonEndDate ? Carbon::parse($comparisonEndDate) : null;
+
+        // Cache key basé sur les paramètres
+        $cacheKey = "users_data_{$subStore}_{$startDate}_{$endDate}";
+        
+        // Forcer le recalcul des données réelles (pas de cache)
+        return Cache::remember($cacheKey, 0, function () use ($startDateObj, $endDateObj, $comparisonStartDateObj, $comparisonEndDateObj, $subStore) {
+                // Récupérer les données utilisateurs
+                $usersData = $this->getUsersKPIs($startDateObj, $endDateObj, $comparisonStartDateObj, $comparisonEndDateObj, $subStore);
+                $usersList = $this->getUsersList($startDateObj, $endDateObj, $subStore);
+                
+                return response()->json([
+                    'kpis' => $usersData,
+                    'users' => $usersList,
+                    'data_source' => 'users_api',
+                    'cache_ttl' => 600
+                ]);
+            });
+            
+        } catch (\Exception $e) {
+            Log::error('Erreur getUsersData: ' . $e->getMessage());
+            return response()->json(['error' => 'Erreur serveur'], 500);
+        }
+    }
+
+    /**
+     * Récupérer les KPIs des utilisateurs
+     */
+    private function getUsersKPIs($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $subStore)
+    {
+        // Utiliser les mêmes méthodes que la vue d'ensemble pour garantir la cohérence
+        $totalUsers = $this->getInscriptionsWithCards($subStore); // INSCRIPTIONS
+        $activeUsers = $this->getActiveUsersWithCards($subStore); // ACTIVE USERS (toutes périodes)
+        $activeUsersCohorte = $this->getActiveUsersWithCardsCohorte($subStore, $startDate, $endDate); // ACTIVE USERS (période)
+        $totalTransactions = $this->getTransactionsWithCards($subStore); // TRANSACTIONS (toutes périodes)
+        $totalTransactionsCohorte = $this->getTransactionsWithCardsCohorte($subStore, $startDate, $endDate); // TRANSACTIONS (période)
+        $totalSubscriptions = $this->getTotalSubscriptions($subStore); // ABONNEMENTS (toutes périodes)
+        $newUsers = $this->getInscriptionsWithCardsCohorte($subStore, $startDate, $endDate); // NOUVEAUX utilisateurs (période)
+        
+        // Calculs dérivés - utiliser activeUsers (toutes périodes) pour la cohérence
+        $avgTransactionsPerUser = $activeUsers > 0 ? round($totalTransactions / $activeUsers, 2) : 0;
+        $retentionRate = $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 1) : 0;
+
+        // Données de comparaison si disponibles
+        $comparisonData = [];
+        if ($comparisonStartDate && $comparisonEndDate) {
+            $comparisonActiveUsers = $this->getActiveUsersWithCards($subStore); // Même valeur car sans filtre de date
+            $comparisonActiveUsersCohorte = $this->getActiveUsersWithCardsCohorte($subStore, $comparisonStartDate, $comparisonEndDate);
+            $comparisonTotalTransactions = $this->getTransactionsWithCards($subStore); // Même valeur car sans filtre de date
+            $comparisonTotalTransactionsCohorte = $this->getTransactionsWithCardsCohorte($subStore, $comparisonStartDate, $comparisonEndDate);
+            $comparisonTotalSubscriptions = $this->getTotalSubscriptions($subStore); // Même valeur car sans filtre de date
+            $comparisonNewUsers = $this->getInscriptionsWithCardsCohorte($subStore, $comparisonStartDate, $comparisonEndDate);
+            
+            $comparisonData = [
+                'totalUsers' => $totalUsers, // Même valeur car sans filtre de date
+                'activeUsers' => $comparisonActiveUsers,
+                'activeUsersCohorte' => $comparisonActiveUsersCohorte,
+                'totalTransactions' => $comparisonTotalTransactions,
+                'totalTransactionsCohorte' => $comparisonTotalTransactionsCohorte,
+                'totalSubscriptions' => $comparisonTotalSubscriptions,
+                'newUsers' => $comparisonNewUsers,
+                'retentionRate' => $totalUsers > 0 ? round(($comparisonActiveUsers / $totalUsers) * 100, 1) : 0
+            ];
+        }
+
+        return [
+            'totalUsers' => [
+                'current' => $totalUsers,
+                'previous' => $comparisonData['totalUsers'] ?? $totalUsers,
+                'change' => $this->calculateUserChange($comparisonData['totalUsers'] ?? $totalUsers, $totalUsers)
+            ],
+            'activeUsers' => [
+                'current' => $activeUsers, // Utiliser activeUsers (toutes périodes) pour la cohérence
+                'previous' => $comparisonData['activeUsers'] ?? $activeUsers,
+                'change' => $this->calculateUserChange($comparisonData['activeUsers'] ?? $activeUsers, $activeUsers)
+            ],
+            'totalTransactions' => [
+                'current' => $totalTransactions,
+                'previous' => $comparisonData['totalTransactions'] ?? $totalTransactions,
+                'change' => $this->calculateUserChange($comparisonData['totalTransactions'] ?? $totalTransactions, $totalTransactions)
+            ],
+            'avgTransactionsPerUser' => [
+                'current' => $avgTransactionsPerUser,
+                'previous' => $comparisonData['activeUsers'] > 0 && $comparisonData['totalTransactions'] > 0 ? 
+                    round($comparisonData['totalTransactions'] / $comparisonData['activeUsers'], 2) : 0,
+                'change' => 0 // Calculé dynamiquement
+            ],
+            'totalSubscriptions' => [
+                'current' => $totalSubscriptions,
+                'previous' => $comparisonData['totalSubscriptions'] ?? $totalSubscriptions,
+                'change' => $this->calculateUserChange($comparisonData['totalSubscriptions'] ?? $totalSubscriptions, $totalSubscriptions)
+            ],
+            'newUsers' => [
+                'current' => $newUsers,
+                'previous' => $comparisonData['newUsers'] ?? 0,
+                'change' => $this->calculateUserChange($comparisonData['newUsers'] ?? 0, $newUsers)
+            ],
+            'transactionsCohorte' => [
+                'current' => $totalTransactionsCohorte,
+                'previous' => $comparisonData['totalTransactionsCohorte'] ?? 0,
+                'change' => $this->calculateUserChange($comparisonData['totalTransactionsCohorte'] ?? 0, $totalTransactionsCohorte)
+            ],
+            'retentionRate' => [
+                'current' => $retentionRate,
+                'previous' => $comparisonData['retentionRate'] ?? 0,
+                'change' => $this->calculateUserChange($comparisonData['retentionRate'] ?? 0, $retentionRate)
+            ]
+        ];
+    }
+
+    /**
+     * Récupérer la liste des utilisateurs
+     */
+    private function getUsersList($startDate, $endDate, $subStore)
+    {
+        // Requête optimisée pour éviter les blocages
+        $users = DB::table('carte_recharge_client')
+            ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
+            ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+            ->leftJoin('history', function ($join) use ($startDate, $endDate) {
+                $join->on('carte_recharge_client.client_id', '=', 'history.client_id')
+                     ->whereBetween('history.time', [$startDate, $endDate]);
+            })
+            ->leftJoin('client_abonnement', function ($join) use ($startDate, $endDate) {
+                $join->on('carte_recharge_client.client_id', '=', 'client_abonnement.client_id')
+                     ->where(function($query) use ($startDate, $endDate) {
+                         // Abonnements créés dans la période
+                         $query->whereBetween('client_abonnement.client_abonnement_creation', [$startDate, $endDate])
+                               // OU abonnements actifs pendant la période
+                               ->orWhere(function($subQuery) use ($startDate, $endDate) {
+                                   $subQuery->where('client_abonnement.client_abonnement_creation', '<=', $endDate)
+                                            ->where(function($expQuery) use ($startDate) {
+                                                $expQuery->whereNull('client_abonnement.client_abonnement_expiration')
+                                                         ->orWhere('client_abonnement.client_abonnement_expiration', '>=', $startDate);
+                                            });
+                               });
+                     });
+            })
+            ->where('stores.is_sub_store', 1)
+            ->when($subStore !== 'ALL', function ($query) use ($subStore) {
+                return $query->where('stores.store_name', 'LIKE', "%$subStore%");
+            })
+            ->select([
+                'carte_recharge_client.client_id as id',
+                DB::raw('CONCAT(COALESCE(client.client_prenom, ""), " ", COALESCE(client.client_nom, "")) as name'),
+                'stores.store_name as sub_store_name',
+                'client.created_at as registration_date',
+                DB::raw('COUNT(DISTINCT history.history_id) as total_transactions'),
+                DB::raw('COUNT(DISTINCT client_abonnement.client_abonnement_id) as total_subscriptions'),
+                DB::raw('MAX(history.time) as last_activity'),
+                DB::raw('CASE WHEN COUNT(DISTINCT history.history_id) > 0 THEN "active" ELSE "inactive" END as status')
+            ])
+            ->groupBy('carte_recharge_client.client_id', 'client.client_prenom', 'client.client_nom', 'client.client_email', 'client.created_at', 'stores.store_name')
+            ->orderBy('total_transactions', 'desc')
+            // Pas de limite pour récupérer tous les utilisateurs comme les merchants
+            ->get();
+
+        return $users->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'sub_store_name' => $user->sub_store_name,
+                'registration_date' => $user->registration_date ? Carbon::parse($user->registration_date)->format('Y-m-d') : 'N/A',
+                'total_transactions' => $user->total_transactions,
+                'total_subscriptions' => $user->total_subscriptions,
+                'last_activity' => $user->last_activity ? Carbon::parse($user->last_activity)->format('Y-m-d H:i') : 'N/A',
+                'status' => $user->status
+            ];
+        });
+    }
+
+    /**
+     * Calculer le changement pour les KPIs utilisateurs
+     */
+    private function calculateUserChange($current, $previous)
+    {
+        if ($previous == 0) {
+            return $current > 0 ? 100 : 0;
+        }
+        return round((($current - $previous) / $previous) * 100, 1);
     }
 
 }

@@ -265,6 +265,67 @@ class EklektikCronController extends Controller
     }
 
     /**
+     * Obtenir les statistiques du cron (API)
+     */
+    public function getStatistics()
+    {
+        try {
+            $statistics = $this->getCronStatistics();
+            $cronStatus = $this->getCronStatus();
+            
+            return response()->json([
+                'success' => true,
+                'data' => array_merge($statistics, [
+                    'next_execution' => $cronStatus['next_execution']
+                ])
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur récupération statistiques', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des statistiques'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtenir la configuration du cron (API)
+     */
+    public function getConfig()
+    {
+        try {
+            $configs = EklektikCronConfig::getAllConfigs();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'cron_enabled' => $configs->get('cron_enabled', 'true'),
+                    'cron_schedule' => $configs->get('cron_schedule', '0 2 * * *'),
+                    'cron_operators' => $configs->get('cron_operators', '["ALL"]'),
+                    'cron_retention_days' => $configs->get('cron_retention_days', '90'),
+                    'cron_notification_email' => $configs->get('cron_notification_email', ''),
+                    'cron_error_email' => $configs->get('cron_error_email', ''),
+                    'cron_batch_size' => $configs->get('cron_batch_size', '1000'),
+                    'cron_timeout' => $configs->get('cron_timeout', '300'),
+                    'enabled' => EklektikCronConfig::isCronEnabled()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur récupération configuration', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération de la configuration'
+            ], 500);
+        }
+    }
+
+    /**
      * Obtenir la dernière exécution
      */
     private function getLastExecution()
@@ -290,9 +351,9 @@ class EklektikCronController extends Controller
 
         return [
             'total_processed' => $stats['total_processed'],
-            'kpi_updated' => $stats['kpi_updated'],
-            'unique_batches' => $stats['unique_batches'],
-            'last_processed' => $stats['last_processed'],
+            'kpi_updated' => $stats['kpis_updated_count'],
+            'unique_batches' => $stats['unique_batches_count'],
+            'last_processed' => $stats['last_processing_update'],
             'cache_entries' => \App\Models\EklektikKPICache::count(),
             'tracking_entries' => \App\Models\EklektikNotificationTracking::count()
         ];

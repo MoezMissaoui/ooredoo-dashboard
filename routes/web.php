@@ -91,6 +91,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [SubStoreController::class, 'index'])->name('dashboard');
         Route::get('/api/sub-stores', [SubStoreController::class, 'getSubStores'])->name('api.sub-stores');
         Route::get('/api/dashboard/data', [SubStoreController::class, 'getDashboardData'])->name('api.dashboard.data');
+        Route::get('/api/users/data', [SubStoreController::class, 'getUsersData'])->name('api.users.data');
         // Endpoint asynchrone pour expirations (léger et mis en cache)
         Route::get('/api/expirations', [SubStoreController::class, 'getExpirationsAsync'])->name('api.expirations');
     });
@@ -122,12 +123,12 @@ Route::middleware('auth')->group(function () {
         // donc les routes internes doivent être nommées sans le préfixe "admin." pour éviter "admin.admin.*"
         Route::middleware('role:super_admin')->group(function () {
             Route::get('/eklektik-cron', [EklektikCronController::class, 'index'])->name('eklektik-cron');
-            Route::get('/eklektik-cron/config', [EklektikCronController::class, 'index'])->name('eklektik-cron.config');
+            Route::get('/eklektik-cron/config', [EklektikCronController::class, 'getConfig'])->name('eklektik-cron.config');
             Route::post('/eklektik-cron/config', [EklektikCronController::class, 'updateConfig'])->name('eklektik-cron.update');
+            Route::get('/eklektik-cron/statistics', [EklektikCronController::class, 'getStatistics'])->name('eklektik-cron.statistics');
             Route::post('/eklektik-cron/test', [EklektikCronController::class, 'testCron'])->name('eklektik-cron.test');
             Route::post('/eklektik-cron/run', [EklektikCronController::class, 'runCron'])->name('eklektik-cron.run');
             Route::post('/eklektik-cron/reset', [EklektikCronController::class, 'resetToDefault'])->name('eklektik-cron.reset');
-            Route::get('/eklektik-cron/statistics', [EklektikCronController::class, 'getCronStatus'])->name('eklektik-cron.statistics');
         });
         
         // Gestion des Synchronisations Eklektik (Super Admin et Admin)

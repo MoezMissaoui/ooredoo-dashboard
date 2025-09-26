@@ -66,9 +66,9 @@ class EklektikUpdateDailyKPIs extends Command
                 ['Métrique', 'Valeur'],
                 [
                     ['Notifications traitées', $stats['total_processed']],
-                    ['KPIs mis à jour', $stats['kpi_updated']],
-                    ['Batches uniques', $stats['unique_batches']],
-                    ['Dernière mise à jour', $stats['last_processed'] ?? 'N/A']
+                    ['KPIs mis à jour', $stats['kpis_updated_count']],
+                    ['Batches uniques', $stats['unique_batches_count']],
+                    ['Dernière mise à jour', $stats['last_processing_update'] ?? 'N/A']
                 ]
             );
 
