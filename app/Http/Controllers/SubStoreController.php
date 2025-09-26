@@ -2020,21 +2020,7 @@ class SubStoreController extends Controller
                 $join->on('carte_recharge_client.client_id', '=', 'history.client_id')
                      ->whereBetween('history.time', [$startDate, $endDate]);
             })
-            ->leftJoin('client_abonnement', function ($join) use ($startDate, $endDate) {
-                $join->on('carte_recharge_client.client_id', '=', 'client_abonnement.client_id')
-                     ->where(function($query) use ($startDate, $endDate) {
-                         // Abonnements créés dans la période
-                         $query->whereBetween('client_abonnement.client_abonnement_creation', [$startDate, $endDate])
-                               // OU abonnements actifs pendant la période
-                               ->orWhere(function($subQuery) use ($startDate, $endDate) {
-                                   $subQuery->where('client_abonnement.client_abonnement_creation', '<=', $endDate)
-                                            ->where(function($expQuery) use ($startDate) {
-                                                $expQuery->whereNull('client_abonnement.client_abonnement_expiration')
-                                                         ->orWhere('client_abonnement.client_abonnement_expiration', '>=', $startDate);
-                                            });
-                               });
-                     });
-            })
+            ->leftJoin('client_abonnement', 'carte_recharge_client.client_id', '=', 'client_abonnement.client_id')
             ->where('stores.is_sub_store', 1)
             ->when($subStore !== 'ALL', function ($query) use ($subStore) {
                 return $query->where('stores.store_name', 'LIKE', "%$subStore%");

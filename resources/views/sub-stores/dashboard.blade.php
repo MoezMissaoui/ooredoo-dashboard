@@ -1282,7 +1282,7 @@
                   <div class="user-role">{{ Auth::user()->role->display_name ?? 'Aucun rôle' }}</div>
                 </div>
                 <div id="profileDropdown" class="dropdown" style="display:none; position:absolute; right:20px; top:60px; background: var(--card); border:1px solid var(--border); border-radius: 8px; min-width: 220px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
-                  @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
+                  @if(Auth::user()->canInviteCollaborators())
                   <a href="{{ route('admin.users.index') }}" class="admin-btn" style="display:block; margin:8px;">Utilisateurs</a>
                   <a href="{{ route('admin.invitations.index') }}" class="admin-btn" style="display:block; margin:8px;">Invitations</a>
                   @endif
@@ -1290,7 +1290,7 @@
                   @if(Auth::user()->canAccessOperatorsDashboard())
                   <a href="{{ route('dashboard') }}" class="admin-btn" style="display:block; margin:8px;">📊 Dashboard Opérateurs</a>
                   @endif
-                  @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+                  @if(Auth::user()->canAccessEklektikConfig())
                   <a href="{{ route('admin.eklektik-cron') }}" class="admin-btn" style="display:block; margin:8px;">⚙️ Configuration Eklektik</a>
                   @endif
                   <form action="{{ route('auth.logout') }}" method="POST" style="display:block; margin:8px;">
@@ -1306,11 +1306,11 @@
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showTab('overview')">Vue d'Ensemble</button>
       
-      @if(Auth::user()->isSuperAdmin())
+      @if(Auth::user()->canAccessSubStoresDashboard())
       <button class="nav-tab" onclick="showTab('substores')">Sub-Stores</button>
       @endif
       <button class="nav-tab" onclick="showTab('merchant')">Merchant</button>
-      @if(Auth::user()->isSuperAdmin())
+      @if(Auth::user()->canAccessSubStoresDashboard())
       <button class="nav-tab" onclick="showTab('users')">Users</button>
       @endif
                 </div>
@@ -1551,7 +1551,7 @@
       </div>
     </div>
 
-    @if(Auth::user()->isSuperAdmin())
+    @if(Auth::user()->canAccessSubStoresDashboard())
     <div id="substores" class="tab-content">
       <!-- Sub-stores content -->
       <div class="card table-card">
@@ -1580,8 +1580,9 @@
                     </div>
                     </div>
                 </div>
+    @endif
 
-
+        @if(Auth::user()->canAccessSubStoresDashboard())
         <div id="users" class="tab-content">
           <!-- Users KPIs Section -->
           <div class="users-kpis-row">

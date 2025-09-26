@@ -36,7 +36,7 @@ class EklektikCronController extends Controller
     public function updateConfig(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'cron_enabled' => 'required|boolean',
+            'cron_enabled' => 'required|in:true,false,1,0,on,off',
             'cron_schedule' => 'required|string|min:5|max:20',
             'cron_operators' => 'required|array',
             'cron_retention_days' => 'required|integer|min:1|max:365',
@@ -65,9 +65,10 @@ class EklektikCronController extends Controller
             }
 
             // Mettre à jour les configurations
+            $cronEnabled = in_array($request->cron_enabled, ['true', '1', 'on', true, 1]);
             EklektikCronConfig::setConfig(
                 EklektikCronConfig::CRON_ENABLED,
-                $request->cron_enabled ? 'true' : 'false',
+                $cronEnabled ? 'true' : 'false',
                 'Activer/désactiver le cron Eklektik',
                 $userId
             );
@@ -331,13 +332,16 @@ class EklektikCronController extends Controller
     private function getLastExecution()
     {
         // Récupérer la dernière exécution depuis les logs ou la base de données
-        $lastExecution = \App\Models\EklektikNotificationTracking::orderBy('processed_at', 'desc')
+        $lastExecution = \DB::table('eklektik_notifications_tracking')
+            ->orderBy('processed_at', 'desc')
             ->first();
 
         return $lastExecution ? [
             'date' => $lastExecution->processed_at,
             'batch_id' => $lastExecution->processing_batch_id,
-            'notifications_processed' => \App\Models\EklektikNotificationTracking::where('processing_batch_id', $lastExecution->processing_batch_id)->count()
+            'notifications_processed' => \DB::table('eklektik_notifications_tracking')
+                ->where('processing_batch_id', $lastExecution->processing_batch_id)
+                ->count()
         ] : null;
     }
 
@@ -354,8 +358,8 @@ class EklektikCronController extends Controller
             'kpi_updated' => $stats['kpis_updated_count'],
             'unique_batches' => $stats['unique_batches_count'],
             'last_processed' => $stats['last_processing_update'],
-            'cache_entries' => \App\Models\EklektikKPICache::count(),
-            'tracking_entries' => \App\Models\EklektikNotificationTracking::count()
+            'cache_entries' => \DB::table('eklektik_kpis_cache')->count(),
+            'tracking_entries' => \DB::table('eklektik_notifications_tracking')->count()
         ];
     }
 

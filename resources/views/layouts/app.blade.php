@@ -89,8 +89,13 @@
         <div class="header-content">
             <div class="logo">Club Privilèges</div>
             <div class="user-info">
-                <span>{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</span>
-                <a href="{{ route('dashboard') }}" class="nav-link">← Retour au dashboard</a>
+                @if(Auth::check())
+                    <span>{{ Auth::user()->first_name }} {{ Auth::user()->last_name }}</span>
+                    <a href="{{ route('dashboard') }}" class="nav-link">← Retour au dashboard</a>
+                @else
+                    <span>Accès Direct (Test)</span>
+                    <a href="/" class="nav-link">← Accueil</a>
+                @endif
             </div>
         </div>
     </div>
@@ -98,6 +103,13 @@
     <div class="main-content">
         @yield('content')
     </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    @yield('scripts')
 </body>
 </html>
 

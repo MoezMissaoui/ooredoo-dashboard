@@ -1916,7 +1916,7 @@
           </div>
 
           <div id="profileDropdown" class="dropdown" style="display:none; position:absolute; right:20px; top:60px; background: var(--card); border:1px solid var(--border); border-radius: 8px; min-width: 220px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
-            @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
+            @if(Auth::user()->canInviteCollaborators())
             <a href="{{ route('admin.users.index') }}" class="admin-btn" style="display:block; margin:8px;">Utilisateurs</a>
             <a href="{{ route('admin.invitations.index') }}" class="admin-btn" style="display:block; margin:8px;">Invitations</a>
             @endif
@@ -1924,8 +1924,10 @@
             @if(Auth::user()->canAccessSubStoresDashboard())
             <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="display:block; margin:8px;">🏪 Sub-Stores</a>
             @endif
-            @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+            @if(Auth::user()->canAccessEklektikConfig())
             <a href="{{ route('admin.eklektik-cron') }}" class="admin-btn" style="display:block; margin:8px;">⚙️ Configuration Eklektik</a>
+            <a href="{{ route('admin.eklektik.sync') }}" class="admin-btn" style="display:block; margin:8px;">🔄 Gestion des Synchronisations</a>
+            <a href="{{ route('admin.eklektik.sync-tracking') }}" class="admin-btn" style="display:block; margin:8px;">📈 Suivi des Synchronisations</a>
             @endif
             <form action="{{ route('auth.logout') }}" method="POST" style="display:block; margin:8px;">
               @csrf
@@ -1942,7 +1944,9 @@
       <button class="nav-tab" onclick="showTab('subscriptions')">Subscriptions</button>
       <button class="nav-tab" onclick="showTab('transactions')">Transactions</button>
       <button class="nav-tab" onclick="showTab('merchants')">Merchants</button>
+      @if(Auth::user()->canViewEklektikSection())
       <button class="nav-tab" onclick="showTab('eklektik')">📞 Eklektik</button>
+      @endif
       <button class="nav-tab" onclick="showTab('comparison')">Comparison</button>
       <!-- <button class="nav-tab" onclick="showTab('insights')">Insights</button> -->
     </div>
@@ -2567,31 +2571,9 @@
     </div>
 
     <!-- Tab 5: Eklektik Integration -->
+    @if(Auth::user()->canViewEklektikSection())
     <div id="eklektik" class="tab-content">
 
-      <!-- Boutons de Configuration Eklektik -->
-      <div class="grid">
-        <div class="card" style="grid-column: span 12;">
-          <div class="chart-title">
-            ⚙️ Configuration Eklektik
-            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Gestion et configuration du système Eklektik">ⓘ</span>
-          </div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-            <button class="btn-primary enhanced-btn" onclick="window.open('/admin/eklektik-dashboard', '_blank')">
-              📊 Dashboard Eklektik Complet
-            </button>
-            <button class="btn-secondary enhanced-btn" onclick="window.open('/admin/eklektik-sync', '_blank')">
-              🔄 Gestion des Synchronisations
-            </button>
-            <button class="btn-info enhanced-btn" onclick="checkEklektikSyncStatus()">
-              📈 Statut de Synchronisation
-            </button>
-            <button class="btn-warning enhanced-btn" onclick="clearEklektikCache()">
-              🗑️ Vider le Cache
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Statistiques Eklektik KPIs - 8 KPIs sur 2 lignes -->
       <div class="grid">
@@ -2670,6 +2652,7 @@
 
 
     </div>
+    @endif
 
     <!-- Tab 6: Comparison -->
     <div id="comparison" class="tab-content">
@@ -4382,15 +4365,20 @@
         const response = await fetch('/api/eklektik-dashboard/sync-status');
         const data = await response.json();
         
-        if (data.success) {
+        if (data.success && data.data) {
           const status = data.data;
-          const statusColor = status.status === 'healthy' ? 'success' : 
-                             status.status === 'warning' ? 'warning' : 'danger';
+          const statusValue = status.status || 'unknown';
+          const statusColor = statusValue === 'healthy' ? 'success' : 
+                             statusValue === 'warning' ? 'warning' : 'danger';
           
           const lastSync = status.last_sync ? 
             new Date(status.last_sync).toLocaleString('fr-FR') : 'Jamais';
           
-          alert(`Statut Eklektik: ${status.status.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${status.total_records}`);
+          const totalRecords = status.total_records || 0;
+          
+          alert(`Statut Eklektik: ${statusValue.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${totalRecords}`);
+        } else {
+          alert('Erreur: Impossible de récupérer le statut de synchronisation');
         }
       } catch (error) {
         console.error('❌ [EKLEKTIK SYNC] Erreur lors de la vérification du statut:', error);

@@ -66,12 +66,11 @@ class EklektikCronConfig extends Model
     }
 
     /**
-     * Récupérer toutes les configurations actives
+     * Récupérer toutes les configurations
      */
     public static function getAllConfigs()
     {
-        return self::where('is_active', true)
-            ->orderBy('config_key')
+        return self::orderBy('config_key')
             ->get()
             ->keyBy('config_key');
     }

@@ -465,25 +465,32 @@ async function checkEklektikSyncStatus() {
     const response = await fetch('/api/eklektik-dashboard/sync-status');
     const data = await response.json();
     
-    if (data.success) {
+    if (data.success && data.data) {
       const status = data.data;
-      const statusColor = status.status === 'healthy' ? 'success' : 
-                         status.status === 'warning' ? 'warning' : 'danger';
+      const statusValue = status.status || 'unknown';
+      const statusColor = statusValue === 'healthy' ? 'success' : 
+                         statusValue === 'warning' ? 'warning' : 'danger';
       
       const lastSync = status.last_sync ? 
         new Date(status.last_sync).toLocaleString('fr-FR') : 'Jamais';
       
+      const totalRecords = status.total_records || 0;
+      const operatorsStatus = status.operators_status || {};
+      const operatorsWithData = Object.values(operatorsStatus).filter(op => op && op.has_data).length;
+      
       const message = `
         <div class="alert alert-${statusColor}" style="margin: 10px 0;">
-          <h6><i class="fas fa-info-circle"></i> Statut: ${status.status.toUpperCase()}</h6>
+          <h6><i class="fas fa-info-circle"></i> Statut: ${statusValue.toUpperCase()}</h6>
           <p><strong>Dernière synchronisation:</strong> ${lastSync}</p>
-          <p><strong>Total enregistrements:</strong> ${status.total_records}</p>
-          <p><strong>Opérateurs avec données:</strong> ${Object.values(status.operators_status).filter(op => op.has_data).length}/3</p>
+          <p><strong>Total enregistrements:</strong> ${totalRecords}</p>
+          <p><strong>Opérateurs avec données:</strong> ${operatorsWithData}/3</p>
         </div>
       `;
       
       // Afficher dans une modal ou alert
-      alert(`Statut Eklektik: ${status.status.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${status.total_records}`);
+      alert(`Statut Eklektik: ${statusValue.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${totalRecords}`);
+    } else {
+      alert('Erreur: Impossible de récupérer le statut de synchronisation');
     }
   } catch (error) {
     console.error('❌ [EKLEKTIK SYNC] Erreur lors de la vérification du statut:', error);

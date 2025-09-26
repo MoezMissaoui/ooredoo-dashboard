@@ -22,7 +22,8 @@ class SyncService
         $token = Config::get('sync.token');
         $timeout = (int) Config::get('sync.timeout', 30);
         $retryTimes = (int) Config::get('sync.retry.times', 3);
-        $retrySleep = (int) Config::get('sync.retry.sleep_ms', 1000);
+        $retrySleep = (int) Config::get('sync.retry.sleep_ms', 2000); // Augmenté à 2s
+        $requestDelay = (int) Config::get('sync.request_delay_ms', 500); // Délai entre requêtes
 
         $checkpoint = DB::table('sync_checkpoints')->where('table_name', $table)->first();
         $lastId = $checkpoint->last_id ?? 0;
@@ -93,6 +94,11 @@ class SyncService
                     'updated_at' => now(),
                 ]
             );
+            
+            // Délai entre les requêtes pour éviter le rate limiting
+            if ($requestDelay > 0) {
+                usleep($requestDelay * 1000); // Convertir ms en microsecondes
+            }
         }
 
         $elapsed = (int) round((microtime(true) - $start) * 1000);
