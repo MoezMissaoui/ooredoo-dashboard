@@ -153,6 +153,15 @@ class EklektikCacheService
 
         $stats = $query->orderBy('date', 'desc')->get();
 
+        // Log pour debug
+        \Log::info('EklektikCacheService::getDetailedStats - Stats récupérés:', [
+            'count' => $stats->count(),
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'operator' => $operator,
+            'sample_data' => $stats->take(3)->toArray()
+        ]);
+
         // Grouper par date pour l'évolution temporelle
         $dailyStats = $stats->groupBy('date')->map(function ($dayStats) {
             return [
