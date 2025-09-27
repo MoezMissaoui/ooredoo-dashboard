@@ -1,284 +1,280 @@
-# 🚀 Guide de Déploiement - Dashboard CP (Préprod)
+# Guide de Déploiement - Synchronisation Club Privilèges
 
-## 📋 Prérequis
+## 📋 Vue d'ensemble
 
-### Environnement Serveur
-- **PHP**: 8.2+ avec extensions (mbstring, openssl, pdo, tokenizer, xml, ctype, json, bcmath)
-- **Composer**: 2.0+
-- **Node.js**: 16+ (pour les assets)
-- **MySQL**: 8.0+
-- **Git**: 2.0+
+Ce guide décrit le déploiement de la nouvelle fonctionnalité de synchronisation automatique Club Privilèges sur le serveur Ubuntu de préproduction.
 
-### Accès Serveur
-- Accès SSH au serveur préprod
-- Accès à la base de données MySQL
-- Permissions d'écriture sur le répertoire du projet
+## 🚀 Fonctionnalités déployées
 
-## 🔄 Étapes de Déploiement
+### 1. Synchronisation automatique Club Privilèges
+- **Commande** : `php artisan cp:visit-sync`
+- **Fréquence** : Toutes les heures (00:00, 01:00, 02:00, etc.)
+- **URL** : `https://clubprivileges.app/sync-dashboard-data`
+- **Authentification** : Double authentification (serveur + backend)
 
-### 1. Connexion au Serveur
+### 2. Interface web de gestion
+- **URL** : `/admin/cp-sync`
+- **Fonctionnalités** :
+  - Visite manuelle du lien de synchronisation
+  - Test de connexion
+  - Historique des visites
+  - Statut en temps réel
+
+### 3. Configuration via variables d'environnement
+- `CP_SYNC_SERVER_USERNAME` : Identifiant serveur
+- `CP_SYNC_SERVER_PASSWORD` : Mot de passe serveur
+- `CP_SYNC_USERNAME` : Identifiant backend
+- `CP_SYNC_PASSWORD` : Mot de passe backend
+- `CP_SYNC_ENABLED` : Activation/désactivation
+- `CP_SYNC_SCHEDULE_ENABLED` : Activation du scheduler
+
+## 🔧 Étapes de déploiement
+
+### 1. Connexion au serveur
 ```bash
 ssh user@preprod-server
-cd /path/to/dashboard-cp
+cd /path/to/dashboard
 ```
 
-### 2. Sauvegarde de Sécurité
+### 2. Sauvegarde de la base de données
 ```bash
-# Sauvegarde de la base de données
+# Sauvegarde complète
 mysqldump -u username -p database_name > backup_$(date +%Y%m%d_%H%M%S).sql
 
-# Sauvegarde des fichiers
-cp -r /path/to/dashboard-cp /path/to/backup/dashboard-cp_$(date +%Y%m%d_%H%M%S)
+# Ou sauvegarde des tables critiques uniquement
+mysqldump -u username -p database_name \
+  client client_abonnement history promotion_pass_orders \
+  promotion_pass_vendu transactions_history > backup_cp_tables_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-### 3. Récupération du Code
+### 3. Mise à jour du code
 ```bash
-# Récupérer les dernières modifications
+# Récupération des dernières modifications
 git fetch origin
 git checkout develop
 git pull origin develop
 
-# Vérifier le commit
-git log --oneline -1
-# Doit afficher: 8e583fd feat: Amélioration complète du système Eklektik et navigation
+# Vérification des fichiers modifiés
+git log --oneline -10
 ```
 
-### 4. Installation des Dépendances
+### 4. Installation des dépendances
 ```bash
-# Dépendances PHP
+# Mise à jour des dépendances Composer
 composer install --no-dev --optimize-autoloader
 
-# Dépendances Node.js (si nécessaire)
+# Mise à jour des dépendances NPM (si nécessaire)
 npm install --production
 npm run build
 ```
 
-### 5. Configuration de l'Environnement
+### 5. Configuration des variables d'environnement
 ```bash
-# Copier le fichier d'environnement
-cp .env.example .env
-
-# Éditer la configuration
+# Édition du fichier .env
 nano .env
+
+# Ajout des variables Club Privilèges
+CP_SYNC_SERVER_USERNAME=BiGHellO
+CP_SYNC_SERVER_PASSWORD=EMQLj3EuDrjS22aNkj
+CP_SYNC_USERNAME=imed@clubprivileges.app
+CP_SYNC_PASSWORD=Taraji1919
+CP_SYNC_ENABLED=true
+CP_SYNC_SCHEDULE_ENABLED=true
 ```
 
-#### Variables d'Environnement Importantes
-```env
-APP_ENV=preprod
-APP_DEBUG=false
-APP_URL=https://preprod-dashboard.example.com
-
-DB_CONNECTION=mysql
-DB_HOST=localhost
-DB_PORT=3306
-DB_DATABASE=preprod_dashboard
-DB_USERNAME=preprod_user
-DB_PASSWORD=secure_password
-
-# Configuration Eklektik
-EKLEKTIK_API_URL=https://api.eklektik.com
-EKLEKTIK_API_TOKEN=your_token_here
-
-# Configuration Sync
-CP_API_URL=https://api.club-privileges.com
-CP_API_TOKEN=your_cp_token_here
-```
-
-### 6. Migration de la Base de Données
+### 6. Exécution des migrations
 ```bash
-# Exécuter les migrations
+# Vérification des migrations en attente
+php artisan migrate:status
+
+# Exécution des migrations (si nécessaire)
 php artisan migrate --force
-
-# Vérifier les nouvelles tables
-php artisan tinker
->>> \DB::select("SHOW TABLES LIKE 'eklektik_%'");
->>> exit
 ```
 
-### 7. Optimisation de l'Application
+### 7. Configuration du cache
 ```bash
-# Cache de configuration
+# Nettoyage du cache
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+# Régénération du cache
 php artisan config:cache
-
-# Cache des routes
 php artisan route:cache
-
-# Cache des vues
 php artisan view:cache
-
-# Optimisation de l'autoloader
-composer dump-autoload --optimize
 ```
 
-### 8. Permissions et Propriétaire
+### 8. Configuration du cron système
 ```bash
-# Définir les permissions
-chmod -R 755 storage bootstrap/cache
-chmod -R 775 storage/logs
-chown -R www-data:www-data storage bootstrap/cache
+# Édition du crontab
+crontab -e
 
-# Créer le lien symbolique pour le stockage
-php artisan storage:link
+# Ajout de la ligne pour exécuter le scheduler Laravel chaque minute
+* * * * * cd /path/to/dashboard && php artisan schedule:run >> /dev/null 2>&1
+
+# Vérification du crontab
+crontab -l
 ```
 
-### 9. Configuration du Scheduler Windows
+### 9. Test de la configuration
 ```bash
-# Copier les scripts PowerShell
-cp manage_scheduler.ps1 /path/to/scripts/
-cp run_cron.bat /path/to/scripts/
+# Test de la commande de synchronisation
+php artisan cp:visit-sync --force
 
-# Configurer la tâche planifiée Windows
-# Utiliser le script manage_scheduler.ps1 pour la gestion
+# Vérification du scheduler
+php artisan schedule:list
+
+# Test de l'interface web
+curl -I http://localhost/admin/cp-sync
 ```
 
-### 10. Test de l'Application
+### 10. Redémarrage des services
 ```bash
-# Test des routes
-php artisan route:list --name=admin.eklektik
+# Redémarrage du serveur web
+sudo systemctl restart nginx
+# ou
+sudo systemctl restart apache2
 
-# Test de la configuration
-php artisan config:show
-
-# Test de la base de données
-php artisan tinker
->>> \App\Models\User::count();
->>> \App\Models\EklektikSyncTracking::count();
->>> exit
+# Redémarrage de PHP-FPM (si applicable)
+sudo systemctl restart php8.1-fpm
 ```
 
-## 🔧 Configuration Post-Déploiement
+## 🔍 Vérification post-déploiement
 
-### 1. Configuration Eklektik
-1. Accéder à: `https://preprod-dashboard.example.com/admin/eklektik-cron`
-2. Configurer le cron:
-   - **Activer**: ✅
-   - **Fréquence**: `0 3 * * *` (tous les jours à 3h)
-   - **Opérateurs**: ALL
-   - **Notifications**: ✅
-
-### 2. Test des Fonctionnalités
-1. **Dashboard Principal**: `https://preprod-dashboard.example.com/dashboard`
-2. **Sub-Stores**: `https://preprod-dashboard.example.com/sub-stores/dashboard`
-3. **Configuration Eklektik**: Menu Profil → Configuration Eklektik
-4. **Synchronisation**: Menu Profil → Gestion des Synchronisations
-
-### 3. Vérification des Logs
+### 1. Vérification des logs
 ```bash
 # Logs Laravel
 tail -f storage/logs/laravel.log
 
-# Logs Eklektik
-tail -f storage/logs/eklektik-sync.log
+# Logs de synchronisation Club Privilèges
+tail -f storage/logs/cp-sync.log
 
-# Logs du serveur web
-tail -f /var/log/apache2/error.log
-# ou
-tail -f /var/log/nginx/error.log
+# Logs du système
+tail -f /var/log/syslog | grep cron
 ```
 
-## 🚨 Gestion des Erreurs
+### 2. Test de l'interface web
+- Accéder à `https://preprod-domain.com/admin/cp-sync`
+- Vérifier l'affichage de l'interface
+- Tester le bouton "Tester la Connexion"
+- Vérifier l'historique des visites
 
-### Erreurs Communes
-
-#### 1. Erreur de Migration
+### 3. Test de la synchronisation automatique
 ```bash
-# Si migration échoue
-php artisan migrate:rollback
-php artisan migrate --force
-```
+# Vérification du scheduler
+php artisan schedule:list
 
-#### 2. Erreur de Cache
-```bash
-# Vider tous les caches
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-```
+# Test manuel de la synchronisation
+php artisan cp:visit-sync --force
 
-#### 3. Erreur de Permissions
-```bash
-# Réparer les permissions
-chmod -R 755 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
-```
-
-#### 4. Erreur de Base de Données
-```bash
-# Vérifier la connexion
+# Vérification des données synchronisées
 php artisan tinker
->>> \DB::connection()->getPdo();
->>> exit
+>>> DB::table('client')->count();
+>>> DB::table('transactions_history')->count();
 ```
 
-## 📊 Monitoring Post-Déploiement
-
-### 1. Vérifications Quotidiennes
-- [ ] Dashboard principal accessible
-- [ ] Synchronisation Eklektik fonctionnelle
-- [ ] Logs sans erreurs critiques
-- [ ] Performance acceptable
-
-### 2. Vérifications Hebdomadaires
-- [ ] Sauvegarde de la base de données
-- [ ] Nettoyage des logs anciens
-- [ ] Mise à jour des dépendances
-- [ ] Test des fonctionnalités critiques
-
-### 3. Métriques à Surveiller
-- Temps de réponse des pages
-- Utilisation de la mémoire
-- Taille des logs
-- Erreurs 500/404
-
-## 🔄 Rollback (En Cas de Problème)
-
-### 1. Rollback Rapide
+### 4. Surveillance des performances
 ```bash
-# Revenir au commit précédent
-git checkout HEAD~1
-composer install --no-dev
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Vérification de l'utilisation CPU/Mémoire
+htop
+
+# Vérification de l'espace disque
+df -h
+
+# Vérification des processus PHP
+ps aux | grep php
 ```
 
-### 2. Rollback Complet
+## 🚨 Gestion des erreurs
+
+### Erreurs courantes et solutions
+
+#### 1. Erreur 401 Unauthorized
 ```bash
-# Restaurer la sauvegarde
-mysql -u username -p database_name < backup_YYYYMMDD_HHMMSS.sql
-cp -r /path/to/backup/dashboard-cp_YYYYMMDD_HHMMSS/* /path/to/dashboard-cp/
+# Vérifier les variables d'environnement
+php artisan tinker
+>>> config('cp_sync.server_username');
+>>> config('cp_sync.username');
+
+# Tester la connexion manuellement
+curl -u "BiGHellO:EMQLj3EuDrjS22aNkj" https://clubprivileges.app/sync-dashboard-data
 ```
 
-## 📞 Support
+#### 2. Erreur de permissions
+```bash
+# Vérifier les permissions des fichiers
+ls -la storage/logs/
+chmod 755 storage/logs/
+chown www-data:www-data storage/logs/
+```
 
-### Contacts
-- **Développeur**: [Votre nom]
-- **Admin Système**: [Admin contact]
-- **Base de Données**: [DBA contact]
+#### 3. Erreur de cron
+```bash
+# Vérifier le crontab
+crontab -l
 
-### Ressources
-- **Documentation**: [Lien vers la doc]
-- **Monitoring**: [Lien vers le monitoring]
-- **Logs**: [Lien vers les logs]
+# Vérifier les logs du système
+grep CRON /var/log/syslog
+
+# Test manuel du cron
+cd /path/to/dashboard && php artisan schedule:run
+```
+
+#### 4. Erreur de base de données
+```bash
+# Vérifier la connexion à la base
+php artisan tinker
+>>> DB::connection()->getPdo();
+
+# Vérifier les tables
+>>> DB::select('SHOW TABLES');
+```
+
+## 📊 Monitoring et maintenance
+
+### 1. Surveillance quotidienne
+- Vérifier les logs de synchronisation
+- Contrôler l'historique des visites
+- Surveiller les performances du serveur
+
+### 2. Maintenance hebdomadaire
+- Nettoyage des anciens logs
+- Vérification de l'espace disque
+- Test de la synchronisation manuelle
+
+### 3. Maintenance mensuelle
+- Mise à jour des dépendances
+- Sauvegarde complète de la base
+- Révision de la configuration
+
+## 🔐 Sécurité
+
+### 1. Protection des identifiants
+- Variables d'environnement sécurisées
+- Accès restreint au fichier .env
+- Rotation régulière des mots de passe
+
+### 2. Surveillance des accès
+- Logs d'accès au serveur
+- Monitoring des tentatives de connexion
+- Alertes en cas d'anomalie
+
+## 📞 Support et contacts
+
+### En cas de problème
+1. Vérifier les logs d'erreur
+2. Tester la synchronisation manuelle
+3. Vérifier la configuration du cron
+4. Contacter l'équipe de développement
+
+### Informations de contact
+- **Développeur** : [Nom du développeur]
+- **Email** : [email@domain.com]
+- **Téléphone** : [Numéro de téléphone]
 
 ---
 
-## ✅ Checklist de Déploiement
-
-- [ ] Sauvegarde effectuée
-- [ ] Code récupéré (commit 8e583fd)
-- [ ] Dépendances installées
-- [ ] Configuration mise à jour
-- [ ] Migrations exécutées
-- [ ] Caches optimisés
-- [ ] Permissions configurées
-- [ ] Scheduler configuré
-- [ ] Tests fonctionnels passés
-- [ ] Monitoring activé
-- [ ] Documentation mise à jour
-
-**Date de déploiement**: ___________  
-**Version déployée**: 8e583fd  
-**Déployé par**: ___________  
-**Validé par**: ___________
+**Date de création** : 27/09/2025  
+**Version** : 1.0  
+**Dernière mise à jour** : 27/09/2025
