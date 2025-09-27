@@ -18,14 +18,21 @@ class Kernel extends ConsoleKernel
         // $schedule->command('sync:pull')->dailyAt('02:00')->withoutOverlapping();
         
         // Synchronisation Eklektik - Configuration dynamique via interface
-        if (\App\Models\EklektikCronConfig::isCronEnabled()) {
-            $cronSchedule = \App\Models\EklektikCronConfig::getConfig('cron_schedule', '0 2 * * *');
-            $schedule->command('eklektik:sync-stats --period=1 --force')
-                ->cron($cronSchedule)
+            if (\App\Models\EklektikCronConfig::isCronEnabled()) {
+                $cronSchedule = \App\Models\EklektikCronConfig::getConfig('cron_schedule', '0 2 * * *');
+                $schedule->command('eklektik:sync-stats --period=1 --force')
+                    ->cron($cronSchedule)
+                    ->withoutOverlapping()
+                    ->runInBackground()
+                    ->appendOutputTo(storage_path('logs/eklektik-sync.log'));
+            }
+
+            // Visite du lien de synchronisation Club Privilèges - Toutes les heures
+            $schedule->command('cp:visit-sync')
+                ->hourly()
                 ->withoutOverlapping()
                 ->runInBackground()
-                ->appendOutputTo(storage_path('logs/eklektik-sync.log'));
-        }
+                ->appendOutputTo(storage_path('logs/cp-sync.log'));
     }
 
     /**

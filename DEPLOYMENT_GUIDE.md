@@ -1,262 +1,284 @@
-# 🚀 Guide de Déploiement - Ooredoo Dashboard
+# 🚀 Guide de Déploiement - Dashboard CP (Préprod)
 
-## 📋 Prérequis Serveur
+## 📋 Prérequis
 
-### Environnement Requis
-- **PHP**: 8.1 ou supérieur
-- **MySQL**: 8.0 ou supérieur 
-- **Apache/Nginx**: avec mod_rewrite activé
-- **Composer**: pour la gestion des dépendances PHP
-- **Node.js**: (optionnel, pour les assets)
+### Environnement Serveur
+- **PHP**: 8.2+ avec extensions (mbstring, openssl, pdo, tokenizer, xml, ctype, json, bcmath)
+- **Composer**: 2.0+
+- **Node.js**: 16+ (pour les assets)
+- **MySQL**: 8.0+
+- **Git**: 2.0+
 
-### Extensions PHP Requises
+### Accès Serveur
+- Accès SSH au serveur préprod
+- Accès à la base de données MySQL
+- Permissions d'écriture sur le répertoire du projet
+
+## 🔄 Étapes de Déploiement
+
+### 1. Connexion au Serveur
 ```bash
-php-mysql
-php-mbstring
-php-xml
-php-curl
-php-zip
-php-gd
-php-json
-php-tokenizer
-php-fileinfo
+ssh user@preprod-server
+cd /path/to/dashboard-cp
 ```
 
-## 📦 Contenu du Package
-
-```
-ooredoo-dashboard/
-├── app/                    # Code application Laravel
-├── database/              # Migrations et seeders
-├── resources/             # Vues et assets
-├── public/               # Point d'entrée web
-├── .env.example          # Configuration d'exemple
-├── composer.json         # Dépendances PHP
-├── DEPLOYMENT_GUIDE.md   # Ce guide
-├── PRODUCTION_CONFIG.md  # Configuration production
-└── deploy.sh            # Script de déploiement
-```
-
-## 🔧 Instructions de Déploiement
-
-### Étape 1: Préparer l'Environnement
-
-1. **Créer le répertoire du projet**:
+### 2. Sauvegarde de Sécurité
 ```bash
-cd /var/www/html
-sudo mkdir ooredoo-dashboard
-sudo chown www-data:www-data ooredoo-dashboard
+# Sauvegarde de la base de données
+mysqldump -u username -p database_name > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Sauvegarde des fichiers
+cp -r /path/to/dashboard-cp /path/to/backup/dashboard-cp_$(date +%Y%m%d_%H%M%S)
 ```
 
-2. **Uploader les fichiers**:
-   - Extraire l'archive dans `/var/www/html/ooredoo-dashboard/`
-   - Vérifier que tous les fichiers sont présents
-
-### Étape 2: Configuration de Base
-
-1. **Copier la configuration**:
+### 3. Récupération du Code
 ```bash
-cd /var/www/html/ooredoo-dashboard
+# Récupérer les dernières modifications
+git fetch origin
+git checkout develop
+git pull origin develop
+
+# Vérifier le commit
+git log --oneline -1
+# Doit afficher: 8e583fd feat: Amélioration complète du système Eklektik et navigation
+```
+
+### 4. Installation des Dépendances
+```bash
+# Dépendances PHP
+composer install --no-dev --optimize-autoloader
+
+# Dépendances Node.js (si nécessaire)
+npm install --production
+npm run build
+```
+
+### 5. Configuration de l'Environnement
+```bash
+# Copier le fichier d'environnement
 cp .env.example .env
-```
 
-2. **Éditer le fichier .env** avec les paramètres du serveur:
-```bash
+# Éditer la configuration
 nano .env
 ```
 
-**Variables importantes à configurer**:
+#### Variables d'Environnement Importantes
 ```env
-APP_NAME="Ooredoo Dashboard"
-APP_ENV=production
+APP_ENV=preprod
 APP_DEBUG=false
-APP_URL=https://votre-domaine.com
+APP_URL=https://preprod-dashboard.example.com
 
 DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
+DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=ooredoo_dashboard
-DB_USERNAME=votre_user_mysql
-DB_PASSWORD=votre_password_mysql
+DB_DATABASE=preprod_dashboard
+DB_USERNAME=preprod_user
+DB_PASSWORD=secure_password
 
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=465
-MAIL_ENCRYPTION=ssl
-MAIL_USERNAME=assistant@clubprivileges.app
-MAIL_PASSWORD="nltk qbof szsp qopq"
-MAIL_FROM_ADDRESS=assistant@clubprivileges.app
+# Configuration Eklektik
+EKLEKTIK_API_URL=https://api.eklektik.com
+EKLEKTIK_API_TOKEN=your_token_here
+
+# Configuration Sync
+CP_API_URL=https://api.club-privileges.com
+CP_API_TOKEN=your_cp_token_here
 ```
 
-### Étape 3: Installation des Dépendances
-
+### 6. Migration de la Base de Données
 ```bash
-# Installer les dépendances PHP
-composer install --optimize-autoloader --no-dev
+# Exécuter les migrations
+php artisan migrate --force
 
-# Générer la clé d'application
-php artisan key:generate
+# Vérifier les nouvelles tables
+php artisan tinker
+>>> \DB::select("SHOW TABLES LIKE 'eklektik_%'");
+>>> exit
+```
 
-# Optimiser pour la production
+### 7. Optimisation de l'Application
+```bash
+# Cache de configuration
+php artisan config:cache
+
+# Cache des routes
+php artisan route:cache
+
+# Cache des vues
+php artisan view:cache
+
+# Optimisation de l'autoloader
+composer dump-autoload --optimize
+```
+
+### 8. Permissions et Propriétaire
+```bash
+# Définir les permissions
+chmod -R 755 storage bootstrap/cache
+chmod -R 775 storage/logs
+chown -R www-data:www-data storage bootstrap/cache
+
+# Créer le lien symbolique pour le stockage
+php artisan storage:link
+```
+
+### 9. Configuration du Scheduler Windows
+```bash
+# Copier les scripts PowerShell
+cp manage_scheduler.ps1 /path/to/scripts/
+cp run_cron.bat /path/to/scripts/
+
+# Configurer la tâche planifiée Windows
+# Utiliser le script manage_scheduler.ps1 pour la gestion
+```
+
+### 10. Test de l'Application
+```bash
+# Test des routes
+php artisan route:list --name=admin.eklektik
+
+# Test de la configuration
+php artisan config:show
+
+# Test de la base de données
+php artisan tinker
+>>> \App\Models\User::count();
+>>> \App\Models\EklektikSyncTracking::count();
+>>> exit
+```
+
+## 🔧 Configuration Post-Déploiement
+
+### 1. Configuration Eklektik
+1. Accéder à: `https://preprod-dashboard.example.com/admin/eklektik-cron`
+2. Configurer le cron:
+   - **Activer**: ✅
+   - **Fréquence**: `0 3 * * *` (tous les jours à 3h)
+   - **Opérateurs**: ALL
+   - **Notifications**: ✅
+
+### 2. Test des Fonctionnalités
+1. **Dashboard Principal**: `https://preprod-dashboard.example.com/dashboard`
+2. **Sub-Stores**: `https://preprod-dashboard.example.com/sub-stores/dashboard`
+3. **Configuration Eklektik**: Menu Profil → Configuration Eklektik
+4. **Synchronisation**: Menu Profil → Gestion des Synchronisations
+
+### 3. Vérification des Logs
+```bash
+# Logs Laravel
+tail -f storage/logs/laravel.log
+
+# Logs Eklektik
+tail -f storage/logs/eklektik-sync.log
+
+# Logs du serveur web
+tail -f /var/log/apache2/error.log
+# ou
+tail -f /var/log/nginx/error.log
+```
+
+## 🚨 Gestion des Erreurs
+
+### Erreurs Communes
+
+#### 1. Erreur de Migration
+```bash
+# Si migration échoue
+php artisan migrate:rollback
+php artisan migrate --force
+```
+
+#### 2. Erreur de Cache
+```bash
+# Vider tous les caches
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+```
+
+#### 3. Erreur de Permissions
+```bash
+# Réparer les permissions
+chmod -R 755 storage bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+```
+
+#### 4. Erreur de Base de Données
+```bash
+# Vérifier la connexion
+php artisan tinker
+>>> \DB::connection()->getPdo();
+>>> exit
+```
+
+## 📊 Monitoring Post-Déploiement
+
+### 1. Vérifications Quotidiennes
+- [ ] Dashboard principal accessible
+- [ ] Synchronisation Eklektik fonctionnelle
+- [ ] Logs sans erreurs critiques
+- [ ] Performance acceptable
+
+### 2. Vérifications Hebdomadaires
+- [ ] Sauvegarde de la base de données
+- [ ] Nettoyage des logs anciens
+- [ ] Mise à jour des dépendances
+- [ ] Test des fonctionnalités critiques
+
+### 3. Métriques à Surveiller
+- Temps de réponse des pages
+- Utilisation de la mémoire
+- Taille des logs
+- Erreurs 500/404
+
+## 🔄 Rollback (En Cas de Problème)
+
+### 1. Rollback Rapide
+```bash
+# Revenir au commit précédent
+git checkout HEAD~1
+composer install --no-dev
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-### Étape 4: Configuration de la Base de Données
-
-1. **Créer la base de données**:
-```sql
-CREATE DATABASE ooredoo_dashboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ooredoo_user'@'localhost' IDENTIFIED BY 'password_securise';
-GRANT ALL PRIVILEGES ON ooredoo_dashboard.* TO 'ooredoo_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-2. **Exécuter les migrations**:
+### 2. Rollback Complet
 ```bash
-php artisan migrate
-php artisan db:seed --class=SuperAdminSeeder
-php artisan db:seed --class=RolesSeeder
-```
-
-### Étape 5: Configuration des Permissions
-
-```bash
-# Permissions des dossiers
-sudo chown -R www-data:www-data /var/www/html/ooredoo-dashboard
-sudo chmod -R 755 /var/www/html/ooredoo-dashboard
-sudo chmod -R 775 /var/www/html/ooredoo-dashboard/storage
-sudo chmod -R 775 /var/www/html/ooredoo-dashboard/bootstrap/cache
-```
-
-### Étape 6: Configuration Apache/Nginx
-
-#### Pour Apache (.htaccess inclus):
-```apache
-<VirtualHost *:80>
-    ServerName dashboard.ooredoo.com
-    DocumentRoot /var/www/html/ooredoo-dashboard/public
-    
-    <Directory /var/www/html/ooredoo-dashboard/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-    
-    ErrorLog ${APACHE_LOG_DIR}/ooredoo_error.log
-    CustomLog ${APACHE_LOG_DIR}/ooredoo_access.log combined
-</VirtualHost>
-```
-
-#### Pour Nginx:
-```nginx
-server {
-    listen 80;
-    server_name dashboard.ooredoo.com;
-    root /var/www/html/ooredoo-dashboard/public;
-    
-    index index.php index.html;
-    
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-    
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
-
-## 🔐 Sécurité et SSL
-
-### Configuration SSL (Recommandé)
-```bash
-# Installer Certbot pour Let's Encrypt
-sudo apt install certbot python3-certbot-apache
-sudo certbot --apache -d dashboard.ooredoo.com
-```
-
-### Sécurisation Supplémentaire
-```bash
-# Masquer la version de serveur
-echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
-
-# Désactiver les fonctions PHP dangereuses
-# Dans php.ini: disable_functions = exec,passthru,shell_exec,system
-```
-
-## ✅ Tests de Vérification
-
-### 1. Test de Connexion
-- Accéder à `https://votre-domaine.com`
-- Vérifier que la page de connexion s'affiche
-
-### 2. Test de Connexion Super Admin
-- **Email**: `superadmin@clubprivileges.app`
-- **Mot de passe**: `SuperAdmin2024!`
-- Vérifier l'accès au dashboard
-
-### 3. Test des Fonctionnalités
-- ✅ Affichage des données globales
-- ✅ Sélection d'opérateurs
-- ✅ Filtres de dates
-- ✅ Graphiques interactifs
-- ✅ Export de données
-- ✅ Gestion des utilisateurs
-- ✅ Système d'invitations
-
-## 🚨 Dépannage
-
-### Erreurs Communes
-
-1. **Erreur 500**:
-   - Vérifier les logs: `tail -f storage/logs/laravel.log`
-   - Vérifier les permissions
-   - Vérifier la configuration .env
-
-2. **Erreur de Base de Données**:
-   - Vérifier les credentials dans .env
-   - Tester la connexion: `php artisan tinker` puis `DB::connection()->getPdo()`
-
-3. **Erreur d'Email**:
-   - Vérifier la configuration SMTP
-   - Tester: `php artisan tinker` puis `Mail::raw('Test', function($msg) { $msg->to('test@test.com'); })`
-
-### Commandes Utiles
-```bash
-# Vider le cache
-php artisan cache:clear
-php artisan config:clear
-php artisan view:clear
-
-# Voir les logs en temps réel
-tail -f storage/logs/laravel.log
-
-# Vérifier l'état de l'application
-php artisan about
+# Restaurer la sauvegarde
+mysql -u username -p database_name < backup_YYYYMMDD_HHMMSS.sql
+cp -r /path/to/backup/dashboard-cp_YYYYMMDD_HHMMSS/* /path/to/dashboard-cp/
 ```
 
 ## 📞 Support
 
-**Contact Technique**: 
-- Pour les problèmes de déploiement, contacter l'équipe de développement
-- Logs disponibles dans `storage/logs/laravel.log`
-- Base de données accessible via phpMyAdmin ou ligne de commande
+### Contacts
+- **Développeur**: [Votre nom]
+- **Admin Système**: [Admin contact]
+- **Base de Données**: [DBA contact]
 
-## 🔄 Mises à Jour Futures
-
-Pour les mises à jour futures:
-1. Sauvegarder la base de données
-2. Sauvegarder le fichier .env
-3. Remplacer les fichiers du code
-4. Exécuter `composer install --no-dev`
-5. Exécuter `php artisan migrate`
-6. Vider les caches
+### Ressources
+- **Documentation**: [Lien vers la doc]
+- **Monitoring**: [Lien vers le monitoring]
+- **Logs**: [Lien vers les logs]
 
 ---
-**Version**: 1.0  
-**Date**: $(date '+%Y-%m-%d')  
-**Environnement**: Production
+
+## ✅ Checklist de Déploiement
+
+- [ ] Sauvegarde effectuée
+- [ ] Code récupéré (commit 8e583fd)
+- [ ] Dépendances installées
+- [ ] Configuration mise à jour
+- [ ] Migrations exécutées
+- [ ] Caches optimisés
+- [ ] Permissions configurées
+- [ ] Scheduler configuré
+- [ ] Tests fonctionnels passés
+- [ ] Monitoring activé
+- [ ] Documentation mise à jour
+
+**Date de déploiement**: ___________  
+**Version déployée**: 8e583fd  
+**Déployé par**: ___________  
+**Validé par**: ___________

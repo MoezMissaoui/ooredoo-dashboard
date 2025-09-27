@@ -151,6 +151,13 @@ Route::middleware('auth')->group(function () {
             Route::post('/eklektik-sync-tracking/{id}/retry', [App\Http\Controllers\Admin\EklektikSyncTrackingController::class, 'retry'])->name('eklektik.sync-retry');
             Route::get('/api/eklektik-sync-tracking/stats', [App\Http\Controllers\Admin\EklektikSyncTrackingController::class, 'getStats'])->name('eklektik.sync-stats');
             Route::get('/api/eklektik-sync-tracking/recent', [App\Http\Controllers\Admin\EklektikSyncTrackingController::class, 'getRecent'])->name('eklektik.sync-recent');
+
+            // Routes Club Privilèges Synchronisation
+            Route::get('/cp-sync', [App\Http\Controllers\Admin\ClubPrivilegesSyncController::class, 'index'])->name('cp-sync.index');
+            Route::post('/cp-sync/visit', [App\Http\Controllers\Admin\ClubPrivilegesSyncController::class, 'visitSync'])->name('cp-sync.visit');
+            Route::get('/cp-sync/status', [App\Http\Controllers\Admin\ClubPrivilegesSyncController::class, 'status'])->name('cp-sync.status');
+            Route::get('/cp-sync/history', [App\Http\Controllers\Admin\ClubPrivilegesSyncController::class, 'history'])->name('cp-sync.history');
+            Route::get('/cp-sync/test', [App\Http\Controllers\Admin\ClubPrivilegesSyncController::class, 'testConnection'])->name('cp-sync.test');
         });
     });
 });
