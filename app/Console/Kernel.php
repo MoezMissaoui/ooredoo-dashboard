@@ -33,6 +33,13 @@ class Kernel extends ConsoleKernel
                 ->withoutOverlapping()
                 ->runInBackground()
                 ->appendOutputTo(storage_path('logs/cp-sync.log'));
+
+            // Synchronisation incrémentale Club Privilèges - Toutes les 5 minutes
+            $schedule->command('cp:sync')
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->runInBackground()
+                ->appendOutputTo(storage_path('logs/cp-export-sync.log'));
     }
 
     /**
