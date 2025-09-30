@@ -1,12 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.eklektik-config')
 
 @section('title', 'Gestion des Synchronisations Eklektik')
 
-@section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+@section('eklektik-content')
+<div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
                         <i class="fas fa-sync-alt"></i>
@@ -164,9 +161,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -182,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(this);
         
-        fetch('{{ route("eklektik.sync") }}', {
+        fetch('{{ route("admin.eklektik.sync") }}', {
             method: 'POST',
             body: formData,
             headers: {
@@ -209,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Vérifier le statut
     document.getElementById('checkStatusBtn').addEventListener('click', function() {
-        fetch('{{ route("eklektik.status") }}')
+        fetch('{{ route("admin.eklektik.status") }}')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -290,7 +284,7 @@ function showStatus(status) {
 }
 
 function loadLogs() {
-    fetch('{{ route("eklektik.logs") }}')
+    fetch('{{ route("admin.eklektik.logs") }}')
     .then(response => response.json())
     .then(data => {
         if (data.success) {

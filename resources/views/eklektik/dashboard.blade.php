@@ -4,6 +4,280 @@
 
 @section('head')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>
+    /* Responsive Design pour Dashboard Eklektik */
+    @media (max-width: 1200px) {
+        .col-lg-3 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .col-lg-3 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .col-lg-3 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .card-header .card-tools {
+            margin-top: 10px;
+        }
+        
+        .card-header .card-tools .btn {
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        
+        .info-box {
+            margin-bottom: 15px;
+        }
+        
+        .info-box-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+        }
+        
+        .info-box-content {
+            padding-left: 70px;
+        }
+        
+        .info-box-text {
+            font-size: 12px;
+        }
+        
+        .info-box-number {
+            font-size: 18px;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .col-lg-3 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .container-fluid {
+            padding: 10px;
+        }
+        
+        .card {
+            margin-bottom: 15px;
+        }
+        
+        .card-header {
+            padding: 10px 15px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .card-body {
+            padding: 15px;
+        }
+        
+        .row.mb-4 {
+            margin-bottom: 20px !important;
+        }
+        
+        .form-control {
+            font-size: 14px;
+            padding: 8px 10px;
+        }
+        
+        .btn {
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+        
+        .info-box {
+            padding: 10px;
+        }
+        
+        .info-box-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+        }
+        
+        .info-box-content {
+            padding-left: 60px;
+        }
+        
+        .info-box-text {
+            font-size: 11px;
+        }
+        
+        .info-box-number {
+            font-size: 16px;
+        }
+        
+        canvas {
+            max-height: 250px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .col-lg-3 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .col-md-6 {
+            flex: 0 0 100%;
+            max-width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .container-fluid {
+            padding: 5px;
+        }
+        
+        .card-header {
+            padding: 8px 10px;
+        }
+        
+        .card-title {
+            font-size: 14px;
+        }
+        
+        .card-body {
+            padding: 10px;
+        }
+        
+        .form-control {
+            font-size: 13px;
+            padding: 6px 8px;
+        }
+        
+        .btn {
+            font-size: 11px;
+            padding: 6px 10px;
+        }
+        
+        .info-box {
+            padding: 8px;
+        }
+        
+        .info-box-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+        
+        .info-box-content {
+            padding-left: 50px;
+        }
+        
+        .info-box-text {
+            font-size: 10px;
+        }
+        
+        .info-box-number {
+            font-size: 14px;
+        }
+        
+        canvas {
+            max-height: 200px !important;
+        }
+        
+        .alert {
+            font-size: 12px;
+            padding: 8px 10px;
+        }
+    }
+    
+    /* Amélioration des graphiques pour mobile */
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    
+    @media (max-width: 768px) {
+        .chart-container {
+            height: 250px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .chart-container {
+            height: 200px;
+        }
+    }
+    
+    /* Amélioration des cartes d'opérateurs */
+    .operators-stats .card {
+        margin-bottom: 10px;
+    }
+    
+    @media (max-width: 600px) {
+        .operators-stats .card {
+            margin-bottom: 8px;
+        }
+        
+        .operators-stats .card-body {
+            padding: 10px;
+        }
+        
+        .operators-stats .card-title {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .operators-stats .card-text {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .operators-stats .card-body {
+            padding: 8px;
+        }
+        
+        .operators-stats .card-title {
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+        
+        .operators-stats .card-text {
+            font-size: 11px;
+            line-height: 1.3;
+        }
+    }
+</style>
 @endsection
 
 @section('content')
@@ -23,22 +297,25 @@
                         <button class="btn btn-sm btn-info" onclick="clearCache()">
                             <i class="fas fa-trash"></i> Vider Cache
                         </button>
+                        <button class="btn btn-sm btn-success" onclick="exportData()">
+                            <i class="fas fa-download"></i> Exporter
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
                     <!-- Filtres -->
                     <div class="row mb-4">
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <label for="start_date">Date de Début</label>
                             <input type="date" class="form-control" id="start_date" 
                                    value="{{ \Carbon\Carbon::now()->subDays(30)->format('Y-m-d') }}">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <label for="end_date">Date de Fin</label>
                             <input type="date" class="form-control" id="end_date" 
                                    value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <label for="operator_filter">Opérateur</label>
                             <select class="form-control" id="operator_filter">
                                 <option value="ALL">Tous les opérateurs</option>
@@ -47,7 +324,7 @@
                                 <option value="Taraji">Taraji</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <label>&nbsp;</label>
                             <button class="btn btn-primary form-control" onclick="loadDashboard()">
                                 <i class="fas fa-search"></i> Filtrer
@@ -76,7 +353,7 @@
 
                     <!-- KPIs Principaux -->
                     <div class="row mb-4">
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <div class="info-box">
                                 <span class="info-box-icon bg-primary">
                                     <i class="fas fa-euro-sign"></i>
@@ -87,7 +364,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <div class="info-box">
                                 <span class="info-box-icon bg-success">
                                     <i class="fas fa-chart-bar"></i>
@@ -98,7 +375,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <div class="info-box">
                                 <span class="info-box-icon bg-warning">
                                     <i class="fas fa-handshake"></i>
@@ -109,7 +386,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
                             <div class="info-box">
                                 <span class="info-box-icon bg-info">
                                     <i class="fas fa-percentage"></i>
@@ -124,7 +401,7 @@
 
                     <!-- Graphiques -->
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-4">
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title">
@@ -133,11 +410,13 @@
                                     </h5>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="revenue-evolution-chart" width="400" height="200"></canvas>
+                                    <div class="chart-container">
+                                        <canvas id="revenue-evolution-chart" width="400" height="200"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-4">
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title">
@@ -146,14 +425,16 @@
                                     </h5>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="operators-distribution-chart" width="400" height="200"></canvas>
+                                    <div class="chart-container">
+                                        <canvas id="operators-distribution-chart" width="400" height="200"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="row mt-4">
-                        <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-lg-6 col-md-12 mb-4">
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title">
@@ -162,11 +443,13 @@
                                     </h5>
                                 </div>
                                 <div class="card-body">
-                                    <canvas id="ca-partners-chart" width="400" height="200"></canvas>
+                                    <div class="chart-container">
+                                        <canvas id="ca-partners-chart" width="400" height="200"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-lg-6 col-md-12 mb-4">
                             <div class="card">
                                 <div class="card-header">
                                     <h5 class="card-title">
@@ -175,7 +458,7 @@
                                     </h5>
                                 </div>
                                 <div class="card-body">
-                                    <div id="operators-stats">
+                                    <div id="operators-stats" class="operators-stats">
                                         <div class="text-center">
                                             <i class="fas fa-spinner fa-spin"></i> Chargement...
                                         </div>
@@ -216,6 +499,12 @@ function loadDashboard() {
 }
 
 function loadKPIs(startDate, endDate, operator) {
+    // Afficher l'état de chargement
+    document.getElementById('kpi-revenue-ttc').textContent = 'Chargement...';
+    document.getElementById('kpi-revenue-ht').textContent = 'Chargement...';
+    document.getElementById('kpi-ca-bigdeal').textContent = 'Chargement...';
+    document.getElementById('kpi-bigdeal-percentage').textContent = 'Chargement...';
+    
     fetch(`/api/eklektik-dashboard/kpis?start_date=${startDate}&end_date=${endDate}&operator=${operator}`)
         .then(response => response.json())
         .then(data => {
@@ -231,9 +520,22 @@ function loadKPIs(startDate, endDate, operator) {
                     (data.data.total_ca_bigdeal / data.data.total_revenue_ht) * 100 : 0;
                 document.getElementById('kpi-bigdeal-percentage').textContent = 
                     percentage.toFixed(2) + '%';
+            } else {
+                // Afficher une erreur si les données ne sont pas disponibles
+                document.getElementById('kpi-revenue-ttc').textContent = 'Erreur';
+                document.getElementById('kpi-revenue-ht').textContent = 'Erreur';
+                document.getElementById('kpi-ca-bigdeal').textContent = 'Erreur';
+                document.getElementById('kpi-bigdeal-percentage').textContent = 'Erreur';
             }
         })
-        .catch(error => console.error('Erreur KPIs:', error));
+        .catch(error => {
+            console.error('Erreur KPIs:', error);
+            // Afficher une erreur en cas d'échec de la requête
+            document.getElementById('kpi-revenue-ttc').textContent = 'Erreur';
+            document.getElementById('kpi-revenue-ht').textContent = 'Erreur';
+            document.getElementById('kpi-ca-bigdeal').textContent = 'Erreur';
+            document.getElementById('kpi-bigdeal-percentage').textContent = 'Erreur';
+        });
 }
 
 function loadRevenueEvolution(startDate, endDate, operator) {
@@ -290,12 +592,30 @@ function createRevenueEvolutionChart(chartData) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        parser: 'YYYY-MM-DD',
+                        displayFormats: {
+                            day: 'DD/MM',
+                            month: 'MM/YYYY'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
                             return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(value);
                         }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Montant (TND)'
                     }
                 }
             },
@@ -307,6 +627,10 @@ function createRevenueEvolutionChart(chartData) {
                                 new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(context.parsed.y);
                         }
                     }
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
                 }
             }
         }
@@ -364,12 +688,22 @@ function createCAPartnersChart(chartData) {
             responsive: true,
             maintainAspectRatio: false,
             scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Partenaires'
+                    }
+                },
                 y: {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
                             return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(value);
                         }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Montant (TND)'
                     }
                 }
             },
@@ -381,6 +715,10 @@ function createCAPartnersChart(chartData) {
                                 new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(context.parsed.y);
                         }
                     }
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
                 }
             }
         }
@@ -446,20 +784,32 @@ function refreshDashboard() {
 }
 
 function clearCache() {
-    fetch('/api/eklektik-dashboard/clear-cache', { method: 'POST' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Cache vidé avec succès!');
-                refreshDashboard();
-            } else {
-                alert('Erreur lors du vidage du cache: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur vidage cache:', error);
-            alert('Erreur lors du vidage du cache');
-        });
+    if (confirm('Êtes-vous sûr de vouloir vider le cache ?')) {
+        fetch('/api/eklektik-dashboard/clear-cache', { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Cache vidé avec succès!');
+                    refreshDashboard();
+                } else {
+                    alert('Erreur lors du vidage du cache: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erreur vidage cache:', error);
+                alert('Erreur lors du vidage du cache');
+            });
+    }
+}
+
+function exportData() {
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    const operator = document.getElementById('operator_filter').value;
+    
+    // Créer un lien de téléchargement pour l'export
+    const exportUrl = `/api/eklektik-dashboard/export?start_date=${startDate}&end_date=${endDate}&operator=${operator}`;
+    window.open(exportUrl, '_blank');
 }
 
 // Charger le dashboard au chargement de la page
@@ -476,9 +826,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ Chart.js chargé avec succès');
     }
     
+    // Charger les données initiales
     loadDashboard();
     loadSyncStatus();
-    loadOperatorsStats();
 });
 </script>
 @endsection

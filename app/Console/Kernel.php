@@ -12,24 +12,34 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Incrémental toutes les 15 minutes
-        $schedule->command('sync:pull')->everyFifteenMinutes()->withoutOverlapping();
-        // Rattrapage quotidien (fenêtre J-7 si on ajoute la logique ultérieurement)
-        $schedule->command('sync:pull')->dailyAt('02:00')->withoutOverlapping();
+        // DÉSACTIVÉ - Système sync:pull désactivé pour éviter les conflits
+        // Le système Eklektik gère maintenant toute la synchronisation
+        // $schedule->command('sync:pull')->everyThirtyMinutes()->withoutOverlapping();
+        // $schedule->command('sync:pull')->dailyAt('02:00')->withoutOverlapping();
         
-        // Synchronisation Eklektik - Quotidienne à 02:30
-        $schedule->command('eklektik:sync-stats --period=1')
-            ->dailyAt('02:30')
-            ->withoutOverlapping()
-            ->runInBackground()
-            ->appendOutputTo(storage_path('logs/eklektik-sync.log'));
-            
-        // Synchronisation Eklektik - Hebdomadaire (7 jours) le dimanche à 03:00
-        $schedule->command('eklektik:sync-stats --period=7')
-            ->weeklyOn(0, '03:00')
-            ->withoutOverlapping()
-            ->runInBackground()
-            ->appendOutputTo(storage_path('logs/eklektik-sync-weekly.log'));
+        // Synchronisation Eklektik - Configuration dynamique via interface
+            if (\App\Models\EklektikCronConfig::isCronEnabled()) {
+                $cronSchedule = \App\Models\EklektikCronConfig::getConfig('cron_schedule', '0 2 * * *');
+                $schedule->command('eklektik:sync-stats --period=1 --force')
+                    ->cron($cronSchedule)
+                    ->withoutOverlapping()
+                    ->runInBackground()
+                    ->appendOutputTo(storage_path('logs/eklektik-sync.log'));
+            }
+
+            // Visite du lien de synchronisation Club Privilèges - Toutes les heures
+            $schedule->command('cp:visit-sync')
+                ->hourly()
+                ->withoutOverlapping()
+                ->runInBackground()
+                ->appendOutputTo(storage_path('logs/cp-sync.log'));
+
+            // Synchronisation incrémentale Club Privilèges - Toutes les 5 minutes
+            $schedule->command('cp:sync')
+                ->everyFiveMinutes()
+                ->withoutOverlapping()
+                ->runInBackground()
+                ->appendOutputTo(storage_path('logs/cp-export-sync.log'));
     }
 
     /**

@@ -1,12 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.eklektik-config')
 
 @section('title', 'Configuration Cron Eklektik')
 
-@section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
+@section('eklektik-content')
+<div class="card">
                 <div class="card-header">
                     <h3 class="card-title">
                         ⚙️ Configuration du Cron Eklektik
@@ -255,8 +252,10 @@ $(document).ready(function() {
 
     // Gestion du formulaire
     $('#cron-config-form').on('submit', function(e) {
+        console.log('📝 Formulaire soumis - Interception AJAX');
         e.preventDefault();
         saveConfig();
+        return false; // Empêcher la soumission normale
     });
 
     // Actualiser les statistiques toutes les 30 secondes
@@ -292,6 +291,8 @@ function loadConfig() {
 }
 
 function saveConfig() {
+    console.log('🔧 Début de la sauvegarde de configuration');
+    
     const formData = {
         cron_enabled: $('#cron_enabled').is(':checked'),
         cron_schedule: $('#cron_schedule').val(),
@@ -303,6 +304,9 @@ function saveConfig() {
         cron_timeout: parseInt($('#cron_timeout').val())
     };
 
+    console.log('📊 Données à envoyer:', formData);
+    console.log('🔑 Token CSRF:', $('meta[name="csrf-token"]').attr('content'));
+
     $.ajax({
         url: '/admin/eklektik-cron/config',
         method: 'POST',
@@ -311,6 +315,7 @@ function saveConfig() {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         },
         success: function(response) {
+            console.log('✅ Réponse reçue:', response);
             if (response.success) {
                 showAlert('Configuration sauvegardée avec succès', 'success');
                 loadConfig();
@@ -319,8 +324,9 @@ function saveConfig() {
             }
         },
         error: function(xhr) {
+            console.error('❌ Erreur AJAX:', xhr);
             const response = xhr.responseJSON;
-            showAlert(response.message || 'Erreur lors de la sauvegarde', 'error');
+            showAlert(response?.message || 'Erreur lors de la sauvegarde', 'error');
         }
     });
 }
@@ -456,6 +462,14 @@ function showAlert(message, type) {
         alert.alert('close');
     }, 5000);
 }
+</script>
+
+@section('scripts')
+<script>
+$(document).ready(function() {
+    console.log('🚀 jQuery chargé et prêt');
+    console.log('🔍 Token CSRF disponible:', $('meta[name="csrf-token"]').attr('content'));
+});
 </script>
 @endsection
 

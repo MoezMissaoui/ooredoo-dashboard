@@ -213,11 +213,37 @@
             margin-bottom: 24px;
     }
     
+    @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+    }
+    
     @media (max-width: 600px) {
       .filters {
         grid-template-columns: 1fr;
-            gap: 12px;
-        }
+        gap: 12px;
+      }
+      
+      .filters select,
+      .filters input {
+        font-size: 14px;
+        padding: 8px 10px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .filters {
+        gap: 10px;
+      }
+      
+      .filters select,
+      .filters input {
+        font-size: 13px;
+        padding: 6px 8px;
+      }
+    }
     }
     
     .filter-card {
@@ -541,6 +567,93 @@
             overflow-x: auto;
         }
 
+        /* Responsive pour les tableaux */
+        @media (max-width: 768px) {
+            .table-card {
+                margin: 0 -8px;
+                border-radius: 8px;
+            }
+            
+            .table-card .chart-title {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .table-card table {
+                font-size: 12px;
+            }
+            
+            .table-card th,
+            .table-card td {
+                padding: 8px 6px;
+            }
+            
+            .table-card .btn {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .table-card {
+                margin: 0 -12px;
+                border-radius: 6px;
+            }
+            
+            .table-card .chart-title {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+            
+            .table-card table {
+                font-size: 11px;
+            }
+            
+            .table-card th,
+            .table-card td {
+                padding: 6px 4px;
+            }
+            
+            .table-card .btn {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            
+            .table-card .btn span {
+                font-size: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .table-card {
+                margin: 0 -16px;
+                border-radius: 4px;
+            }
+            
+            .table-card .chart-title {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+            
+            .table-card table {
+                font-size: 10px;
+            }
+            
+            .table-card th,
+            .table-card td {
+                padding: 4px 2px;
+            }
+            
+            .table-card .btn {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+            
+            .table-card .btn span {
+                font-size: 9px;
+            }
+        }
+
     table {
             width: 100%;
             border-collapse: collapse;
@@ -696,13 +809,49 @@
     .merchants-kpis-row {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-                gap: 20px;
+      gap: 20px;
       margin-bottom: 24px;
     }
     .merchants-kpis-row .kpi-card { grid-column: span 1 !important; }
     .merchants-kpi { min-height: 120px; }
     .merchants-kpi .kpi-value { font-size: 32px; }
     .merchants-kpi .kpi-delta { min-height: 18px; }
+
+    /* Responsive pour Merchants KPIs */
+    @media (max-width: 1200px) {
+      .merchants-kpis-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .merchants-kpis-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .merchants-kpis-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .merchants-kpi { 
+        min-height: 100px; 
+        padding: 16px;
+      }
+      .merchants-kpi .kpi-value { font-size: 28px; }
+    }
+    
+    @media (max-width: 480px) {
+      .merchants-kpis-row {
+        gap: 12px;
+      }
+      .merchants-kpi { 
+        min-height: 90px; 
+        padding: 12px;
+      }
+      .merchants-kpi .kpi-value { font-size: 24px; }
+    }
 
     /* Users Section Styles */
     .users-kpis-row {
@@ -757,6 +906,54 @@
       color: rgba(255,255,255,0.8); 
       font-size: 12px;
       font-weight: 500;
+    }
+
+    /* Responsive pour Users KPIs */
+    @media (max-width: 1200px) {
+      .users-kpis-row {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .users-kpis-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .users-kpis-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .users-kpi { 
+        min-height: 100px; 
+        padding: 16px;
+      }
+      .users-kpi .kpi-value { font-size: 28px; }
+      .users-kpi .kpi-icon { 
+        font-size: 20px; 
+        margin-right: 12px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .users-kpis-row {
+        gap: 12px;
+      }
+      .users-kpi { 
+        min-height: 90px; 
+        padding: 12px;
+      }
+      .users-kpi .kpi-value { font-size: 24px; }
+      .users-kpi .kpi-icon { 
+        font-size: 18px; 
+        margin-right: 10px;
+      }
+      .users-kpi .kpi-title { 
+        font-size: 11px; 
+        margin-bottom: 6px;
+      }
     }
 
     .merchants-kpi {
@@ -1150,9 +1347,59 @@
 
     @media (max-width: 768px) {
       .period-grid {
-                grid-template-columns: 1fr;
+        grid-template-columns: 1fr;
         gap: 16px;
       }
+      
+      .period-selection-card {
+        padding: 16px;
+      }
+      
+      .period-label {
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+      
+      .period-dot {
+        width: 8px;
+        height: 8px;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .period-grid {
+        gap: 12px;
+      }
+      
+      .period-selection-card {
+        padding: 12px;
+      }
+      
+      .period-label {
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+      
+      .period-dot {
+        width: 6px;
+        height: 6px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .period-grid {
+        gap: 10px;
+      }
+      
+      .period-selection-card {
+        padding: 10px;
+      }
+      
+      .period-label {
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+    }
     }
 
     .period-section {
@@ -1244,9 +1491,65 @@
 
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
+    /* Responsive pour la pagination */
+    @media (max-width: 768px) {
+      .pagination-container {
+        padding: 16px 0;
+      }
+      
+      .pagination-row {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+      }
+      
+      .pagination-info {
+        text-align: center;
+        font-size: 13px;
+      }
+      
+      .pagination-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      
+      .pagination-controls .btn {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      
+      .pagination-size {
+        min-width: 100px;
+      }
+      
+      .pagination-size select {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+    }
+    
     @media (max-width: 600px) {
+      .pagination-container {
+        padding: 12px 0;
+      }
+      
+      .pagination-info {
+        font-size: 12px;
+      }
+      
+      .pagination-controls .btn {
+        padding: 5px 10px;
+        font-size: 11px;
+      }
+      
+      .pagination-size select {
+        padding: 5px 6px;
+        font-size: 11px;
+      }
+      
       .action-buttons {
-                flex-direction: column;
+        flex-direction: column;
       }
       .btn {
         justify-content: center;
@@ -1282,7 +1585,7 @@
                   <div class="user-role">{{ Auth::user()->role->display_name ?? 'Aucun rôle' }}</div>
                 </div>
                 <div id="profileDropdown" class="dropdown" style="display:none; position:absolute; right:20px; top:60px; background: var(--card); border:1px solid var(--border); border-radius: 8px; min-width: 220px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
-                  @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
+                  @if(Auth::user()->canInviteCollaborators())
                   <a href="{{ route('admin.users.index') }}" class="admin-btn" style="display:block; margin:8px;">Utilisateurs</a>
                   <a href="{{ route('admin.invitations.index') }}" class="admin-btn" style="display:block; margin:8px;">Invitations</a>
                   @endif
@@ -1290,7 +1593,7 @@
                   @if(Auth::user()->canAccessOperatorsDashboard())
                   <a href="{{ route('dashboard') }}" class="admin-btn" style="display:block; margin:8px;">📊 Dashboard Opérateurs</a>
                   @endif
-                  @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+                  @if(Auth::user()->canAccessEklektikConfig())
                   <a href="{{ route('admin.eklektik-cron') }}" class="admin-btn" style="display:block; margin:8px;">⚙️ Configuration Eklektik</a>
                   @endif
                   <form action="{{ route('auth.logout') }}" method="POST" style="display:block; margin:8px;">
@@ -1306,11 +1609,11 @@
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showTab('overview')">Vue d'Ensemble</button>
       
-      @if(Auth::user()->isSuperAdmin())
+      @if(Auth::user()->canAccessSubStoresDashboard())
       <button class="nav-tab" onclick="showTab('substores')">Sub-Stores</button>
       @endif
       <button class="nav-tab" onclick="showTab('merchant')">Merchant</button>
-      @if(Auth::user()->isSuperAdmin())
+      @if(Auth::user()->canAccessSubStoresDashboard())
       <button class="nav-tab" onclick="showTab('users')">Users</button>
       @endif
                 </div>
@@ -1551,7 +1854,7 @@
       </div>
     </div>
 
-    @if(Auth::user()->isSuperAdmin())
+    @if(Auth::user()->canAccessSubStoresDashboard())
     <div id="substores" class="tab-content">
       <!-- Sub-stores content -->
       <div class="card table-card">
@@ -1580,8 +1883,9 @@
                     </div>
                     </div>
                 </div>
+    @endif
 
-
+        @if(Auth::user()->canAccessSubStoresDashboard())
         <div id="users" class="tab-content">
           <!-- Users KPIs Section -->
           <div class="users-kpis-row">

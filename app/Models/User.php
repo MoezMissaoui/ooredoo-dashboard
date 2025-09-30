@@ -287,16 +287,9 @@ class User extends Authenticatable
             return false;
         }
 
-        // Liste des opérateurs considérés comme "sub-stores"
-        $subStoreOperators = [
-            'Sub-Stores',
-            'Retail', 
-            'Partnership',
-            'White Mark',
-            'Magasins'
-        ];
-
-        return in_array($primaryOperator->operator_name, $subStoreOperators);
+        // Utiliser le service centralisé pour vérifier si c'est un sub-store
+        $subStoreService = app(\App\Services\SubStoreService::class);
+        return $subStoreService->isSubStoreOperator($primaryOperator->operator_name);
     }
 
     /**
@@ -484,16 +477,8 @@ class User extends Authenticatable
             case 'super_admin_club_privileges':
                 return true; // Accès total
                 
-            case 'admin_club_privileges':
-                // Vérifier si l'admin est orienté sub-stores
-                $primaryOperator = $this->primaryOperator();
-                if ($primaryOperator && in_array($primaryOperator->operator_name, ['Sub-Stores', 'Retail', 'Partnership', 'Sofrecom'])) {
-                    return false; // Admin sub-store ne voit QUE les sub-stores
-                }
-                return true; // Admin opérateur peut voir tous opérateurs et sub-stores
-                
             case 'admin_operator':
-                return true; // Peut voir son opérateur
+                return true; // Admin opérateur peut voir son opérateur
                 
             case 'collaborator':
                 // Collaborateur opérateur uniquement (pas sub-store)
@@ -502,9 +487,39 @@ class User extends Authenticatable
             case 'admin_sub_store':
                 return false; // Admin sub-store ne voit QUE les sub-stores
                 
+            case 'admin_club_privileges':
+                return false; // Admin Club Privilèges ne voit QUE les sub-stores
+                
             default:
                 return false;
         }
+    }
+
+    /**
+     * Vérifier si l'utilisateur peut accéder à la Configuration Eklektik
+     * Seuls les Super Admin peuvent accéder à la configuration Eklektik
+     */
+    public function canAccessEklektikConfig(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    /**
+     * Vérifier si l'utilisateur peut voir la rubrique Eklektik dans le dashboard
+     * Seuls les Super Admin peuvent voir la rubrique Eklektik
+     */
+    public function canViewEklektikSection(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    /**
+     * Vérifier si l'utilisateur peut inviter des collaborateurs
+     * Seuls les admins (tous types) peuvent inviter des collaborateurs
+     */
+    public function canInviteCollaborators(): bool
+    {
+        return $this->isAdmin() || $this->isSuperAdmin();
     }
 
     // Méthodes privées

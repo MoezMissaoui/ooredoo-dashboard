@@ -51,6 +51,7 @@
  
 
 
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script>
 // Configuration Chart.js optimisée pour éliminer le sautillement
 (function() {
@@ -199,24 +200,45 @@
     }
     
     // Variables globales pour les graphiques
-    let eklektikCharts = {};
-    let isCreatingCharts = false;
+    window.eklektikCharts = {};
+    window.isCreatingEklektikCharts = false;
     
     // Fonction générique pour créer un graphique de manière sécurisée
     function createChartSafely(canvasId, chartKey, chartData, chartType, options, delay = 0) {
+        console.log(`🎨 Tentative de création du graphique ${chartKey} sur canvas ${canvasId}`);
+
         const ctx = document.getElementById(canvasId);
-        if (!ctx || !chartData) {
-            console.log(`❌ Canvas ou données manquantes pour ${chartKey}`);
+        if (!ctx) {
+            console.error(`❌ Canvas ${canvasId} introuvable dans le DOM`);
             return;
         }
+
+        if (!chartData) {
+            console.error(`❌ Pas de données de graphique pour ${chartKey}`);
+            console.error('Données reçues:', chartData);
+            return;
+        }
+
+        console.log(`✅ Canvas ${canvasId} trouvé, données présentes pour ${chartKey}`);
+
+        // Vérifier la visibilité et les dimensions du canvas
+        const canvas = document.getElementById(canvasId);
+        console.log(`📏 Dimensions du canvas ${canvasId}:`, {
+            width: canvas.width,
+            height: canvas.height,
+            offsetWidth: canvas.offsetWidth,
+            offsetHeight: canvas.offsetHeight,
+            display: window.getComputedStyle(canvas).display,
+            visibility: window.getComputedStyle(canvas).visibility
+        });
         
         const createChart = () => {
             try {
                 // Destruction complète de toute instance existante
-                if (eklektikCharts[chartKey]) {
+                if (window.eklektikCharts[chartKey]) {
                     console.log(`🗑️ Destruction du graphique existant ${chartKey}`);
-                    eklektikCharts[chartKey].destroy();
-                    eklektikCharts[chartKey] = null;
+                    window.eklektikCharts[chartKey].destroy();
+                    window.eklektikCharts[chartKey] = null;
                 }
                 
                 // Nettoyer le canvas complètement
@@ -235,12 +257,45 @@
                 
                 // Attendre un peu pour s'assurer que le canvas est libre
                 setTimeout(() => {
-                    eklektikCharts[chartKey] = new Chart(ctx, {
+                    window.eklektikCharts[chartKey] = new Chart(ctx, {
                         type: chartType,
                         data: chartData,
                         options: options
                     });
                     console.log(`✅ Graphique ${chartKey} créé avec succès`);
+                    console.log(`📊 Vérification du graphique ${chartKey}:`, {
+                        data_labels: chartData.labels?.length || 'N/A',
+                        data_datasets: chartData.datasets?.length || 'N/A',
+                        chart_type: chartType,
+                        canvas_dimensions: (function(){
+                            const el = (ctx && ctx.canvas) ? ctx.canvas : ctx; // ctx est un canvas élément
+                            return {
+                                width: el?.width,
+                                height: el?.height
+                            };
+                        })()
+                    });
+
+                    // Vérifier si le graphique est rendu
+                    const canvas = (ctx && ctx.canvas) ? ctx.canvas : ctx;
+                    setTimeout(() => {
+                        console.log(`🎨 État du graphique ${chartKey} après rendu:`, {
+                            isDrawn: canvas.toDataURL().length > 100, // Vérifier si le canvas contient quelque chose
+                            chart_config: window.eklektikCharts[chartKey]?.config?.type,
+                            canvas_style: {
+                                width: canvas.style.width,
+                                height: canvas.style.height,
+                                display: canvas.style.display,
+                                visibility: canvas.style.visibility
+                            }
+                        });
+
+                        // Forcer le redimensionnement du graphique
+                        if (window.eklektikCharts[chartKey]) {
+                            window.eklektikCharts[chartKey].resize();
+                            console.log(`🔄 Graphique ${chartKey} redimensionné`);
+                        }
+                    }, 100);
                 }, 10);
                 
             } catch (error) {
@@ -252,7 +307,7 @@
                         if (retryInstances) {
                             retryInstances.destroy();
                         }
-                        eklektikCharts[chartKey] = new Chart(ctx, {
+                        window.eklektikCharts[chartKey] = new Chart(ctx, {
                             type: chartType,
                             data: chartData,
                             options: options
@@ -281,14 +336,14 @@
         }
         
         // Vérifier si le graphique existe déjà
-        if (eklektikCharts.overview) {
+        if (window.eklektikCharts.overview) {
             console.log('⚠️ Graphique overview existe déjà, destruction...');
             try {
-                eklektikCharts.overview.destroy();
+                window.eklektikCharts.overview.destroy();
             } catch (e) {
                 console.log('Graphique overview déjà détruit');
             }
-            eklektikCharts.overview = null;
+            window.eklektikCharts.overview = null;
         }
         
         // Vérifier que le canvas est libre
@@ -390,7 +445,7 @@
                 ctx.chart = null;
             }
             
-            eklektikCharts.overview = new Chart(ctx, {
+            window.eklektikCharts.overview = new Chart(ctx, {
                 type: 'bar',
                 data: chartData,
                 options: options
@@ -415,13 +470,13 @@
         const ctx = document.getElementById('eklektik-revenue-evolution-chart');
         if (!ctx || !chartData) return;
         
-        if (eklektikCharts.revenueEvolution) {
+        if (window.eklektikCharts.revenueEvolution) {
             try {
-                eklektikCharts.revenueEvolution.destroy();
+                window.eklektikCharts.revenueEvolution.destroy();
             } catch (e) {
                 console.log('Graphique revenueEvolution déjà détruit');
             }
-            eklektikCharts.revenueEvolution = null;
+            window.eklektikCharts.revenueEvolution = null;
         }
         
         // Vérifier que le canvas est libre
@@ -435,7 +490,7 @@
         }
         
         try {
-            eklektikCharts.revenueEvolution = new Chart(ctx, {
+            window.eklektikCharts.revenueEvolution = new Chart(ctx, {
                 type: 'line',
                 data: chartData,
                 options: {
@@ -466,13 +521,13 @@
         const ctx = document.getElementById('eklektik-operators-distribution-chart');
         if (!ctx || !chartData) return;
         
-        if (eklektikCharts.operatorsDistribution) {
+        if (window.eklektikCharts.operatorsDistribution) {
             try {
-                eklektikCharts.operatorsDistribution.destroy();
+                window.eklektikCharts.operatorsDistribution.destroy();
             } catch (e) {
                 console.log('Graphique operatorsDistribution déjà détruit');
             }
-            eklektikCharts.operatorsDistribution = null;
+            window.eklektikCharts.operatorsDistribution = null;
         }
         
         // Vérifier que le canvas est libre
@@ -486,7 +541,7 @@
         }
         
         try {
-            eklektikCharts.operatorsDistribution = new Chart(ctx, {
+            window.eklektikCharts.operatorsDistribution = new Chart(ctx, {
                 type: 'doughnut',
                 data: chartData,
                 options: {
@@ -507,13 +562,13 @@
         const ctx = document.getElementById('eklektik-ca-partners-chart');
         if (!ctx || !chartData) return;
         
-        if (eklektikCharts.caPartners) {
+        if (window.eklektikCharts.caPartners) {
             try {
-                eklektikCharts.caPartners.destroy();
+                window.eklektikCharts.caPartners.destroy();
             } catch (e) {
                 console.log('Graphique caPartners déjà détruit');
             }
-            eklektikCharts.caPartners = null;
+            window.eklektikCharts.caPartners = null;
         }
         
         // Vérifier que le canvas est libre
@@ -527,7 +582,7 @@
         }
         
         try {
-            eklektikCharts.caPartners = new Chart(ctx, {
+            window.eklektikCharts.caPartners = new Chart(ctx, {
                 type: 'bar',
                 data: chartData,
                 options: {
@@ -553,15 +608,15 @@
         }
     }
     
-    // Fonction pour charger les données
+    // Fonction pour charger les données (réutilisable à l'actualisation globale)
     async function loadEklektikCharts() {
         // Éviter les créations multiples
-        if (isCreatingCharts) {
+        if (window.isCreatingEklektikCharts) {
             console.log('⚠️ Création de graphiques déjà en cours, ignoré');
             return;
         }
-        
-        isCreatingCharts = true;
+
+        window.isCreatingEklektikCharts = true;
         
         try {
             const operator = document.getElementById('eklektik-operator-select')?.value || 'ALL';
@@ -587,9 +642,10 @@
             }
             
             console.log(`🔄 Chargement des vraies données Eklektik pour ${startDateStr} - ${endDateStr}...`);
-            
+
             // Nettoyer d'abord tous les graphiques existants
-            clearEklektikCharts();
+            console.log('🗑️ Nettoyage des graphiques existants...');
+            window.clearEklektikCharts();
             
             // Charger les vraies données de l'API Eklektik
             const [kpis, overviewChart, revenueEvolution, revenueDistribution, subsEvolution] = await Promise.all([
@@ -600,11 +656,32 @@
                 fetchData('/api/eklektik-dashboard/subs-evolution', { start_date: startDateStr, end_date: endDateStr, operator })
             ]);
             
-            console.log('📊 Données Eklektik chargées:', { kpis, overviewChart, revenueEvolution, revenueDistribution, subsEvolution });
-            
+            console.log('📊 Données Eklektik chargées:', {
+                kpis: kpis?.success ? '✅' : '❌',
+                overviewChart: overviewChart?.success ? '✅' : '❌',
+                revenueEvolution: revenueEvolution?.success ? '✅' : '❌',
+                revenueDistribution: revenueDistribution?.success ? '✅' : '❌',
+                subsEvolution: subsEvolution?.success ? '✅' : '❌'
+            });
+
+            console.log('📋 Détails des données:', {
+                kpis_data: kpis?.data,
+                overview_data: overviewChart?.data,
+                revenue_data: revenueEvolution?.data,
+                distribution_data: revenueDistribution?.data,
+                subs_data: subsEvolution?.data
+            });
+
             // Vérifier si toutes les données sont valides
             if (!kpis?.success || !overviewChart?.success || !revenueEvolution?.success || !revenueDistribution?.success || !subsEvolution?.success) {
                 console.error('❌ Certaines APIs ont échoué, abandon du chargement');
+                console.error('Détails des échecs:', {
+                    kpis: kpis?.error,
+                    overviewChart: overviewChart?.error,
+                    revenueEvolution: revenueEvolution?.error,
+                    revenueDistribution: revenueDistribution?.error,
+                    subsEvolution: subsEvolution?.error
+                });
                 throw new Error('API Error: Une ou plusieurs APIs ont échoué');
             }
             
@@ -626,28 +703,114 @@
                 });
             }
             
+            // Préparer les conteneurs (au cas où un fallback d'erreur a remplacé le canvas)
+            function prepareChartContainer(canvasId, minHeight = 300) {
+                let container = null;
+                const existingCanvas = document.getElementById(canvasId);
+                if (existingCanvas && existingCanvas.parentElement) {
+                    container = existingCanvas.parentElement;
+                } else {
+                    // Chrome supporte :has, sinon fallback manuel
+                    container = document.querySelector(`.chart-container:has(#${canvasId})`);
+                    if (!container) {
+                        // Fallback: parcourir tous les conteneurs et chercher ceux sans canvas
+                        document.querySelectorAll('.chart-container').forEach(c => {
+                            if (!container && !c.querySelector('canvas')) container = c;
+                        });
+                    }
+                }
+                if (container) {
+                    // Si le canvas n'existe pas, ou si le conteneur contient un ancien message d'erreur, recréer le canvas
+                    if (!existingCanvas || container.querySelector('.eklektik-error')) {
+                        container.innerHTML = `<canvas id="${canvasId}"></canvas>`;
+                    }
+                    container.style.minHeight = minHeight + 'px';
+                    container.style.display = 'block';
+                    container.style.width = '100%';
+                }
+            }
+
+            prepareChartContainer('eklektik-overview-chart', 300);
+            prepareChartContainer('eklektik-revenue-evolution-chart', 300);
+            prepareChartContainer('eklektik-operators-distribution-chart', 300);
+            prepareChartContainer('eklektik-ca-partners-chart', 300);
+
             // Créer les graphiques avec les vraies données avec un délai pour éviter les conflits
+            console.log('📊 Données du graphique overview:', overviewChart.data?.chart);
+            console.log('📊 Structure des données overview:', {
+                labels: overviewChart.data?.chart?.labels,
+                datasets: overviewChart.data?.chart?.datasets?.length,
+                dataset0_data: overviewChart.data?.chart?.datasets?.[0]?.data?.length,
+                dataset0_sample: overviewChart.data?.chart?.datasets?.[0]?.data?.slice(0, 3),
+                dataset0_sum: overviewChart.data?.chart?.datasets?.[0]?.data?.reduce((a, b) => a + b, 0),
+                dataset1_sample: overviewChart.data?.chart?.datasets?.[1]?.data?.slice(0, 3),
+                dataset1_sum: overviewChart.data?.chart?.datasets?.[1]?.data?.reduce((a, b) => a + b, 0)
+            });
+            console.log('📊 Données du graphique revenue evolution:', revenueEvolution.data?.chart);
+            console.log('📊 Structure des données revenue:', {
+                labels: revenueEvolution.data?.chart?.labels,
+                datasets: revenueEvolution.data?.chart?.datasets?.length,
+                dataset0_data: revenueEvolution.data?.chart?.datasets?.[0]?.data?.length
+            });
+            console.log('📊 Données du graphique distribution:', revenueDistribution.data?.pie_chart);
+            console.log('📊 Données du graphique subs evolution:', subsEvolution.data?.chart);
+
+            if (!overviewChart.data?.chart) {
+                console.error('❌ Pas de données de graphique overview');
+                return;
+            }
+            if (!revenueEvolution.data?.chart) {
+                console.error('❌ Pas de données de graphique revenue evolution');
+                return;
+            }
+            if (!revenueDistribution.data?.pie_chart) {
+                console.error('❌ Pas de données de graphique distribution');
+                return;
+            }
+            if (!subsEvolution.data?.chart) {
+                console.error('❌ Pas de données de graphique subs evolution');
+                return;
+            }
+
+            // Vérifier si les données sont toutes à 0
+            const overviewData = overviewChart.data.chart;
+            const hasData = overviewData.datasets.some(dataset =>
+                dataset.data.some(value => value > 0)
+            );
+            console.log('📊 Le graphique overview a-t-il des données > 0 ?', hasData);
+
+            // Vérifier la visibilité du conteneur avant de créer le graphique
+            const container = document.querySelector('.chart-container');
+            console.log('📦 Conteneur du graphique overview:', {
+                display: container ? window.getComputedStyle(container).display : 'N/A',
+                visibility: container ? window.getComputedStyle(container).visibility : 'N/A',
+                width: container ? container.offsetWidth : 'N/A',
+                height: container ? container.offsetHeight : 'N/A'
+            });
+
             createChartSafely('eklektik-overview-chart', 'overview', overviewChart.data?.chart, 'bar', {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: { duration: 0 },
-                animations: { 
+                animations: {
                     duration: 0,
                     hover: { duration: 0 },
                     active: { duration: 0 }
                 },
-                elements: {
-                    point: { hoverRadius: 4 },
-                    line: { tension: 0 }
-                },
                 plugins: {
-                    legend: { animation: false },
-                    tooltip: { 
-                        animation: false,
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
                         enabled: true,
                         mode: 'index',
                         intersect: false
                     }
+                },
+                elements: {
+                    point: { hoverRadius: 4 },
+                    line: { tension: 0 }
                 },
                 interaction: {
                     mode: 'index',
@@ -655,6 +818,14 @@
                 },
                 scales: {
                     x: {
+                        type: 'time',
+                        time: {
+                            parser: 'yyyy-MM-dd',
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'dd/MM'
+                            }
+                        },
                         display: true,
                         title: { display: true, text: 'Date' }
                     },
@@ -756,6 +927,14 @@
                         }
                     },
                     x: {
+                        type: 'time',
+                        time: {
+                            parser: 'yyyy-MM-dd',
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'dd/MM'
+                            }
+                        },
                         title: {
                             display: true,
                             text: 'Période'
@@ -800,7 +979,7 @@
 
             // Mettre à jour la carte "Statistiques par Opérateur" (si la fonction globale existe)
             try {
-                if (typeof window.displayEklektikOperatorsStats === 'function') {
+        if (typeof window.displayEklektikOperatorsStats === 'function') {
                     const dist = revenueDistribution?.data?.distribution || revenueDistribution?.distribution || null;
                     if (dist) {
                         window.displayEklektikOperatorsStats(dist);
@@ -872,6 +1051,14 @@
                         }
                     },
                     x: {
+                        type: 'time',
+                        time: {
+                            parser: 'yyyy-MM-dd',
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'dd/MM'
+                            }
+                        },
                         title: {
                             display: true,
                             text: 'Période'
@@ -887,24 +1074,22 @@
             console.error('❌ Erreur lors du chargement des graphiques Eklektik:', error);
             console.log('🚫 Pas de fallback - affichage d\'un message d\'erreur');
             
-            // Afficher un message d'erreur au lieu du fallback
+            // Afficher un message d'erreur non destructif (sans remplacer le canvas)
             const containers = ['eklektik-overview-chart', 'eklektik-revenue-evolution-chart', 'eklektik-operators-distribution-chart', 'eklektik-ca-partners-chart'];
             containers.forEach(containerId => {
-                const container = document.getElementById(containerId);
-                if (container) {
-                    container.parentElement.innerHTML = `
-                        <div style="display: flex; align-items: center; justify-content: center; height: 200px; color: #dc3545;">
-                            <div style="text-align: center;">
-                                <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
-                                <div>Erreur lors du chargement des données Eklektik</div>
-                                <div style="font-size: 12px; margin-top: 5px;">Vérifiez la synchronisation des données</div>
-                            </div>
-                        </div>
-                    `;
+                const canvas = document.getElementById(containerId);
+                if (canvas && canvas.parentElement) {
+                    const p = document.createElement('div');
+                    p.className = 'eklektik-error';
+                    p.style.cssText = 'display:flex;align-items:center;justify-content:center;height:200px;color:#dc3545;text-align:center;';
+                    p.innerHTML = '<div><div style="font-size:14px;">Erreur lors du chargement des données Eklektik</div><div style="font-size:12px;margin-top:5px;">Vérifiez la synchronisation des données</div></div>';
+                    // Effacer les anciens messages d'erreur
+                    canvas.parentElement.querySelectorAll('.eklektik-error').forEach(el => el.remove());
+                    canvas.parentElement.appendChild(p);
                 }
             });
         } finally {
-            isCreatingCharts = false;
+            window.isCreatingEklektikCharts = false;
         }
     }
     
@@ -914,7 +1099,9 @@
     async function fetchData(endpoint, params) {
         const url = new URL(endpoint, window.location.origin);
         Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
-        
+
+        console.log(`🔗 Appel API: ${url.toString()}`);
+
         const response = await fetch(url, {
             headers: {
                 'Accept': 'application/json',
@@ -922,18 +1109,22 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
             }
         });
-        
+
         if (!response.ok) {
+            console.error(`❌ Erreur HTTP ${response.status} pour ${endpoint}`);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
-        return await response.json();
+
+        const data = await response.json();
+        console.log(`✅ Réponse API ${endpoint}:`, data);
+
+        return data;
     }
     
     
     // Fonction pour vider les graphiques
-    function clearEklektikCharts() {
-        Object.entries(eklektikCharts).forEach(([key, chart]) => {
+    window.clearEklektikCharts = function() {
+        Object.entries(window.eklektikCharts).forEach(([key, chart]) => {
             if (chart) {
                 try {
                     chart.destroy();
@@ -943,7 +1134,7 @@
                 }
             }
         });
-        eklektikCharts = {};
+        window.eklektikCharts = {};
         
         // Nettoyer aussi les canvas
         const canvasIds = [
@@ -969,25 +1160,39 @@
     // Exposer les fonctions globalement
     window.loadEklektikCharts = loadEklektikCharts;
     window.clearEklektikCharts = clearEklektikCharts;
+
+    // Brancher sur l'actualisation globale du dashboard si disponible
+    if (typeof window.addEventListener === 'function') {
+        window.addEventListener('dashboard:refreshed', function() {
+            // Recharger les KPIs et les charts Eklektik après l'actualisation globale
+            try {
+                if (typeof window.loadEklektikData === 'function') {
+                    window.loadEklektikData().then(() => setTimeout(loadEklektikCharts, 100));
+                } else {
+                    setTimeout(loadEklektikCharts, 100);
+                }
+            } catch (e) {
+                console.warn('Eklektik refresh hook error:', e);
+                setTimeout(loadEklektikCharts, 200);
+            }
+        });
+    }
     
-    // Charger les graphiques au démarrage
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(loadEklektikCharts, 100);
-    });
+    // Les graphiques sont chargés quand l'onglet Eklektik est activé
     
     // Écouter les changements d'opérateur
     document.addEventListener('change', function(e) {
         if (e.target.id === 'eklektik-operator-select') {
             // Éviter les rechargements multiples
-            if (!isCreatingCharts) {
+            if (!window.isCreatingEklektikCharts) {
                 console.log('🔄 Changement d\'opérateur détecté, rechargement des graphiques...');
                 loadEklektikCharts();
             }
         }
-        
+
         // Écouter les changements de dates de la section principale
         if (e.target.id === 'start-date' || e.target.id === 'end-date') {
-            if (!isCreatingCharts) {
+            if (!window.isCreatingEklektikCharts) {
                 console.log('🔄 Changement de dates détecté, rechargement des graphiques Eklektik...');
                 setTimeout(() => {
                     loadEklektikCharts();

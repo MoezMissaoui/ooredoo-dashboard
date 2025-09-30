@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\EklektikStatsService;
+use App\Models\EklektikSyncTracking;
 use Carbon\Carbon;
 
 class SyncEklektikStats extends Command
@@ -70,8 +71,22 @@ class SyncEklektikStats extends Command
             }
         }
 
+        // Démarrer le suivi de la synchronisation
+        $syncTracking = EklektikSyncTracking::startSync(
+            $startDate, 
+            $operator ?: 'ALL', 
+            'cron',
+            [
+                'period' => $period,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'force' => $this->option('force')
+            ]
+        );
+
         // Lancer la synchronisation
         $this->info('🚀 Début de la synchronisation...');
+        $this->info("📋 ID de synchronisation: {$syncTracking->sync_id}");
         $startTime = microtime(true);
 
         try {
@@ -79,6 +94,16 @@ class SyncEklektikStats extends Command
             
             $endTime = microtime(true);
             $duration = round($endTime - $startTime, 2);
+
+            // Marquer la synchronisation comme réussie
+            $syncTracking->markAsSuccess([
+                'total_processed' => $results['total_synced'] ?? 0,
+                'total_created' => $results['total_created'] ?? 0,
+                'total_updated' => $results['total_updated'] ?? 0,
+                'total_skipped' => $results['total_skipped'] ?? 0,
+                'operators' => $results['operators'] ?? [],
+                'errors' => $results['errors'] ?? []
+            ]);
 
             // Afficher les résultats
             $this->newLine();
@@ -124,6 +149,14 @@ class SyncEklektikStats extends Command
             }
 
         } catch (\Exception $e) {
+            // Marquer la synchronisation comme échouée
+            $syncTracking->markAsFailed($e->getMessage(), [
+                'error_type' => get_class($e),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+
             $this->error('❌ Erreur lors de la synchronisation: ' . $e->getMessage());
             $this->error('Stack trace: ' . $e->getTraceAsString());
             return 1;
