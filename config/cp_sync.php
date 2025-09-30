@@ -11,8 +11,12 @@ return [
     */
 
     'base_url' => env('CP_SYNC_BASE_URL', 'https://clubprivileges.app'),
-    'sync_endpoint' => env('CP_SYNC_ENDPOINT', '/sync-dashboard-data'),
+    'sync_endpoint' => env('CP_SYNC_ENDPOINT', '/api/sync-dashboard-data'),
     
+    // Authentification API par token (utilise CP_EXPORT_TOKEN existant)
+    'api_token' => env('CP_EXPORT_TOKEN', 'cp_dashboard_aBcDe8584FgHiJkLmj854KNoPqRsTuVwXyZ01234ythrdGHjs56789'),
+    
+    // Anciens identifiants (maintenus pour compatibilité)
     'server_username' => env('CP_SYNC_SERVER_USERNAME'),
     'server_password' => env('CP_SYNC_SERVER_PASSWORD'),
     'username' => env('CP_SYNC_USERNAME'),

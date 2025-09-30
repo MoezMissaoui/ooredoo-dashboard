@@ -26,32 +26,33 @@ class VisitClubPrivilegesSync extends Command
      */
     protected $description = 'Visiter le lien de synchronisation Club Privilèges';
 
-    private $syncUrl = 'https://clubprivileges.app/sync-dashboard-data';
+    private $syncUrl;
     
     /**
-     * Obtenir les identifiants de connexion
+     * Constructor
      */
-    private function getCredentials()
+    public function __construct()
     {
-        $serverUsername = config('cp_sync.server_username');
-        $serverPassword = config('cp_sync.server_password');
-        $backendUsername = config('cp_sync.username');
-        $backendPassword = config('cp_sync.password');
+        parent::__construct();
+        
+        // Construire l'URL à partir de la configuration
+        $baseUrl = config('cp_sync.base_url', 'https://clubprivileges.app');
+        $endpoint = config('cp_sync.sync_endpoint', '/api/sync-dashboard-data');
+        $this->syncUrl = rtrim($baseUrl, '/') . $endpoint;
+    }
 
-        if (!$serverUsername || !$serverPassword || !$backendUsername || !$backendPassword) {
+    /**
+     * Obtenir le token d'authentification API
+     */
+    private function getApiToken()
+    {
+        $token = config('cp_sync.api_token');
+        
+        if (!$token) {
             return null;
         }
 
-        return [
-            'server' => [
-                'username' => $serverUsername,
-                'password' => $serverPassword
-            ],
-            'backend' => [
-                'username' => $backendUsername,
-                'password' => $backendPassword
-            ]
-        ];
+        return $token;
     }
 
     /**
@@ -85,22 +86,22 @@ class VisitClubPrivilegesSync extends Command
 
             $this->info("🌐 Visite de l'URL: {$this->syncUrl}");
 
-            // Obtenir les identifiants
-            $credentials = $this->getCredentials();
-            if (!$credentials) {
-                $this->error('❌ Identifiants de connexion non configurés');
-                $this->info('💡 Configurez CP_SYNC_SERVER_USERNAME, CP_SYNC_SERVER_PASSWORD, CP_SYNC_USERNAME et CP_SYNC_PASSWORD dans .env');
+            // Obtenir le token API
+            $apiToken = $this->getApiToken();
+            if (!$apiToken) {
+                $this->error('❌ Token API non configuré');
+                $this->info('💡 Configurez CP_EXPORT_TOKEN dans .env');
                 return 1;
             }
 
-            $this->info('🔐 Connexion avec authentification serveur et backend...');
+            $this->info('🔐 Connexion avec authentification token API...');
 
-            // Effectuer la requête GET avec double authentification
+            // Effectuer la requête GET avec token API
             $response = Http::timeout(300) // 5 minutes timeout
-                ->withBasicAuth($credentials['server']['username'], $credentials['server']['password'])
                 ->withHeaders([
-                    'X-Backend-Username' => $credentials['backend']['username'],
-                    'X-Backend-Password' => $credentials['backend']['password']
+                    'Authorization' => 'Bearer ' . $apiToken,
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json'
                 ])
                 ->get($this->syncUrl);
 
