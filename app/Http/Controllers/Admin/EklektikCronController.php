@@ -36,7 +36,7 @@ class EklektikCronController extends Controller
     public function updateConfig(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'cron_enabled' => 'required|boolean',
+            'cron_enabled' => 'required|in:true,false,1,0,on,off',
             'cron_schedule' => 'required|string|min:5|max:20',
             'cron_operators' => 'required|array',
             'cron_retention_days' => 'required|integer|min:1|max:365',
@@ -65,9 +65,10 @@ class EklektikCronController extends Controller
             }
 
             // Mettre à jour les configurations
+            $cronEnabled = in_array($request->cron_enabled, ['true', '1', 'on', true, 1]);
             EklektikCronConfig::setConfig(
                 EklektikCronConfig::CRON_ENABLED,
-                $request->cron_enabled ? 'true' : 'false',
+                $cronEnabled ? 'true' : 'false',
                 'Activer/désactiver le cron Eklektik',
                 $userId
             );
@@ -265,18 +266,82 @@ class EklektikCronController extends Controller
     }
 
     /**
+     * Obtenir les statistiques du cron (API)
+     */
+    public function getStatistics()
+    {
+        try {
+            $statistics = $this->getCronStatistics();
+            $cronStatus = $this->getCronStatus();
+            
+            return response()->json([
+                'success' => true,
+                'data' => array_merge($statistics, [
+                    'next_execution' => $cronStatus['next_execution']
+                ])
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur récupération statistiques', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des statistiques'
+            ], 500);
+        }
+    }
+
+    /**
+     * Obtenir la configuration du cron (API)
+     */
+    public function getConfig()
+    {
+        try {
+            $configs = EklektikCronConfig::getAllConfigs();
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'cron_enabled' => $configs->get('cron_enabled', 'true'),
+                    'cron_schedule' => $configs->get('cron_schedule', '0 2 * * *'),
+                    'cron_operators' => $configs->get('cron_operators', '["ALL"]'),
+                    'cron_retention_days' => $configs->get('cron_retention_days', '90'),
+                    'cron_notification_email' => $configs->get('cron_notification_email', ''),
+                    'cron_error_email' => $configs->get('cron_error_email', ''),
+                    'cron_batch_size' => $configs->get('cron_batch_size', '1000'),
+                    'cron_timeout' => $configs->get('cron_timeout', '300'),
+                    'enabled' => EklektikCronConfig::isCronEnabled()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Erreur récupération configuration', [
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération de la configuration'
+            ], 500);
+        }
+    }
+
+    /**
      * Obtenir la dernière exécution
      */
     private function getLastExecution()
     {
         // Récupérer la dernière exécution depuis les logs ou la base de données
-        $lastExecution = \App\Models\EklektikNotificationTracking::orderBy('processed_at', 'desc')
+        $lastExecution = \DB::table('eklektik_notifications_tracking')
+            ->orderBy('processed_at', 'desc')
             ->first();
 
         return $lastExecution ? [
             'date' => $lastExecution->processed_at,
             'batch_id' => $lastExecution->processing_batch_id,
-            'notifications_processed' => \App\Models\EklektikNotificationTracking::where('processing_batch_id', $lastExecution->processing_batch_id)->count()
+            'notifications_processed' => \DB::table('eklektik_notifications_tracking')
+                ->where('processing_batch_id', $lastExecution->processing_batch_id)
+                ->count()
         ] : null;
     }
 
@@ -290,11 +355,11 @@ class EklektikCronController extends Controller
 
         return [
             'total_processed' => $stats['total_processed'],
-            'kpi_updated' => $stats['kpi_updated'],
-            'unique_batches' => $stats['unique_batches'],
-            'last_processed' => $stats['last_processed'],
-            'cache_entries' => \App\Models\EklektikKPICache::count(),
-            'tracking_entries' => \App\Models\EklektikNotificationTracking::count()
+            'kpi_updated' => $stats['kpis_updated_count'],
+            'unique_batches' => $stats['unique_batches_count'],
+            'last_processed' => $stats['last_processing_update'],
+            'cache_entries' => \DB::table('eklektik_kpis_cache')->count(),
+            'tracking_entries' => \DB::table('eklektik_notifications_tracking')->count()
         ];
     }
 

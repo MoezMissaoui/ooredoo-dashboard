@@ -69,5 +69,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'dashboard.perf' => \App\Http\Middleware\DashboardPerformanceMiddleware::class,
         'dashboard.access' => \App\Http\Middleware\DashboardAccessMiddleware::class,
+        'check.dashboard' => \App\Http\Middleware\CheckDashboardAccess::class,
+        'check.invitation' => \App\Http\Middleware\CheckInvitationPermission::class,
     ];
 }

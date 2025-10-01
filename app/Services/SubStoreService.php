@@ -28,7 +28,11 @@ class SubStoreService
             try {
                 // Récupérer les sub-stores depuis la table stores
                 $subStores = DB::table('stores')
-                    ->where('is_sub_store', 1)
+                    ->where(function($query) {
+                        $query->where('is_sub_store', 1)
+                              // Ajouter le store ID 54 manuellement
+                              ->orWhere('store_id', 54);
+                    })
                     ->where('store_active', 1)
                     ->pluck('store_name')
                     ->toArray();
@@ -69,7 +73,11 @@ class SubStoreService
         return Cache::remember(self::CACHE_KEY . '_with_ids', self::CACHE_TTL, function () {
             try {
                 return DB::table('stores')
-                    ->where('is_sub_store', 1)
+                    ->where(function($query) {
+                        $query->where('is_sub_store', 1)
+                              // Ajouter le store ID 54 manuellement
+                              ->orWhere('store_id', 54);
+                    })
                     ->where('store_active', 1)
                     ->select('store_name as name', 'store_id')
                     ->orderBy('store_name')
@@ -184,7 +192,11 @@ class SubStoreService
         return Cache::remember('sub_stores_only', self::CACHE_TTL, function () {
             try {
                 return DB::table('stores')
-                    ->where('is_sub_store', 1)
+                    ->where(function($query) {
+                        $query->where('is_sub_store', 1)
+                              // Ajouter le store ID 54 manuellement
+                              ->orWhere('store_id', 54);
+                    })
                     ->where('store_active', 1)
                     ->pluck('store_name', 'store_name')
                     ->toArray();

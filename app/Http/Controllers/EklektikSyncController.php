@@ -104,10 +104,22 @@ class EklektikSyncController extends Controller
             ->orderBy('synced_at', 'desc')
             ->first();
 
+        $isRecent = $lastSync ? $lastSync->synced_at > now()->subHours(24) : false;
+        $totalRecords = \DB::table('eklektik_stats_daily')->count();
+        
+        // Déterminer le statut global
+        $globalStatus = 'danger'; // Par défaut
+        if ($isRecent && $totalRecords > 0) {
+            $globalStatus = 'healthy';
+        } else if ($totalRecords > 0) {
+            $globalStatus = 'warning';
+        }
+        
         $status = [
+            'status' => $globalStatus,
             'last_sync' => $lastSync ? $lastSync->synced_at : null,
-            'is_recent' => $lastSync ? $lastSync->synced_at > now()->subHours(24) : false,
-            'total_records' => \DB::table('eklektik_stats_daily')->count(),
+            'is_recent' => $isRecent,
+            'total_records' => $totalRecords,
             'operators_status' => []
         ];
 
@@ -130,7 +142,7 @@ class EklektikSyncController extends Controller
 
         return response()->json([
             'success' => true,
-            'status' => $status
+            'data' => $status
         ]);
     }
 }

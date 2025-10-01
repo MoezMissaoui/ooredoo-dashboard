@@ -117,7 +117,8 @@ class EklektikDashboardController extends Controller
             ];
 
             foreach ($operatorsStats as $stat) {
-                $chartData['labels'][] = Carbon::parse($stat['date'])->format('d/m');
+                // Utiliser un format ISO pour l'axe temporel (compatible chartjs-adapter-date-fns)
+                $chartData['labels'][] = Carbon::parse($stat['date'])->format('Y-m-d');
                 $chartData['datasets'][0]['data'][] = $stat['tt_revenue'] ?? 0;
                 $chartData['datasets'][1]['data'][] = $stat['taraji_revenue'] ?? 0;
                 $chartData['datasets'][2]['data'][] = $stat['orange_revenue'] ?? 0;
@@ -185,7 +186,8 @@ class EklektikDashboardController extends Controller
             ];
 
             foreach ($stats as $stat) {
-                $chartData['labels'][] = Carbon::parse($stat['date'])->format('d/m');
+                // Utiliser un format ISO pour l'axe temporel (compatible chartjs-adapter-date-fns)
+                $chartData['labels'][] = Carbon::parse($stat['date'])->format('Y-m-d');
                 
                 // Abonnés actifs (valeur réelle agrégée du jour)
                 $activeSubs = $stat['total_active_subscribers'] ?? 0;
@@ -229,6 +231,15 @@ class EklektikDashboardController extends Controller
 
             $stats = $this->cacheService->getCachedDetailedStats($startDate, $endDate, $operator);
 
+            // Log pour debug
+            \Log::info('EklektikDashboardController::getOverviewChart - Stats reçus:', [
+                'count' => $stats->count(),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'operator' => $operator,
+                'sample_stats' => $stats->take(3)->toArray()
+            ]);
+
             // Préparer les données pour le graphique multi-axes
             $chartData = [
                 'labels' => [],
@@ -257,7 +268,8 @@ class EklektikDashboardController extends Controller
             ];
 
             foreach ($stats as $stat) {
-                $chartData['labels'][] = Carbon::parse($stat['date'])->format('d/m');
+                // Utiliser un format ISO pour l'axe temporel (compatible chartjs-adapter-date-fns)
+                $chartData['labels'][] = Carbon::parse($stat['date'])->format('Y-m-d');
                 
                 // Abonnés actifs (valeur réelle agrégée du jour)
                 $activeSubs = $stat['total_active_subscribers'] ?? 0;
@@ -266,6 +278,17 @@ class EklektikDashboardController extends Controller
                 // CA BigDeal (en TND)
                 $chartData['datasets'][1]['data'][] = $stat['total_ca_bigdeal'];
             }
+
+            // Log pour debug
+            \Log::info('EklektikDashboardController::getOverviewChart - Chart data préparé:', [
+                'labels_count' => count($chartData['labels']),
+                'datasets_count' => count($chartData['datasets']),
+                'dataset0_data_count' => count($chartData['datasets'][0]['data']),
+                'dataset1_data_count' => count($chartData['datasets'][1]['data']),
+                'sample_labels' => array_slice($chartData['labels'], 0, 3),
+                'sample_data0' => array_slice($chartData['datasets'][0]['data'], 0, 3),
+                'sample_data1' => array_slice($chartData['datasets'][1]['data'], 0, 3)
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -377,10 +400,22 @@ class EklektikDashboardController extends Controller
                 ->orderBy('synced_at', 'desc')
                 ->first();
 
+            $isRecent = $lastSync ? $lastSync->synced_at > now()->subHours(24) : false;
+            $totalRecords = \DB::table('eklektik_stats_daily')->count();
+            
+            // Déterminer le statut global
+            $globalStatus = 'danger'; // Par défaut
+            if ($isRecent && $totalRecords > 0) {
+                $globalStatus = 'healthy';
+            } else if ($totalRecords > 0) {
+                $globalStatus = 'warning';
+            }
+            
             $status = [
+                'status' => $globalStatus,
                 'last_sync' => $lastSync ? $lastSync->synced_at : null,
-                'is_recent' => $lastSync ? $lastSync->synced_at > now()->subHours(24) : false,
-                'total_records' => \DB::table('eklektik_stats_daily')->count(),
+                'is_recent' => $isRecent,
+                'total_records' => $totalRecords,
                 'date_range' => [
                     'first' => \DB::table('eklektik_stats_daily')->min('date'),
                     'last' => \DB::table('eklektik_stats_daily')->max('date')

@@ -1275,6 +1275,51 @@
         font-size: 14px;
       }
       
+      /* KPIs Eklektik responsive */
+      .kpi-card {
+        grid-column: span 12 !important; /* 1 par ligne sur mobile */
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .kpi-card {
+        grid-column: span 12 !important; /* 1 par ligne sur petit mobile */
+        margin-bottom: 12px;
+      }
+      
+      .kpi-title {
+        font-size: 11px;
+      }
+      
+      .kpi-value {
+        font-size: 24px;
+      }
+      
+      .kpi-delta {
+        font-size: 11px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .kpi-card {
+        grid-column: span 12 !important;
+        margin-bottom: 10px;
+        padding: 12px;
+      }
+      
+      .kpi-title {
+        font-size: 10px;
+      }
+      
+      .kpi-value {
+        font-size: 20px;
+      }
+      
+      .kpi-delta {
+        font-size: 10px;
+      }
+    }
+      
       .usage-meter {
         max-width: 80px;
       }
@@ -1876,6 +1921,53 @@
         letter-spacing: 0;
       }
     }
+
+    /* Styles pour les indicateurs de chargement */
+    .loading-spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      font-size: 16px;
+      color: var(--brand-red);
+    }
+
+    .error-text {
+      color: #dc2626;
+      font-weight: 500;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Styles pour les KPIs Eklektik */
+    .kpi-card {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--brand-red);
+      margin-bottom: 4px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
@@ -1916,7 +2008,7 @@
           </div>
 
           <div id="profileDropdown" class="dropdown" style="display:none; position:absolute; right:20px; top:60px; background: var(--card); border:1px solid var(--border); border-radius: 8px; min-width: 220px; z-index: 999; box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
-            @if(Auth::user() && (Auth::user()->isSuperAdmin() || Auth::user()->isAdmin()))
+            @if(Auth::user()->canInviteCollaborators())
             <a href="{{ route('admin.users.index') }}" class="admin-btn" style="display:block; margin:8px;">Utilisateurs</a>
             <a href="{{ route('admin.invitations.index') }}" class="admin-btn" style="display:block; margin:8px;">Invitations</a>
             @endif
@@ -1924,8 +2016,10 @@
             @if(Auth::user()->canAccessSubStoresDashboard())
             <a href="{{ route('sub-stores.dashboard') }}" class="admin-btn" style="display:block; margin:8px;">🏪 Sub-Stores</a>
             @endif
-            @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin())
+            @if(Auth::user()->canAccessEklektikConfig())
             <a href="{{ route('admin.eklektik-cron') }}" class="admin-btn" style="display:block; margin:8px;">⚙️ Configuration Eklektik</a>
+            <a href="{{ route('admin.eklektik.sync') }}" class="admin-btn" style="display:block; margin:8px;">🔄 Gestion des Synchronisations</a>
+            <a href="{{ route('admin.eklektik.sync-tracking') }}" class="admin-btn" style="display:block; margin:8px;">📈 Suivi des Synchronisations</a>
             @endif
             <form action="{{ route('auth.logout') }}" method="POST" style="display:block; margin:8px;">
               @csrf
@@ -1942,10 +2036,59 @@
       <button class="nav-tab" onclick="showTab('subscriptions')">Subscriptions</button>
       <button class="nav-tab" onclick="showTab('transactions')">Transactions</button>
       <button class="nav-tab" onclick="showTab('merchants')">Merchants</button>
+      @if(Auth::user()->canViewEklektikSection())
       <button class="nav-tab" onclick="showTab('eklektik')">📞 Eklektik</button>
+      @endif
       <button class="nav-tab" onclick="showTab('comparison')">Comparison</button>
       <!-- <button class="nav-tab" onclick="showTab('insights')">Insights</button> -->
     </div>
+
+    <script>
+    // Tab switching functionality - Défini avant les boutons pour éviter l'erreur "showTab is not defined"
+    function showTab(tabName) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab content
+      const selectedTab = document.getElementById(tabName);
+      if (selectedTab) {
+        selectedTab.classList.add('active');
+      }
+
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+      
+      // Auto-scroll to center active tab on mobile
+      if (typeof centerActiveTab === 'function') {
+        centerActiveTab(event.target);
+      }
+      
+      // Ne pas recharger les données Eklektik à chaque visite d'onglet
+      // (les données se chargent en une seule fois au démarrage ou via le bouton d'actualisation)
+      if (tabName === 'eklektik') {
+        console.log('📞 Onglet Eklektik activé (sans rechargement des données)');
+      }
+      
+      // Resize charts when tab becomes visible
+      setTimeout(() => {
+        // Resize main dashboard charts
+        Object.values(charts).forEach(chart => {
+          if (chart && typeof chart.resize === 'function') {
+            chart.resize();
+          }
+        });
+        
+        // Eklektik charts removed - no need to resize
+      }, 100);
+    }
+    </script>
 
     <!-- Enhanced Date & Filters Bar -->
     <div class="enhanced-filters-bar">
@@ -2567,31 +2710,9 @@
     </div>
 
     <!-- Tab 5: Eklektik Integration -->
+    @if(Auth::user()->canViewEklektikSection())
     <div id="eklektik" class="tab-content">
 
-      <!-- Boutons de Configuration Eklektik -->
-      <div class="grid">
-        <div class="card" style="grid-column: span 12;">
-          <div class="chart-title">
-            ⚙️ Configuration Eklektik
-            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Gestion et configuration du système Eklektik">ⓘ</span>
-          </div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-            <button class="btn-primary enhanced-btn" onclick="window.open('/admin/eklektik-dashboard', '_blank')">
-              📊 Dashboard Eklektik Complet
-            </button>
-            <button class="btn-secondary enhanced-btn" onclick="window.open('/admin/eklektik-sync', '_blank')">
-              🔄 Gestion des Synchronisations
-            </button>
-            <button class="btn-info enhanced-btn" onclick="checkEklektikSyncStatus()">
-              📈 Statut de Synchronisation
-            </button>
-            <button class="btn-warning enhanced-btn" onclick="clearEklektikCache()">
-              🗑️ Vider le Cache
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Statistiques Eklektik KPIs - 8 KPIs sur 2 lignes -->
       <div class="grid">
@@ -2670,6 +2791,7 @@
 
 
     </div>
+    @endif
 
     <!-- Tab 6: Comparison -->
     <div id="comparison" class="tab-content">
@@ -2805,6 +2927,9 @@
     let currentMerchantsPage = 1;
     let merchantsPerPage = 25;
 
+    // Eklektik charts variable
+    window.eklektikCharts = {};
+
     // THEME_COLORS déjà défini au début du script
 
     // Fonction utilitaire pour accès sécurisé aux couleurs
@@ -2841,6 +2966,107 @@
         return getThemeColor(prop);
       }
     });
+
+    // Fonction pour afficher les états de chargement des KPIs
+    function showEklektikStatsLoading() {
+      const elements = [
+        'kpi-revenue-ttc',
+        'kpi-revenue-ht',
+        'kpi-ca-bigdeal',
+        'kpi-bigdeal-percentage'
+      ];
+
+      elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.innerHTML = '<div class="loading-spinner">🔄</div>';
+        }
+      });
+    }
+
+    // Fonction pour afficher les erreurs des KPIs
+    function showEklektikStatsError() {
+      const elements = [
+        'kpi-revenue-ttc',
+        'kpi-revenue-ht',
+        'kpi-ca-bigdeal',
+        'kpi-bigdeal-percentage'
+      ];
+
+      elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.innerHTML = '<span class="error-text">❌ Erreur</span>';
+        }
+      });
+    }
+
+    // Charger les données Eklektik (sera définie plus tard)
+    async function loadEklektikData() {
+      console.log('🔄 Chargement des données Eklektik...');
+
+      // Afficher l'état de chargement
+      showEklektikStatsLoading();
+
+      try {
+        // Charger les KPIs
+        const kpisResponse = await fetch('/api/eklektik-dashboard/kpis');
+        const kpisData = await kpisResponse.json();
+
+        if (kpisData.success) {
+          updateEklektikStatsDisplay(kpisData.data);
+        } else {
+          console.error('❌ Erreur KPIs Eklektik:', kpisData.message);
+          showEklektikStatsError();
+        }
+
+        // Charger les statistiques par opérateur
+        const operatorsResponse = await fetch('/api/eklektik-dashboard/revenue-distribution');
+        const operatorsData = await operatorsResponse.json();
+
+        if (operatorsData.success) {
+          updateEklektikOperatorsStats(operatorsData.data.distribution);
+        } else {
+          console.error('❌ Erreur opérateurs Eklektik:', operatorsData.message);
+        }
+
+      } catch (error) {
+        console.error('❌ Erreur lors du chargement des données Eklektik:', error);
+        showEklektikStatsError();
+      }
+    }
+
+    // Mettre à jour l'affichage des statistiques Eklektik
+    function updateEklektikStatsDisplay(data) {
+      console.log('📊 Mise à jour des KPIs Eklektik:', data);
+
+      // Mettre à jour les éléments KPI avec les données
+      if (data && data.kpis) {
+        // Revenue TTC
+        const revenueTtcElement = document.getElementById('kpi-revenue-ttc');
+        if (revenueTtcElement && data.kpis.total_revenue_ttc !== undefined) {
+          revenueTtcElement.innerHTML = formatNumber(data.kpis.total_revenue_ttc) + ' €';
+        }
+
+        // Revenue HT
+        const revenueHtElement = document.getElementById('kpi-revenue-ht');
+        if (revenueHtElement && data.kpis.total_revenue_ht !== undefined) {
+          revenueHtElement.innerHTML = formatNumber(data.kpis.total_revenue_ht) + ' €';
+        }
+
+        // CA BigDeal
+        const caBigdealElement = document.getElementById('kpi-ca-bigdeal');
+        if (caBigdealElement && data.kpis.total_facturation !== undefined) {
+          caBigdealElement.innerHTML = formatNumber(data.kpis.total_facturation) + ' €';
+        }
+
+        // Pourcentage BigDeal
+        const bigdealPercentageElement = document.getElementById('kpi-bigdeal-percentage');
+        if (bigdealPercentageElement && data.kpis.bigdeal_percentage !== undefined) {
+          bigdealPercentageElement.innerHTML = data.kpis.bigdeal_percentage.toFixed(1) + '%';
+        }
+      }
+    }
 
     // Mobile-optimized chart options with enhanced 5-breakpoint system
     function getMobileOptimizedChartOptions(customOptions = {}) {
@@ -2975,8 +3201,8 @@
       }, 250);
     });
 
-    // Initialize dashboard
-    document.addEventListener('DOMContentLoaded', function() {
+    // Initialize dashboard (charge tout en une seule fois)
+    document.addEventListener('DOMContentLoaded', async function() {
       // Dropdown Profil
       const toggle = document.getElementById('profileMenuToggle');
       const dropdown = document.getElementById('profileDropdown');
@@ -3040,6 +3266,18 @@
         console.log('✅ Chart.js configuré avec succès');
       } else {
         console.error('❌ Chart.js non chargé');
+      }
+
+      // Charger les données Eklektik une seule fois au démarrage
+      try {
+        if (typeof loadEklektikData === 'function') {
+          await loadEklektikData();
+        }
+        if (typeof loadEklektikCharts === 'function') {
+          setTimeout(() => loadEklektikCharts(), 150);
+        }
+      } catch (e) {
+        console.warn('Eklektik initial load skipped:', e);
       }
       
       setDefaultDates();
@@ -3326,44 +3564,7 @@
       }
     }
 
-    // Tab switching functionality
-    function showTab(tabName) {
-      // Hide all tab contents
-      document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-      });
-      
-      // Remove active class from all tabs
-      document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-      
-      // Show selected tab content
-      document.getElementById(tabName).classList.add('active');
-      
-      // Add active class to selected tab
-      event.target.classList.add('active');
-      
-      // Auto-scroll to center active tab on mobile
-      centerActiveTab(event.target);
-      
-      // Load data for specific tabs
-      if (tabName === 'eklektik') {
-        console.log('📊 Tab Eklektik activé - les graphiques se chargent automatiquement');
-      }
-      
-      // Resize charts when tab becomes visible
-      setTimeout(() => {
-        // Resize main dashboard charts
-        Object.values(charts).forEach(chart => {
-          if (chart && typeof chart.resize === 'function') {
-            chart.resize();
-          }
-        });
-        
-        // Eklektik charts removed - no need to resize
-      }, 100);
-    }
+    // Tab switching functionality - Supprimé (défini plus haut)
     
 
     
@@ -3874,67 +4075,33 @@
       return await response.json();
     }
 
-    // Afficher l'état de chargement des statistiques
-    function showEklektikStatsLoading() {
-      const elements = [
-        'eklektik-revenue-ttc', 'eklektik-revenue-ht', 'eklektik-ca-bigdeal', 'eklektik-bigdeal-percentage',
-        'eklektik-new-subscriptions', 'eklektik-unsubscriptions', 'eklektik-simchurn', 'eklektik-facturation'
-      ];
-      
-      elements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.textContent = 'Loading...';
-        }
-      });
-    }
+    // Charger les données Eklektik
+    // loadEklektikData déjà définie plus haut
 
-    // Mettre à jour l'affichage des statistiques
-    function updateEklektikStatsDisplay(data) {
-      // Mettre à jour les KPIs avec les nouvelles données
-      if (data.total_revenue_ttc !== undefined) {
-        document.getElementById('eklektik-revenue-ttc').textContent = 
-          new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ttc);
-        document.getElementById('eklektik-revenue-ttc-delta').textContent = 'Revenus TTC';
+    // showEklektikStatsLoading, showEklektikStatsError et updateEklektikStatsDisplay déjà définies plus haut
+
+    // Mettre à jour les statistiques par opérateur
+    function updateEklektikOperatorsStats(distribution) {
+      const container = document.getElementById('eklektik-operators-stats');
+      if (!container) return;
+
+      let html = '';
+      for (const [operator, data] of Object.entries(distribution)) {
+        html += `
+          <div class="card mb-2">
+            <div class="card-body">
+              <h6 class="card-title">${operator}</h6>
+              <p class="card-text">
+                <strong>Revenus TTC:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.revenue_ttc || 0)}<br>
+                <strong>Revenus HT:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.revenue_ht || 0)}<br>
+                <strong>CA BigDeal:</strong> ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.ca_bigdeal || 0)}
+              </p>
+            </div>
+          </div>
+        `;
       }
-      
-      if (data.total_revenue_ht !== undefined) {
-        document.getElementById('eklektik-revenue-ht').textContent = 
-          new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_revenue_ht);
-        document.getElementById('eklektik-revenue-ht-delta').textContent = 'Revenus HT';
-      }
-      
-      if (data.total_ca_bigdeal !== undefined) {
-        document.getElementById('eklektik-ca-bigdeal').textContent = 
-          new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'TND' }).format(data.total_ca_bigdeal);
-        document.getElementById('eklektik-ca-bigdeal-delta').textContent = 'CA BigDeal';
-      }
-      
-      if (data.total_active_subscribers !== undefined) {
-        document.getElementById('eklektik-active-subs').textContent = 
-          new Intl.NumberFormat('fr-FR').format(data.total_active_subscribers);
-        document.getElementById('eklektik-active-subs-delta').textContent = 'Abonnés Actifs';
-      }
-      
-      if (data.total_new_subscriptions !== undefined) {
-        document.getElementById('eklektik-new-subscriptions').textContent = data.total_new_subscriptions;
-        document.getElementById('eklektik-new-subscriptions-delta').textContent = 'nouveaux';
-      }
-      
-      if (data.total_unsubscriptions !== undefined) {
-        document.getElementById('eklektik-unsubscriptions').textContent = data.total_unsubscriptions;
-        document.getElementById('eklektik-unsubscriptions-delta').textContent = 'désabonnements';
-      }
-      
-      if (data.total_simchurn !== undefined) {
-        document.getElementById('eklektik-simchurn').textContent = data.total_simchurn;
-        document.getElementById('eklektik-simchurn-delta').textContent = 'simchurn';
-      }
-      
-        if (data.total_facturation !== undefined) {
-          document.getElementById('eklektik-facturation').textContent = new Intl.NumberFormat('fr-FR').format(data.total_facturation);
-          document.getElementById('eklektik-facturation-delta').textContent = 'Abonnements Facturés';
-        }
+
+      container.innerHTML = html || '<div class="text-center text-muted">Aucune donnée disponible</div>';
     }
 
     // Créer les graphiques des statistiques Eklektik
@@ -4382,15 +4549,20 @@
         const response = await fetch('/api/eklektik-dashboard/sync-status');
         const data = await response.json();
         
-        if (data.success) {
+        if (data.success && data.data) {
           const status = data.data;
-          const statusColor = status.status === 'healthy' ? 'success' : 
-                             status.status === 'warning' ? 'warning' : 'danger';
+          const statusValue = status.status || 'unknown';
+          const statusColor = statusValue === 'healthy' ? 'success' : 
+                             statusValue === 'warning' ? 'warning' : 'danger';
           
           const lastSync = status.last_sync ? 
             new Date(status.last_sync).toLocaleString('fr-FR') : 'Jamais';
           
-          alert(`Statut Eklektik: ${status.status.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${status.total_records}`);
+          const totalRecords = status.total_records || 0;
+          
+          alert(`Statut Eklektik: ${statusValue.toUpperCase()}\nDernière sync: ${lastSync}\nEnregistrements: ${totalRecords}`);
+        } else {
+          alert('Erreur: Impossible de récupérer le statut de synchronisation');
         }
       } catch (error) {
         console.error('❌ [EKLEKTIK SYNC] Erreur lors de la vérification du statut:', error);
@@ -4987,6 +5159,14 @@
         setTimeout(() => {
         showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
         }, 100);
+
+        // Émettre un événement global pour que les modules (ex: Eklektik) se resynchronisent
+        try {
+          const evt = new CustomEvent('dashboard:refreshed');
+          window.dispatchEvent(evt);
+        } catch (e) {
+          console.warn('CustomEvent not supported, Eklektik may not auto-refresh');
+        }
         
       } catch (error) {
         clearTimeout(timeoutId); // Clean up timeout

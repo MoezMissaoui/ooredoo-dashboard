@@ -1,29 +1,34 @@
 <?php
 
 return [
-    // API source d'extraction
-    'url' => env('SYNC_API_URL', 'https://clubprivileges.app/api/get-pending-sync-data'),
-    'token' => env('SYNC_API_TOKEN', ''),
+    /*
+    |--------------------------------------------------------------------------
+    | Synchronisation Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration pour la synchronisation des données depuis l'API Club Privilèges
+    |
+    */
 
-    // Taille de lot et timeouts
+    'url' => env('SYNC_API_URL', 'https://api.clubprivileges.tn/sync'),
+    'token' => env('SYNC_API_TOKEN'),
+    'timeout' => env('SYNC_TIMEOUT', 30),
     'batch_size' => env('SYNC_BATCH_SIZE', 5000),
-    'timeout' => env('SYNC_HTTP_TIMEOUT', 30),
+    
     'retry' => [
         'times' => env('SYNC_RETRY_TIMES', 3),
-        'sleep_ms' => env('SYNC_RETRY_SLEEP_MS', 1000),
+        'sleep_ms' => env('SYNC_RETRY_SLEEP_MS', 2000), // 2 secondes
     ],
-
-    // Mapping table -> colonne PK locale
+    
+    'request_delay_ms' => env('SYNC_REQUEST_DELAY_MS', 500), // 500ms entre requêtes
+    
     'tables' => [
-        'partner'                 => 'partner_id',
-        'promotion'               => 'promotion_id',
-        'client'                  => 'client_id',
-        'client_abonnement'       => 'client_abonnement_id',
-        'promotion_pass_orders'   => 'id',
-        'promotion_pass_vendu'    => 'id',
-        'history'                 => 'history_id',
+        'partner' => 'partner_id',
+        'promotion' => 'promotion_id', 
+        'client' => 'client_id',
+        'client_abonnement' => 'client_abonnement_id',
+        'promotion_pass_orders' => 'order_id',
+        'promotion_pass_vendu' => 'vendu_id',
+        'history' => 'history_id',
     ],
 ];
-
-
-

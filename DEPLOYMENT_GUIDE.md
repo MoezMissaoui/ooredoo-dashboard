@@ -1,262 +1,280 @@
-# 🚀 Guide de Déploiement - Ooredoo Dashboard
+# Guide de Déploiement - Synchronisation Club Privilèges
 
-## 📋 Prérequis Serveur
+## 📋 Vue d'ensemble
 
-### Environnement Requis
-- **PHP**: 8.1 ou supérieur
-- **MySQL**: 8.0 ou supérieur 
-- **Apache/Nginx**: avec mod_rewrite activé
-- **Composer**: pour la gestion des dépendances PHP
-- **Node.js**: (optionnel, pour les assets)
+Ce guide décrit le déploiement de la nouvelle fonctionnalité de synchronisation automatique Club Privilèges sur le serveur Ubuntu de préproduction.
 
-### Extensions PHP Requises
+## 🚀 Fonctionnalités déployées
+
+### 1. Synchronisation automatique Club Privilèges
+- **Commande** : `php artisan cp:visit-sync`
+- **Fréquence** : Toutes les heures (00:00, 01:00, 02:00, etc.)
+- **URL** : `https://clubprivileges.app/sync-dashboard-data`
+- **Authentification** : Double authentification (serveur + backend)
+
+### 2. Interface web de gestion
+- **URL** : `/admin/cp-sync`
+- **Fonctionnalités** :
+  - Visite manuelle du lien de synchronisation
+  - Test de connexion
+  - Historique des visites
+  - Statut en temps réel
+
+### 3. Configuration via variables d'environnement
+- `CP_SYNC_SERVER_USERNAME` : Identifiant serveur
+- `CP_SYNC_SERVER_PASSWORD` : Mot de passe serveur
+- `CP_SYNC_USERNAME` : Identifiant backend
+- `CP_SYNC_PASSWORD` : Mot de passe backend
+- `CP_SYNC_ENABLED` : Activation/désactivation
+- `CP_SYNC_SCHEDULE_ENABLED` : Activation du scheduler
+
+## 🔧 Étapes de déploiement
+
+### 1. Connexion au serveur
 ```bash
-php-mysql
-php-mbstring
-php-xml
-php-curl
-php-zip
-php-gd
-php-json
-php-tokenizer
-php-fileinfo
+ssh user@preprod-server
+cd /path/to/dashboard
 ```
 
-## 📦 Contenu du Package
-
-```
-ooredoo-dashboard/
-├── app/                    # Code application Laravel
-├── database/              # Migrations et seeders
-├── resources/             # Vues et assets
-├── public/               # Point d'entrée web
-├── .env.example          # Configuration d'exemple
-├── composer.json         # Dépendances PHP
-├── DEPLOYMENT_GUIDE.md   # Ce guide
-├── PRODUCTION_CONFIG.md  # Configuration production
-└── deploy.sh            # Script de déploiement
-```
-
-## 🔧 Instructions de Déploiement
-
-### Étape 1: Préparer l'Environnement
-
-1. **Créer le répertoire du projet**:
+### 2. Sauvegarde de la base de données
 ```bash
-cd /var/www/html
-sudo mkdir ooredoo-dashboard
-sudo chown www-data:www-data ooredoo-dashboard
+# Sauvegarde complète
+mysqldump -u username -p database_name > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Ou sauvegarde des tables critiques uniquement
+mysqldump -u username -p database_name \
+  client client_abonnement history promotion_pass_orders \
+  promotion_pass_vendu transactions_history > backup_cp_tables_$(date +%Y%m%d_%H%M%S).sql
 ```
 
-2. **Uploader les fichiers**:
-   - Extraire l'archive dans `/var/www/html/ooredoo-dashboard/`
-   - Vérifier que tous les fichiers sont présents
-
-### Étape 2: Configuration de Base
-
-1. **Copier la configuration**:
+### 3. Mise à jour du code
 ```bash
-cd /var/www/html/ooredoo-dashboard
-cp .env.example .env
+# Récupération des dernières modifications
+git fetch origin
+git checkout develop
+git pull origin develop
+
+# Vérification des fichiers modifiés
+git log --oneline -10
 ```
 
-2. **Éditer le fichier .env** avec les paramètres du serveur:
+### 4. Installation des dépendances
 ```bash
+# Mise à jour des dépendances Composer
+composer install --no-dev --optimize-autoloader
+
+# Mise à jour des dépendances NPM (si nécessaire)
+npm install --production
+npm run build
+```
+
+### 5. Configuration des variables d'environnement
+```bash
+# Édition du fichier .env
 nano .env
+
+# Ajout des variables Club Privilèges
+CP_SYNC_SERVER_USERNAME=BiGHellO
+CP_SYNC_SERVER_PASSWORD=EMQLj3EuDrjS22aNkj
+CP_SYNC_USERNAME=imed@clubprivileges.app
+CP_SYNC_PASSWORD=Taraji1919
+CP_SYNC_ENABLED=true
+CP_SYNC_SCHEDULE_ENABLED=true
 ```
 
-**Variables importantes à configurer**:
-```env
-APP_NAME="Ooredoo Dashboard"
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://votre-domaine.com
-
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=ooredoo_dashboard
-DB_USERNAME=votre_user_mysql
-DB_PASSWORD=votre_password_mysql
-
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=465
-MAIL_ENCRYPTION=ssl
-MAIL_USERNAME=assistant@clubprivileges.app
-MAIL_PASSWORD="nltk qbof szsp qopq"
-MAIL_FROM_ADDRESS=assistant@clubprivileges.app
-```
-
-### Étape 3: Installation des Dépendances
-
+### 6. Exécution des migrations
 ```bash
-# Installer les dépendances PHP
-composer install --optimize-autoloader --no-dev
+# Vérification des migrations en attente
+php artisan migrate:status
 
-# Générer la clé d'application
-php artisan key:generate
+# Exécution des migrations (si nécessaire)
+php artisan migrate --force
+```
 
-# Optimiser pour la production
+### 7. Configuration du cache
+```bash
+# Nettoyage du cache
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+# Régénération du cache
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 ```
 
-### Étape 4: Configuration de la Base de Données
-
-1. **Créer la base de données**:
-```sql
-CREATE DATABASE ooredoo_dashboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'ooredoo_user'@'localhost' IDENTIFIED BY 'password_securise';
-GRANT ALL PRIVILEGES ON ooredoo_dashboard.* TO 'ooredoo_user'@'localhost';
-FLUSH PRIVILEGES;
-```
-
-2. **Exécuter les migrations**:
+### 8. Configuration du cron système
 ```bash
-php artisan migrate
-php artisan db:seed --class=SuperAdminSeeder
-php artisan db:seed --class=RolesSeeder
+# Édition du crontab
+crontab -e
+
+# Ajout de la ligne pour exécuter le scheduler Laravel chaque minute
+* * * * * cd /path/to/dashboard && php artisan schedule:run >> /dev/null 2>&1
+
+# Vérification du crontab
+crontab -l
 ```
 
-### Étape 5: Configuration des Permissions
-
+### 9. Test de la configuration
 ```bash
-# Permissions des dossiers
-sudo chown -R www-data:www-data /var/www/html/ooredoo-dashboard
-sudo chmod -R 755 /var/www/html/ooredoo-dashboard
-sudo chmod -R 775 /var/www/html/ooredoo-dashboard/storage
-sudo chmod -R 775 /var/www/html/ooredoo-dashboard/bootstrap/cache
+# Test de la commande de synchronisation
+php artisan cp:visit-sync --force
+
+# Vérification du scheduler
+php artisan schedule:list
+
+# Test de l'interface web
+curl -I http://localhost/admin/cp-sync
 ```
 
-### Étape 6: Configuration Apache/Nginx
-
-#### Pour Apache (.htaccess inclus):
-```apache
-<VirtualHost *:80>
-    ServerName dashboard.ooredoo.com
-    DocumentRoot /var/www/html/ooredoo-dashboard/public
-    
-    <Directory /var/www/html/ooredoo-dashboard/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-    
-    ErrorLog ${APACHE_LOG_DIR}/ooredoo_error.log
-    CustomLog ${APACHE_LOG_DIR}/ooredoo_access.log combined
-</VirtualHost>
-```
-
-#### Pour Nginx:
-```nginx
-server {
-    listen 80;
-    server_name dashboard.ooredoo.com;
-    root /var/www/html/ooredoo-dashboard/public;
-    
-    index index.php index.html;
-    
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-    
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-}
-```
-
-## 🔐 Sécurité et SSL
-
-### Configuration SSL (Recommandé)
+### 10. Redémarrage des services
 ```bash
-# Installer Certbot pour Let's Encrypt
-sudo apt install certbot python3-certbot-apache
-sudo certbot --apache -d dashboard.ooredoo.com
+# Redémarrage du serveur web
+sudo systemctl restart nginx
+# ou
+sudo systemctl restart apache2
+
+# Redémarrage de PHP-FPM (si applicable)
+sudo systemctl restart php8.1-fpm
 ```
 
-### Sécurisation Supplémentaire
+## 🔍 Vérification post-déploiement
+
+### 1. Vérification des logs
 ```bash
-# Masquer la version de serveur
-echo "ServerTokens Prod" >> /etc/apache2/apache2.conf
-
-# Désactiver les fonctions PHP dangereuses
-# Dans php.ini: disable_functions = exec,passthru,shell_exec,system
-```
-
-## ✅ Tests de Vérification
-
-### 1. Test de Connexion
-- Accéder à `https://votre-domaine.com`
-- Vérifier que la page de connexion s'affiche
-
-### 2. Test de Connexion Super Admin
-- **Email**: `superadmin@clubprivileges.app`
-- **Mot de passe**: `SuperAdmin2024!`
-- Vérifier l'accès au dashboard
-
-### 3. Test des Fonctionnalités
-- ✅ Affichage des données globales
-- ✅ Sélection d'opérateurs
-- ✅ Filtres de dates
-- ✅ Graphiques interactifs
-- ✅ Export de données
-- ✅ Gestion des utilisateurs
-- ✅ Système d'invitations
-
-## 🚨 Dépannage
-
-### Erreurs Communes
-
-1. **Erreur 500**:
-   - Vérifier les logs: `tail -f storage/logs/laravel.log`
-   - Vérifier les permissions
-   - Vérifier la configuration .env
-
-2. **Erreur de Base de Données**:
-   - Vérifier les credentials dans .env
-   - Tester la connexion: `php artisan tinker` puis `DB::connection()->getPdo()`
-
-3. **Erreur d'Email**:
-   - Vérifier la configuration SMTP
-   - Tester: `php artisan tinker` puis `Mail::raw('Test', function($msg) { $msg->to('test@test.com'); })`
-
-### Commandes Utiles
-```bash
-# Vider le cache
-php artisan cache:clear
-php artisan config:clear
-php artisan view:clear
-
-# Voir les logs en temps réel
+# Logs Laravel
 tail -f storage/logs/laravel.log
 
-# Vérifier l'état de l'application
-php artisan about
+# Logs de synchronisation Club Privilèges
+tail -f storage/logs/cp-sync.log
+
+# Logs du système
+tail -f /var/log/syslog | grep cron
 ```
 
-## 📞 Support
+### 2. Test de l'interface web
+- Accéder à `https://preprod-domain.com/admin/cp-sync`
+- Vérifier l'affichage de l'interface
+- Tester le bouton "Tester la Connexion"
+- Vérifier l'historique des visites
 
-**Contact Technique**: 
-- Pour les problèmes de déploiement, contacter l'équipe de développement
-- Logs disponibles dans `storage/logs/laravel.log`
-- Base de données accessible via phpMyAdmin ou ligne de commande
+### 3. Test de la synchronisation automatique
+```bash
+# Vérification du scheduler
+php artisan schedule:list
 
-## 🔄 Mises à Jour Futures
+# Test manuel de la synchronisation
+php artisan cp:visit-sync --force
 
-Pour les mises à jour futures:
-1. Sauvegarder la base de données
-2. Sauvegarder le fichier .env
-3. Remplacer les fichiers du code
-4. Exécuter `composer install --no-dev`
-5. Exécuter `php artisan migrate`
-6. Vider les caches
+# Vérification des données synchronisées
+php artisan tinker
+>>> DB::table('client')->count();
+>>> DB::table('transactions_history')->count();
+```
+
+### 4. Surveillance des performances
+```bash
+# Vérification de l'utilisation CPU/Mémoire
+htop
+
+# Vérification de l'espace disque
+df -h
+
+# Vérification des processus PHP
+ps aux | grep php
+```
+
+## 🚨 Gestion des erreurs
+
+### Erreurs courantes et solutions
+
+#### 1. Erreur 401 Unauthorized
+```bash
+# Vérifier les variables d'environnement
+php artisan tinker
+>>> config('cp_sync.server_username');
+>>> config('cp_sync.username');
+
+# Tester la connexion manuellement
+curl -u "BiGHellO:EMQLj3EuDrjS22aNkj" https://clubprivileges.app/sync-dashboard-data
+```
+
+#### 2. Erreur de permissions
+```bash
+# Vérifier les permissions des fichiers
+ls -la storage/logs/
+chmod 755 storage/logs/
+chown www-data:www-data storage/logs/
+```
+
+#### 3. Erreur de cron
+```bash
+# Vérifier le crontab
+crontab -l
+
+# Vérifier les logs du système
+grep CRON /var/log/syslog
+
+# Test manuel du cron
+cd /path/to/dashboard && php artisan schedule:run
+```
+
+#### 4. Erreur de base de données
+```bash
+# Vérifier la connexion à la base
+php artisan tinker
+>>> DB::connection()->getPdo();
+
+# Vérifier les tables
+>>> DB::select('SHOW TABLES');
+```
+
+## 📊 Monitoring et maintenance
+
+### 1. Surveillance quotidienne
+- Vérifier les logs de synchronisation
+- Contrôler l'historique des visites
+- Surveiller les performances du serveur
+
+### 2. Maintenance hebdomadaire
+- Nettoyage des anciens logs
+- Vérification de l'espace disque
+- Test de la synchronisation manuelle
+
+### 3. Maintenance mensuelle
+- Mise à jour des dépendances
+- Sauvegarde complète de la base
+- Révision de la configuration
+
+## 🔐 Sécurité
+
+### 1. Protection des identifiants
+- Variables d'environnement sécurisées
+- Accès restreint au fichier .env
+- Rotation régulière des mots de passe
+
+### 2. Surveillance des accès
+- Logs d'accès au serveur
+- Monitoring des tentatives de connexion
+- Alertes en cas d'anomalie
+
+## 📞 Support et contacts
+
+### En cas de problème
+1. Vérifier les logs d'erreur
+2. Tester la synchronisation manuelle
+3. Vérifier la configuration du cron
+4. Contacter l'équipe de développement
+
+### Informations de contact
+- **Développeur** : [Nom du développeur]
+- **Email** : [email@domain.com]
+- **Téléphone** : [Numéro de téléphone]
 
 ---
-**Version**: 1.0  
-**Date**: $(date '+%Y-%m-%d')  
-**Environnement**: Production
+
+**Date de création** : 27/09/2025  
+**Version** : 1.0  
+**Dernière mise à jour** : 27/09/2025

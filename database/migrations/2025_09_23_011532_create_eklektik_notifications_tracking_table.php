@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('eklektik_transactions_tracking', function (Blueprint $table) {
+        // Cette migration a été corrigée - elle crée maintenant la table notifications_tracking
+        // La table transactions_tracking est créée dans une migration séparée
+        Schema::create('eklektik_notifications_tracking', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('transaction_id')->index();
+            $table->unsignedBigInteger('notification_id')->index();
             $table->timestamp('processed_at')->useCurrent();
             $table->boolean('kpi_updated')->default(false);
             $table->string('processing_batch_id', 50)->nullable()->index();
@@ -23,9 +25,6 @@ return new class extends Migration
             // Index pour les requêtes de performance
             $table->index(['processed_at', 'kpi_updated'], 'idx_processed_kpi');
             $table->index(['processing_batch_id', 'processed_at'], 'idx_batch_processed');
-            
-            // Contrainte de clé étrangère vers transactions_history
-            $table->foreign('transaction_id')->references('transaction_history_id')->on('transactions_history');
         });
     }
 
@@ -34,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('eklektik_transactions_tracking');
+        Schema::dropIfExists('eklektik_notifications_tracking');
     }
 };
