@@ -36,10 +36,13 @@ class AggregatorSyncCommand extends Command
         $map = AggregatorOfferMap::query()->get()->keyBy('abonnement_id');
 
         $synced = 0;
+        $skipped = 0;
+        
         foreach ($rows as $row) {
             /** @var Client $clientModel */
             $clientModel = Client::find($row->client_id);
             if (!$clientModel) {
+                $skipped++;
                 continue;
             }
 
@@ -51,25 +54,26 @@ class AggregatorSyncCommand extends Command
                 ->value('abonnement_id');
 
             if (!$abonnementId) {
+                $skipped++;
                 continue;
             }
 
             $mapRow = $map->get($abonnementId);
             if (!$mapRow || empty($mapRow->aggregator_offre_id)) {
-                $this->warn("Mapping manquant pour abonnement_id={$abonnementId}");
+                $skipped++;
                 continue;
             }
 
             $offreId = $mapRow->aggregator_offre_id;
             $subscriptionId = $client->findSubscriptionId($msisdn, (string) $offreId);
             if (!$subscriptionId) {
-                $this->warn("Aucun subscriptionId pour msisdn={$msisdn}, offre_id={$offreId}");
+                $skipped++;
                 continue;
             }
 
             $payload = $client->getSubscription($subscriptionId);
             if (!$payload || empty($payload['user'])) {
-                $this->warn("Détails indisponibles pour subscriptionId={$subscriptionId}");
+                $skipped++;
                 continue;
             }
 
@@ -97,7 +101,7 @@ class AggregatorSyncCommand extends Command
             $synced++;
         }
 
-        $this->info("Synchronisation terminée. Enregistrements mis à jour: {$synced}");
+        $this->info("✅ Sync terminée - {$synced} synchro, {$skipped} ignorés");
         return self::SUCCESS;
     }
 
