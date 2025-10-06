@@ -116,8 +116,8 @@ class SubStoreController extends Controller
             
             $ttl = $periodDays > 180 ? 300 : ($periodDays > 90 ? 180 : ($periodDays > 30 ? 120 : 60)); // 5min/3min/2min/1min
             
-            // Forcer le recalcul des données réelles (pas de cache)
-            $data = Cache::remember($cacheKey, 0, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedSubStore, $periodDays) {
+            // Mise en cache avec TTL adapté (éviter 0 qui peut persister indéfiniment selon le driver)
+            $data = Cache::remember($cacheKey, $ttl, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedSubStore, $periodDays) {
                 Log::info("Cache MISS - Récupération des données sub-stores depuis la base");
                 Log::info("Période demandée: $periodDays jours");
                 
@@ -132,7 +132,7 @@ class SubStoreController extends Controller
             });
             
             if (Cache::has($cacheKey)) {
-                Log::info("Cache HIT - Données sub-stores servies depuis le cache");
+                Log::info("Cache HIT - Données sub-stores servies depuis le cache (TTL: {$ttl}s)");
             }
             
             return response()->json($data);
@@ -994,7 +994,7 @@ class SubStoreController extends Controller
     private function generateCacheKey(string $startDate, string $endDate, string $comparisonStartDate, string $comparisonEndDate, string $selectedSubStore, int $userId): string
     {
         $keyData = [
-            'substore_data',
+            'substore_data_v2',
             $startDate,
             $endDate,
             $comparisonStartDate,
@@ -1003,7 +1003,7 @@ class SubStoreController extends Controller
             $userId
         ];
         
-        return 'substore:' . md5(implode(':', $keyData));
+        return 'substore:v2:' . md5(implode(':', $keyData));
     }
 
     /**
@@ -1902,8 +1902,8 @@ class SubStoreController extends Controller
         // Cache key basé sur les paramètres
         $cacheKey = "users_data_{$subStore}_{$startDate}_{$endDate}";
         
-        // Forcer le recalcul des données réelles (pas de cache)
-        return Cache::remember($cacheKey, 0, function () use ($startDateObj, $endDateObj, $comparisonStartDateObj, $comparisonEndDateObj, $subStore) {
+        // Mise en cache raisonnable des données Users (5 minutes)
+        return Cache::remember($cacheKey, 300, function () use ($startDateObj, $endDateObj, $comparisonStartDateObj, $comparisonEndDateObj, $subStore) {
                 // Récupérer les données utilisateurs
                 $usersData = $this->getUsersKPIs($startDateObj, $endDateObj, $comparisonStartDateObj, $comparisonEndDateObj, $subStore);
                 $usersList = $this->getUsersList($startDateObj, $endDateObj, $subStore);
