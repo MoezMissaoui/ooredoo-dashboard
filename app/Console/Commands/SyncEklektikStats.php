@@ -105,47 +105,13 @@ class SyncEklektikStats extends Command
                 'errors' => $results['errors'] ?? []
             ]);
 
-            // Afficher les résultats
-            $this->newLine();
-            $this->info('✅ Synchronisation terminée!');
-            $this->info("⏱️ Durée: {$duration}s");
-            $this->info("📊 Total synchronisé: {$results['total_synced']} enregistrements");
-            $this->newLine();
-
-            // Détails par opérateur
-            $this->info('📈 Détails par opérateur:');
-            foreach ($results['operators'] as $operatorName => $stats) {
-                $this->info("  $operatorName: {$stats['synced']} enregistrements ({$stats['records']} récupérés)");
-            }
-
-            // Erreurs
-            if (!empty($results['errors'])) {
-                $this->newLine();
-                $this->warn('⚠️ Erreurs rencontrées:');
-                foreach ($results['errors'] as $error) {
-                    $this->error("  - $error");
-                }
-            }
-
-            // Afficher un échantillon des données
-            $this->newLine();
-            $this->info('📋 Échantillon des données synchronisées:');
-            $sampleStats = $service->getLocalStats($startDate, $endDate, $operator)->take(5);
+            // Résumé concis
+            $this->info("✅ Sync OK - {$results['total_synced']} enr. en {$duration}s");
             
-            if ($sampleStats->isNotEmpty()) {
-                $headers = ['Date', 'Opérateur', 'Nouveaux', 'Renouvellements', 'Facturations', 'Revenus (TND)'];
-                $rows = $sampleStats->map(function ($stat) {
-                    return [
-                        $stat->date,
-                        $stat->operator,
-                        $stat->new_subscriptions,
-                        $stat->renewals,
-                        $stat->charges,
-                        number_format($stat->total_revenue, 2)
-                    ];
-                })->toArray();
-                
-                $this->table($headers, $rows);
+            // Erreurs seulement si présentes
+            if (!empty($results['errors'])) {
+                $errorCount = count($results['errors']);
+                $this->warn("⚠️ {$errorCount} erreur(s)");
             }
 
         } catch (\Exception $e) {
@@ -153,12 +119,11 @@ class SyncEklektikStats extends Command
             $syncTracking->markAsFailed($e->getMessage(), [
                 'error_type' => get_class($e),
                 'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'stack_trace' => $e->getTraceAsString()
+                'error_line' => $e->getLine()
             ]);
 
-            $this->error('❌ Erreur lors de la synchronisation: ' . $e->getMessage());
-            $this->error('Stack trace: ' . $e->getTraceAsString());
+            $this->error('❌ Erreur: ' . $e->getMessage());
+            $this->error('Fichier: ' . $e->getFile() . ':' . $e->getLine());
             return 1;
         }
 

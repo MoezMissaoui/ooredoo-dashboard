@@ -1974,7 +1974,7 @@
                 <thead>
                   <tr>
                     <th onclick="sortUsersTable('rank')" class="sortable">Rang <span class="sort-indicator"></span></th>
-                    <th onclick="sortUsersTable('name')" class="sortable">Nom de l'Utilisateur <span class="sort-indicator"></span></th>
+                    <th onclick="sortUsersTable('id')" class="sortable">ID Utilisateur <span class="sort-indicator"></span></th>
                     <th onclick="sortUsersTable('sub_store_name')" class="sortable">Sub-Store <span class="sort-indicator"></span></th>
                     <th onclick="sortUsersTable('total_transactions')" class="sortable">Transactions <span class="sort-indicator"></span></th>
                     <th onclick="sortUsersTable('total_subscriptions')" class="sortable">Abonnements <span class="sort-indicator"></span></th>
@@ -2132,7 +2132,7 @@
         return `
           <tr>
             <td>${rankBadge}</td>
-            <td>${user.name}</td>
+            <td>${user.id}</td>
             <td>${user.sub_store_name || 'N/A'}</td>
             <td>${user.total_transactions}</td>
             <td>${user.total_subscriptions}</td>
@@ -2192,7 +2192,7 @@
         let bValue = b[column];
         
         // Gestion spéciale pour les colonnes numériques
-        if (column === 'total_transactions' || column === 'total_subscriptions') {
+        if (column === 'total_transactions' || column === 'total_subscriptions' || column === 'id') {
           aValue = parseInt(aValue) || 0;
           bValue = parseInt(bValue) || 0;
         }

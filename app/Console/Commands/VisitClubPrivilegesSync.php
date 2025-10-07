@@ -109,33 +109,23 @@ class VisitClubPrivilegesSync extends Command
             $this->logVisitResult($response->successful(), $response->status(), $response->body());
 
             if ($response->successful()) {
-                $this->info('✅ Visite du lien de synchronisation réussie');
-                $this->info("📊 Statut HTTP: {$response->status()}");
-                
-                // Afficher un extrait de la réponse
-                $body = $response->body();
-                if (strlen($body) > 200) {
-                    $body = substr($body, 0, 200) . '...';
-                }
-                $this->info("📝 Réponse: {$body}");
+                $this->info("✅ Sync réussie - Statut: {$response->status()}");
 
-                Log::info('✅ [CP SYNC] Visite du lien de synchronisation réussie', [
-                    'url' => $this->syncUrl,
+                Log::info('[CP SYNC] OK', [
                     'status' => $response->status(),
-                    'response_length' => strlen($response->body())
+                    'size' => strlen($response->body())
                 ]);
 
                 return 0;
 
             } else {
-                $this->error('❌ Échec de la visite du lien de synchronisation');
-                $this->error("📊 Statut HTTP: {$response->status()}");
-                $this->error("📝 Réponse: {$response->body()}");
+                $this->error("❌ Échec - Statut: {$response->status()}");
 
-                Log::error('❌ [CP SYNC] Échec de la visite du lien de synchronisation', [
-                    'url' => $this->syncUrl,
+                // Limiter la taille de la réponse loggée
+                $errorBody = substr($response->body(), 0, 500);
+                Log::error('[CP SYNC] Échec', [
                     'status' => $response->status(),
-                    'response' => $response->body()
+                    'error' => $errorBody
                 ]);
 
                 return 1;
@@ -144,12 +134,11 @@ class VisitClubPrivilegesSync extends Command
         } catch (\Exception $e) {
             $this->logVisitResult(false, 500, $e->getMessage());
             
-            $this->error('💥 Erreur lors de la visite: ' . $e->getMessage());
+            $this->error('❌ Erreur: ' . $e->getMessage());
             
-            Log::error('💥 [CP SYNC] Erreur lors de la visite du lien de synchronisation', [
-                'url' => $this->syncUrl,
+            Log::error('[CP SYNC] Erreur', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'file' => $e->getFile() . ':' . $e->getLine()
             ]);
 
             return 1;
@@ -182,27 +171,27 @@ class VisitClubPrivilegesSync extends Command
      */
     private function logVisitResult($success, $status, $response)
     {
+        // Limiter la taille de la réponse stockée
+        $limitedResponse = is_string($response) ? substr($response, 0, 200) : $response;
+        
         $result = [
             'timestamp' => Carbon::now()->toISOString(),
             'success' => $success,
             'status' => $status,
-            'response' => $response,
-            'url' => $this->syncUrl
         ];
 
-        // Mettre à jour le dernier résultat
-        Cache::put('cp_sync_last_visit', $result['timestamp'], 86400); // 24h
-        Cache::put('cp_sync_last_result', $result, 86400); // 24h
+        // Mettre à jour le dernier résultat (sans réponse complète)
+        Cache::put('cp_sync_last_visit', $result['timestamp'], 86400);
+        Cache::put('cp_sync_last_result', $result, 86400);
 
-        // Ajouter à l'historique
+        // Garder seulement les 20 dernières entrées dans l'historique
         $history = Cache::get('cp_sync_history', []);
         $history[] = $result;
         
-        // Garder seulement les 100 dernières entrées
-        if (count($history) > 100) {
-            $history = array_slice($history, -100);
+        if (count($history) > 20) {
+            $history = array_slice($history, -20);
         }
         
-        Cache::put('cp_sync_history', $history, 86400 * 7); // 7 jours
+        Cache::put('cp_sync_history', $history, 86400 * 7);
     }
 }

@@ -42,10 +42,10 @@ class SyncEklektikData extends Command
             try {
                 $this->syncDayData($currentDate);
                 $syncedCount++;
-                $this->line("\n✅ {$currentDate->format('Y-m-d')} synchronisé");
             } catch (\Exception $e) {
                 $errorCount++;
-                $this->error("\n❌ Erreur pour {$currentDate->format('Y-m-d')}: " . $e->getMessage());
+                // Logger seulement les erreurs
+                $this->error("\n❌ {$currentDate->format('Y-m-d')}: " . $e->getMessage());
             }
             
             $currentDate->addDay();
@@ -55,11 +55,7 @@ class SyncEklektikData extends Command
         $progressBar->finish();
         
         $this->newLine(2);
-        $this->info("✅ Synchronisation terminée !");
-        $this->info("📊 {$syncedCount} jours synchronisés");
-        if ($errorCount > 0) {
-            $this->warn("⚠️ {$errorCount} erreurs rencontrées");
-        }
+        $this->info("✅ Sync OK - {$syncedCount}/{$totalDays} jours" . ($errorCount > 0 ? " - {$errorCount} erreurs" : ""));
         
         return Command::SUCCESS;
     }
