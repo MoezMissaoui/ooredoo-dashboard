@@ -182,13 +182,13 @@ class SubStoreController extends Controller
                 // KPIs de base (rapides, sans filtres de dates) - avec vraies requêtes
                 $distributed = $this->getDistributedCards($selectedSubStore);
                 $inscriptions = $this->getInscriptionsWithCards($selectedSubStore);
-                $activeUsers = $this->getActiveUsersWithCards($selectedSubStore);
+                $activeUsers = $this->getUsersWithCardsCount($selectedSubStore);
                 $transactions = $this->getTransactionsWithCards($selectedSubStore);
                 
                 Log::info("KPIs de base - Distribué: $distributed, Inscriptions: $inscriptions, Actifs: $activeUsers");
                 
                 // KPIs avec dates - requêtes OPTIMISÉES pour longues périodes
-                $activeUsersCohorte = $this->getOptimizedActiveUsersCohorte($selectedSubStore, $startDate, $endDate);
+                $activeUsersCohorte = $this->getUsersWithCardsCohorteCount($selectedSubStore, $startDate, $endDate);
                 $transactionsCohorte = $this->getOptimizedTransactionsCohorte($selectedSubStore, $startDate, $endDate);
                 $inscriptionsCohorte = $this->getOptimizedInscriptionsCohorte($selectedSubStore, $startDate, $endDate);
                 $transactionsCohorteComparison = $this->getOptimizedTransactionsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
@@ -199,27 +199,25 @@ class SubStoreController extends Controller
                 $totalSubscriptions = $this->getTotalSubscriptions($selectedSubStore);
                 Log::info("Total abonnements: $totalSubscriptions");
                 
-                $conversionRate = $distributed > 0 ? round(($inscriptions / $distributed) * 100, 1) : 0;
+                $conversionRate = $inscriptions > 0 ? round(($activeUsers / $inscriptions) * 100, 1) : 0;
                 
-                // Renouvellement RÉEL optimisé
-                $renewal = $this->getRenewalStats($selectedSubStore, $startDate, $endDate);
-                $renewalRate = $renewal['renewal_rate'];
+                // CARTES ACTIVÉES optimisé
+                $renewalRate = $this->getCardsActivated($selectedSubStore, $startDate, $endDate);
                 
                 // === DONNÉES DE COMPARAISON ===
                 $distributedComparison = $this->getDistributedCards($selectedSubStore);
                 $inscriptionsComparison = $this->getInscriptionsWithCards($selectedSubStore);
-                $activeUsersComparison = $this->getActiveUsersWithCards($selectedSubStore);
+                $activeUsersComparison = $this->getUsersWithCardsCount($selectedSubStore);
                 $transactionsComparison = $this->getTransactionsWithCards($selectedSubStore);
                 $totalSubscriptionsComparison = $this->getTotalSubscriptions($selectedSubStore);
                 
                 // Pour les KPIs avec filtre de date, on calcule pour la période de comparaison
-                $activeUsersCohorteComparison = $this->getOptimizedActiveUsersCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+                $activeUsersCohorteComparison = $this->getUsersWithCardsCohorteCount($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
                 $transactionsCohorteComparison = $this->getOptimizedTransactionsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
                 $inscriptionsCohorteComparison = $this->getOptimizedInscriptionsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
                 
-                $conversionRateComparison = $distributedComparison > 0 ? round(($inscriptionsCohorteComparison / $distributedComparison) * 100, 1) : 0;
-                $renewalComparison = $this->getRenewalStats($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
-                $renewalRateComparison = $renewalComparison['renewal_rate'];
+                $conversionRateComparison = $inscriptionsComparison > 0 ? round(($activeUsersComparison / $inscriptionsComparison) * 100, 1) : 0;
+                $renewalRateComparison = $this->getCardsActivated($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
                 
                 // === CALCUL DES VARIATIONS ===
                 $distributedChange = $this->calculatePercentageChange($distributedComparison, $distributed);
@@ -574,12 +572,12 @@ class SubStoreController extends Controller
             $inscriptions = $this->getInscriptionsWithCards($selectedSubStore);
             Log::info("Inscriptions (avec cartes): $inscriptions");
             
-            // 3. ACTIVE USERS : Clients avec abonnements actifs + cartes de recharge (sans filtre de date)
-            $activeUsers = $this->getActiveUsersWithCards($selectedSubStore);
+            // 3. ACTIVE USERS : Clients avec cartes de recharge (cohérent avec le tableau)
+            $activeUsers = $this->getUsersWithCardsCount($selectedSubStore);
             Log::info("Active users (avec cartes): $activeUsers");
             
-            // 4. ACTIVE USERS COHORTE : Clients avec abonnements actifs + cartes de recharge (avec filtre de date)
-            $activeUsersCohorte = $this->getActiveUsersWithCardsCohorte($selectedSubStore, $startDate, $endDate);
+            // 4. ACTIVE USERS COHORTE : Clients avec cartes de recharge dans la période (cohérent avec le tableau)
+            $activeUsersCohorte = $this->getUsersWithCardsCohorteCount($selectedSubStore, $startDate, $endDate);
             Log::info("Active users cohorte (avec cartes): $activeUsersCohorte");
 
             // 4bis. TOTAL ABONNEMENTS (toutes périodes)
@@ -588,12 +586,11 @@ class SubStoreController extends Controller
             });
             Log::info("Total abonnements: $totalSubscriptions");
 
-            // 4ter. TAUX DE RENOUVELLEMENT (sur la période sélectionnée)
-            $renewal = Cache::remember("renewal_stats_{$selectedSubStore}_{$startDate}_{$endDate}", 600, function() use ($selectedSubStore, $startDate, $endDate) {
-                return $this->getRenewalStats($selectedSubStore, $startDate, $endDate);
+            // 4ter. CARTES ACTIVÉES (sur la période sélectionnée)
+            $renewalRate = Cache::remember("cards_activated_{$selectedSubStore}_{$startDate}_{$endDate}", 600, function() use ($selectedSubStore, $startDate, $endDate) {
+                return $this->getCardsActivated($selectedSubStore, $startDate, $endDate);
             });
-            $renewalRate = $renewal['renewal_rate'];
-            Log::info("Taux de renouvellement: {$renewalRate}%");
+            Log::info("Cartes activées: {$renewalRate}");
             
             // 5. TRANSACTIONS : Abonnements activés avec cartes de recharge (sans filtre de date)
             $transactions = $this->getTransactionsWithCards($selectedSubStore);
@@ -607,26 +604,25 @@ class SubStoreController extends Controller
             $inscriptionsCohorte = $this->getInscriptionsWithCardsCohorte($selectedSubStore, $startDate, $endDate);
             Log::info("Inscriptions cohorte (avec cartes): $inscriptionsCohorte");
             
-            // 8. TAUX DE CONVERSION : (Inscriptions TOTAL / Distribué) * 100
-            $conversionRate = $distributed > 0 ? round(($inscriptions / $distributed) * 100, 1) : 0;
-            Log::info("Taux de conversion: $conversionRate%");
+            // 8. TAUX DE CONVERSION : (Active Users / Total Inscrits) * 100
+            $conversionRate = $inscriptions > 0 ? round(($activeUsers / $inscriptions) * 100, 1) : 0;
+            Log::info("Taux de conversion (Active Users / Total Inscrits): $conversionRate%");
             
             // === KPIs PÉRIODE DE COMPARAISON (même logique mais pour la période de comparaison) ===
             
             $distributedComparison = $this->getDistributedCards($selectedSubStore); // Même valeur car sans filtre de date
             $inscriptionsComparison = $this->getInscriptionsWithCards($selectedSubStore); // Même valeur car sans filtre de date
-            $activeUsersComparison = $this->getActiveUsersWithCards($selectedSubStore); // Même valeur car sans filtre de date
+            $activeUsersComparison = $this->getUsersWithCardsCount($selectedSubStore); // Utiliser les utilisateurs avec cartes (toutes périodes)
             $transactionsComparison = $this->getTransactionsWithCards($selectedSubStore); // Même valeur car sans filtre de date
             
             // Pour les KPIs avec filtre de date, on calcule pour la période de comparaison
-            $activeUsersCohorteComparison = $this->getActiveUsersWithCardsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
+            $activeUsersCohorteComparison = $this->getUsersWithCardsCohorteCount($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
             $transactionsCohorteComparison = $this->getTransactionsWithCardsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
             $inscriptionsCohorteComparison = $this->getInscriptionsWithCardsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
             
-            $conversionRateComparison = $distributedComparison > 0 ? round(($inscriptionsCohorteComparison / $distributedComparison) * 100, 1) : 0;
+            $conversionRateComparison = $inscriptionsComparison > 0 ? round(($activeUsersComparison / $inscriptionsComparison) * 100, 1) : 0;
             $totalSubscriptionsComparison = $this->getTotalSubscriptions($selectedSubStore);
-            $renewalComparison = $this->getRenewalStats($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
-            $renewalRateComparison = $renewalComparison['renewal_rate'];
+            $renewalRateComparison = $this->getCardsActivated($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
             
             // === CALCUL DES VARIATIONS ===
             
@@ -884,22 +880,24 @@ class SubStoreController extends Controller
     }
 
     /**
-     * Total abonnements (toutes périodes) pour un sub-store
+     * Total cartes utilisées (toutes périodes) pour un sub-store
      */
     private function getTotalSubscriptions(string $selectedSubStore): int
     {
         try {
-            $query = DB::table('client_abonnement')
-                ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
+            $query = DB::table('carte_recharge_client')
+                ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
+                ->join('carte_recharge', 'carte_recharge_client.carte_recharge_id', '=', 'carte_recharge.carte_recharge_id')
                 ->where('stores.is_sub_store', 1);
+            
             if ($selectedSubStore !== 'ALL') {
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
+            
             return (int) $query->count();
         } catch (\Exception $e) {
-            Log::warning('Erreur total subscriptions: '.$e->getMessage());
+            Log::warning('Erreur total cartes utilisées: '.$e->getMessage());
             return 0;
         }
     }
@@ -1051,22 +1049,18 @@ class SubStoreController extends Controller
     private function getCategoryDistribution(string $startDate, string $endDate, string $selectedSubStore): array
     {
         try {
-            // Récupérer les catégories des marchands où les utilisateurs ont effectué des transactions
-            // Utiliser promotion au lieu de partner_location car partner_location_id est NULL
+            // Récupérer les catégories des marchands où les utilisateurs ont effectué des transactions (cohérent avec les KPIs)
             $categories = DB::table("history")
-                ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
-                ->join("client", "client_abonnement.client_id", "=", "client.client_id")
+                ->join("client", "history.client_id", "=", "client.client_id")
+                ->join("stores", "client.sub_store", "=", "stores.store_id")
                 ->join("promotion", "history.promotion_id", "=", "promotion.promotion_id")
                 ->join("partner", "promotion.partner_id", "=", "partner.partner_id")
                 ->join("partner_category", "partner.partner_category_id", "=", "partner_category.partner_category_id")
-                ->join("stores", "client.sub_store", "=", "stores.store_id")
-                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->select(
                     "partner_category.partner_category_name",
-                    DB::raw("COUNT(DISTINCT history.history_id) as utilizations")
+                    DB::raw("COUNT(history.history_id) as utilizations")
                 )
                 ->where("stores.is_sub_store", 1)
-                ->where("stores.store_active", 1)
                 ->whereBetween("history.time", [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
@@ -1551,11 +1545,10 @@ class SubStoreController extends Controller
     private function getTransactionsWithCardsCohorte(string $selectedSubStore, string $startDate, string $endDate): int
     {
         try {
+            // Compter toutes les transactions dans history pour les clients du sub-store (cohérent avec le tableau merchants)
             $query = DB::table('history')
-                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
-                ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
+                ->join('client', 'history.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->where('stores.is_sub_store', 1)
                 ->whereBetween('history.time', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
@@ -1563,7 +1556,7 @@ class SubStoreController extends Controller
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
             
-            return $query->distinct('history.history_id')->count();
+            return $query->count();
         } catch (\Exception $e) {
             Log::error("Erreur calcul transactions cohorte: " . $e->getMessage());
             return 0;
@@ -1599,6 +1592,22 @@ class SubStoreController extends Controller
     private function getStoreIdByName(string $storeName): ?int
     {
         try {
+            // Mapping direct pour les sub-stores connus
+            $storeMapping = [
+                'Sofrecom' => 24,
+                'Vistaprint' => 13,
+                'Enda Tamweel' => 18,
+                'ACTIA Engineering Services' => 19,
+                'Club22' => 20,
+                'OTH/OTBS_byonetech' => 21,
+                'ELEONETECH' => 22,
+            ];
+            
+            if (isset($storeMapping[$storeName])) {
+                return $storeMapping[$storeName];
+            }
+            
+            // Fallback sur la base de données
             $store = DB::table('stores')
                 ->where('store_name', 'LIKE', "%" . $storeName . "%")
                 ->where('is_sub_store', 1)
@@ -1714,10 +1723,9 @@ class SubStoreController extends Controller
             // 6. Total Transactions (période comparaison) = Transactions Cohorte comparaison
             $totalTransactionsComparison = $this->getTransactionsWithCardsCohorte($selectedSubStore, $comparisonStartDate, $comparisonEndDate);
             
-            // 7. All Merchants avec données de comparaison
+            // 7. All Merchants avec données de comparaison (cohérent avec les KPIs)
             $allMerchants = DB::table('history')
-                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
-                ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
+                ->join('client', 'history.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('promotion', 'history.promotion_id', '=', 'promotion.promotion_id')
                 ->join('partner', 'promotion.partner_id', '=', 'partner.partner_id')
@@ -1737,10 +1745,9 @@ class SubStoreController extends Controller
                 ->orderByDesc('transactions_count')
                 ->get();
 
-            // 8. Merchants période de comparaison
+            // 8. Merchants période de comparaison (cohérent avec les KPIs)
             $merchantsComparison = DB::table('history')
-                ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
-                ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
+                ->join('client', 'history.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('promotion', 'history.promotion_id', '=', 'promotion.promotion_id')
                 ->join('partner', 'promotion.partner_id', '=', 'partner.partner_id')
@@ -1929,12 +1936,12 @@ class SubStoreController extends Controller
     {
         // Utiliser les mêmes méthodes que la vue d'ensemble pour garantir la cohérence
         $totalUsers = $this->getInscriptionsWithCards($subStore); // INSCRIPTIONS
-        $activeUsers = $this->getActiveUsersWithCards($subStore); // ACTIVE USERS (toutes périodes)
-        $activeUsersCohorte = $this->getActiveUsersWithCardsCohorte($subStore, $startDate, $endDate); // ACTIVE USERS (période)
+        $activeUsers = $this->getUsersWithCardsCount($subStore); // ACTIVE USERS = utilisateurs avec cartes (cohérent avec le tableau)
+        $activeUsersCohorte = $this->getUsersWithCardsCohorteCount($subStore, $startDate, $endDate); // ACTIVE USERS (période)
         $totalTransactions = $this->getTransactionsWithCards($subStore); // TRANSACTIONS (toutes périodes)
         $totalTransactionsCohorte = $this->getTransactionsWithCardsCohorte($subStore, $startDate, $endDate); // TRANSACTIONS (période)
         $totalSubscriptions = $this->getTotalSubscriptions($subStore); // ABONNEMENTS (toutes périodes)
-        $newUsers = $this->getInscriptionsWithCardsCohorte($subStore, $startDate, $endDate); // NOUVEAUX utilisateurs (période)
+        $newUsers = $this->getCardsActivated($subStore, $startDate, $endDate); // CARTES ACTIVÉES (période)
         
         // Calculs dérivés - utiliser activeUsers (toutes périodes) pour la cohérence
         $avgTransactionsPerUser = $activeUsers > 0 ? round($totalTransactions / $activeUsers, 2) : 0;
@@ -1943,12 +1950,12 @@ class SubStoreController extends Controller
         // Données de comparaison si disponibles
         $comparisonData = [];
         if ($comparisonStartDate && $comparisonEndDate) {
-            $comparisonActiveUsers = $this->getActiveUsersWithCards($subStore); // Même valeur car sans filtre de date
-            $comparisonActiveUsersCohorte = $this->getActiveUsersWithCardsCohorte($subStore, $comparisonStartDate, $comparisonEndDate);
+            $comparisonActiveUsers = $this->getUsersWithCardsCount($subStore); // Même valeur car sans filtre de date
+            $comparisonActiveUsersCohorte = $this->getUsersWithCardsCohorteCount($subStore, $comparisonStartDate, $comparisonEndDate);
             $comparisonTotalTransactions = $this->getTransactionsWithCards($subStore); // Même valeur car sans filtre de date
             $comparisonTotalTransactionsCohorte = $this->getTransactionsWithCardsCohorte($subStore, $comparisonStartDate, $comparisonEndDate);
             $comparisonTotalSubscriptions = $this->getTotalSubscriptions($subStore); // Même valeur car sans filtre de date
-            $comparisonNewUsers = $this->getInscriptionsWithCardsCohorte($subStore, $comparisonStartDate, $comparisonEndDate);
+            $comparisonNewUsers = $this->getCardsActivated($subStore, $comparisonStartDate, $comparisonEndDate);
             
             $comparisonData = [
                 'totalUsers' => $totalUsers, // Même valeur car sans filtre de date
@@ -2012,6 +2019,7 @@ class SubStoreController extends Controller
      */
     private function getUsersList($startDate, $endDate, $subStore)
     {
+        Log::info("=== DÉBUT getUsersList pour subStore: $subStore ===");
         // Requête optimisée pour éviter les blocages
         $users = DB::table('carte_recharge_client')
             ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
@@ -2040,18 +2048,153 @@ class SubStoreController extends Controller
             // Pas de limite pour récupérer tous les utilisateurs comme les merchants
             ->get();
 
-        return $users->map(function ($user) {
+        return $users->map(function ($user) use ($subStore) {
+            // Récupérer le tarif_id du sub-store actuel pour filtrer les cartes aussi
+            $storeId = $this->getStoreIdByName($subStore);
+            $tarifId = null;
+            if ($storeId && $subStore !== 'ALL') {
+                $tarifId = $this->getTarifIdBySubStore($subStore);
+            }
+            
+            // Récupérer les codes des cartes de recharge pour cet utilisateur, liées au store spécifique
+            $cards = [];
+            if ($subStore !== 'ALL') {
+                // Récupérer les cartes liées au store spécifique (ex: Sofrecom = store 24)
+                $cards = DB::table('carte_recharge_client')
+                    ->join('carte_recharge', 'carte_recharge_client.carte_recharge_id', '=', 'carte_recharge.carte_recharge_id')
+                    ->where('carte_recharge_client.client_id', $user->id)
+                    ->where('carte_recharge.stores', 'LIKE', "%$storeId%")
+                    ->select('carte_recharge.carte_recharge_code')
+                    ->distinct()
+                    ->pluck('carte_recharge.carte_recharge_code')
+                    ->toArray();
+                
+                // Log pour débugger
+                if ($user->id == 98420) {
+                    Log::info("DEBUG User 98420 - StoreId: $storeId, Cards: " . json_encode($cards));
+                }
+            } else {
+                // Si pas de sub-store spécifique, récupérer toutes les cartes
+                $cards = DB::table('carte_recharge_client')
+                    ->join('carte_recharge', 'carte_recharge_client.carte_recharge_id', '=', 'carte_recharge.carte_recharge_id')
+                    ->where('carte_recharge_client.client_id', $user->id)
+                    ->select('carte_recharge.carte_recharge_code')
+                    ->distinct()
+                    ->pluck('carte_recharge.carte_recharge_code')
+                    ->toArray();
+            }
+            
+            // Le nombre de cartes utilisées = le nombre de cartes de recharge
+            $cardsUsed = count($cards);
+
             return [
                 'id' => $user->id,
                 'name' => $user->name,
                 'sub_store_name' => $user->sub_store_name,
                 'registration_date' => $user->registration_date ? Carbon::parse($user->registration_date)->format('Y-m-d') : 'N/A',
                 'total_transactions' => $user->total_transactions,
-                'total_subscriptions' => $user->total_subscriptions,
+                'total_subscriptions' => $cardsUsed,
+                'recharge_cards' => $cards,
                 'last_activity' => $user->last_activity ? Carbon::parse($user->last_activity)->format('Y-m-d H:i') : 'N/A',
                 'status' => $user->status
             ];
         });
+    }
+
+    /**
+     * Récupérer le tarif_id associé à un sub-store
+     */
+    private function getTarifIdBySubStore(string $subStore): ?int
+    {
+        try {
+            // Mapping des sub-stores vers leurs tarif_id correspondants
+            // À adapter selon votre structure de données
+            $subStoreTarifs = [
+                'Sofrecom' => 48,
+                'Vistaprint' => 10,
+                'Enda Tamweel' => 41,
+                'ACTIA Engineering Services' => 16,
+                'Club22' => 48,
+                'OTH/OTBS_byonetech' => 48,
+                'ELEONETECH' => 48,
+                // Ajouter d'autres mappings selon vos données
+            ];
+            
+            return $subStoreTarifs[$subStore] ?? null;
+        } catch (\Exception $e) {
+            Log::error("Erreur getTarifIdBySubStore: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Compter les utilisateurs avec cartes de recharge ET actifs (cohérent avec le tableau)
+     */
+    private function getUsersWithCardsCount(string $selectedSubStore): int
+    {
+        try {
+            $query = DB::table('carte_recharge_client')
+                ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
+                ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+                ->join('history', 'carte_recharge_client.client_id', '=', 'history.client_id')
+                ->where('stores.is_sub_store', 1);
+            
+            if ($selectedSubStore !== 'ALL') {
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
+            }
+            
+            return (int) $query->distinct('carte_recharge_client.client_id')->count();
+        } catch (\Exception $e) {
+            Log::warning('Erreur getUsersWithCardsCount: '.$e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Compter les utilisateurs avec cartes de recharge ET actifs dans une période (cohérent avec le tableau)
+     */
+    private function getUsersWithCardsCohorteCount(string $selectedSubStore, $startDate, $endDate): int
+    {
+        try {
+            $query = DB::table('carte_recharge_client')
+                ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
+                ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+                ->join('history', 'carte_recharge_client.client_id', '=', 'history.client_id')
+                ->where('stores.is_sub_store', 1)
+                ->whereBetween('history.time', [$startDate, $endDate]);
+            
+            if ($selectedSubStore !== 'ALL') {
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
+            }
+            
+            return (int) $query->distinct('carte_recharge_client.client_id')->count();
+        } catch (\Exception $e) {
+            Log::warning('Erreur getUsersWithCardsCohorteCount: '.$e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Compter les cartes de recharge activées dans une période
+     */
+    private function getCardsActivated(string $selectedSubStore, string $startDate, string $endDate): int
+    {
+        try {
+            $query = DB::table('carte_recharge_client')
+                ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
+                ->join('stores', 'client.sub_store', '=', 'stores.store_id')
+                ->where('stores.is_sub_store', 1)
+                ->whereBetween('carte_recharge_client.created_at', [$startDate, Carbon::parse($endDate)->endOfDay()]);
+            
+            if ($selectedSubStore !== 'ALL') {
+                $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
+            }
+            
+            return (int) $query->count();
+        } catch (\Exception $e) {
+            Log::warning('Erreur getCardsActivated: '.$e->getMessage());
+            return 0;
+        }
     }
 
     /**
