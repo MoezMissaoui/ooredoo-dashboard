@@ -68,6 +68,9 @@ class DataController extends Controller
      */
     public function getDashboardData(Request $request): JsonResponse
     {
+        // Augmenter le temps d'exécution pour cette méthode qui peut être lente
+        set_time_limit(120); // 2 minutes au lieu de 30 secondes par défaut
+        
         try {
             Log::info("=== DÉBUT API getDashboardData ===");
             
@@ -171,6 +174,9 @@ class DataController extends Controller
      */
     private function fetchDashboardDataFromDatabase(string $startDate, string $endDate, string $comparisonStartDate, string $comparisonEndDate, string $selectedOperator = "Timwe"): array
     {
+        // Augmenter le temps d'exécution pour les requêtes complexes
+        set_time_limit(120);
+        
         try {
             $startTime = microtime(true);
             Log::info("=== DÉBUT fetchDashboardDataFromDatabase ===");

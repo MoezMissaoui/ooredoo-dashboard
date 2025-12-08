@@ -19,6 +19,19 @@ class SubStoreController extends Controller
     }
 
     /**
+     * Helper method pour appliquer le filtre sub-store avec exception pour le store ID 54
+     * Le store 54 doit être inclus même si is_sub_store != 1
+     */
+    private function applySubStoreFilter($query, $tableAlias = 'stores')
+    {
+        return $query->where(function($q) use ($tableAlias) {
+            $q->where("$tableAlias.is_sub_store", 1)
+              // Exception: inclure le store ID 54 même si is_sub_store != 1
+              ->orWhere("$tableAlias.store_id", 54);
+        });
+    }
+
+    /**
      * Afficher le dashboard sub-stores
      */
     public function index()
@@ -361,7 +374,8 @@ class SubStoreController extends Controller
                 ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('client_abonnement', 'client.client_id', '=', 'client_abonnement.client_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->where('client_abonnement.client_abonnement_expiration', '>', Carbon::now())
                 ->whereBetween('client_abonnement.client_abonnement_creation', [
                     Carbon::parse($startDate)->startOfDay(),
@@ -394,7 +408,8 @@ class SubStoreController extends Controller
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween('history.time', [
                     Carbon::parse($startDate)->startOfDay(),
                     Carbon::parse($endDate)->endOfDay()
@@ -423,7 +438,8 @@ class SubStoreController extends Controller
             $query = DB::table('carte_recharge_client')
                 ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween('client.created_at', [
                     Carbon::parse($startDate)->startOfDay(),
                     Carbon::parse($endDate)->endOfDay()
@@ -466,7 +482,8 @@ class SubStoreController extends Controller
             $query = DB::table('client')
                 ->select('stores.store_name', DB::raw('COUNT(client.client_id) as client_count'))
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
                 ->groupBy('stores.store_id', 'stores.store_name')
                 ->orderBy('client_count', 'desc')
@@ -510,7 +527,8 @@ class SubStoreController extends Controller
             $query = DB::table('client')
                 ->select(DB::raw($groupBy . ' as period'), DB::raw('COUNT(client.client_id) as count'))
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween('client.created_at', [
                     Carbon::parse($startDate)->startOfDay(),
                     Carbon::parse($endDate)->endOfDay()
@@ -666,8 +684,8 @@ class SubStoreController extends Controller
             $revenueComparisonQuery = DB::table("client_abonnement")
                 ->join("client", "client_abonnement.client_id", "=", "client.client_id")
                 ->join("stores", "client.sub_store", "=", "stores.store_id")
-                ->join("abonnement_tarifs", "client_abonnement.tarif_id", "=", "abonnement_tarifs.abonnement_tarifs_id")
-                ->where("stores.is_sub_store", 1)
+                ->join("abonnement_tarifs", "client_abonnement.tarif_id", "=", "abonnement_tarifs.abonnement_tarifs_id");
+            $this->applySubStoreFilter($query)
                 ->whereBetween("client_abonnement.client_abonnement_creation", [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
@@ -688,7 +706,8 @@ class SubStoreController extends Controller
                     DB::raw("COUNT(DISTINCT stores.store_id) as store_count"),
                     DB::raw("COUNT(DISTINCT client.client_id) as client_count")
                 )
-                ->where("stores.is_sub_store", 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->where("stores.store_active", 1)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
@@ -893,7 +912,8 @@ class SubStoreController extends Controller
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
-                ->where('stores.is_sub_store', 1);
+                ;
+            $this->applySubStoreFilter($query);
             if ($selectedSubStore !== 'ALL') {
                 $query->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
             }
@@ -916,7 +936,8 @@ class SubStoreController extends Controller
             $expirations = DB::table('client_abonnement')
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($q) use ($selectedSubStore) {
                     $q->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
                 })
@@ -927,7 +948,8 @@ class SubStoreController extends Controller
             $renewals = DB::table('client_abonnement as ca1')
                 ->join('client', 'ca1.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($q) use ($selectedSubStore) {
                     $q->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
                 })
@@ -967,7 +989,8 @@ class SubStoreController extends Controller
                     DB::raw("DATE_FORMAT(client_abonnement.client_abonnement_expiration, '%Y-%m') as ym"),
                     DB::raw('COUNT(*) as total')
                 )
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($q) use ($selectedSubStore) {
                     $q->where('stores.store_name', 'LIKE', "%" . $selectedSubStore . "%");
                 })
@@ -1065,7 +1088,8 @@ class SubStoreController extends Controller
                     "partner_category.partner_category_name",
                     DB::raw("COUNT(DISTINCT history.history_id) as utilizations")
                 )
-                ->where("stores.is_sub_store", 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->where("stores.store_active", 1)
                 ->whereBetween("history.time", [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
@@ -1109,7 +1133,8 @@ class SubStoreController extends Controller
                     DB::raw("DATE_FORMAT(client.created_at, '%Y-%m') as month"),
                     DB::raw("COUNT(DISTINCT client.client_id) as value")
                 )
-                ->where("stores.is_sub_store", 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween("client.created_at", [$extendedStartDate, Carbon::parse($extendedEndDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
@@ -1332,7 +1357,8 @@ class SubStoreController extends Controller
                     DB::raw("DATE_FORMAT(client.created_at, '$dateFormat') as period"),
                     DB::raw("COUNT(DISTINCT client.client_id) as value")
                 )
-                ->where("stores.is_sub_store", 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween("client.created_at", [$startDate, Carbon::parse($endDate)->endOfDay()])
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
@@ -1444,7 +1470,8 @@ class SubStoreController extends Controller
                 $query = DB::table('carte_recharge_client')
                     ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                     ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                    ->where('stores.is_sub_store', 1);
+                    ;
+            $this->applySubStoreFilter($query);
                 
                 if ($selectedSubStore !== 'ALL') {
                     $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
@@ -1471,7 +1498,8 @@ class SubStoreController extends Controller
                     ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                     ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                     ->join('client_abonnement', 'client.client_id', '=', 'client_abonnement.client_id')
-                    ->where('stores.is_sub_store', 1)
+                    ;
+            $this->applySubStoreFilter($query)
                     ->where('client_abonnement.client_abonnement_expiration', '>', Carbon::now());
                 
                 if ($selectedSubStore !== 'ALL') {
@@ -1496,7 +1524,8 @@ class SubStoreController extends Controller
                 ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('client_abonnement', 'client.client_id', '=', 'client_abonnement.client_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->where('client_abonnement.client_abonnement_expiration', '>', Carbon::now())
                 ->whereBetween('client_abonnement.client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
@@ -1531,7 +1560,8 @@ class SubStoreController extends Controller
                             ->from('carte_recharge_client')
                             ->whereRaw('carte_recharge_client.client_id = client.client_id');
                     })
-                    ->where('stores.is_sub_store', 1);
+                    ;
+            $this->applySubStoreFilter($query);
                 
                 if ($selectedSubStore !== 'ALL') {
                     $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
@@ -1556,7 +1586,8 @@ class SubStoreController extends Controller
                 ->join('client', 'client_abonnement.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('carte_recharge_client', 'client.client_id', '=', 'carte_recharge_client.client_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween('history.time', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
             if ($selectedSubStore !== 'ALL') {
@@ -1579,7 +1610,8 @@ class SubStoreController extends Controller
             $query = DB::table('carte_recharge_client')
                 ->join('client', 'carte_recharge_client.client_id', '=', 'client.client_id')
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->whereBetween('client.created_at', [$startDate, Carbon::parse($endDate)->endOfDay()]);
             
             if ($selectedSubStore !== 'ALL') {
@@ -1599,10 +1631,10 @@ class SubStoreController extends Controller
     private function getStoreIdByName(string $storeName): ?int
     {
         try {
-            $store = DB::table('stores')
-                ->where('store_name', 'LIKE', "%" . $storeName . "%")
-                ->where('is_sub_store', 1)
-                ->first();
+            $query = DB::table('stores')
+                ->where('store_name', 'LIKE', "%" . $storeName . "%");
+            $this->applySubStoreFilter($query, 'stores');
+            $store = $query->first();
             
             return $store ? $store->store_id : null;
         } catch (\Exception $e) {
@@ -1633,7 +1665,8 @@ class SubStoreController extends Controller
                     DB::raw("COUNT(DISTINCT client.client_id) as total_customers"),
                     DB::raw("COUNT(DISTINCT carte_recharge.carte_recharge_id) as distributed_cards")
                 )
-                ->where("stores.is_sub_store", 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->where("stores.store_active", 1)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where("stores.store_name", "LIKE", "%" . $selectedSubStore . "%");
@@ -1679,7 +1712,8 @@ class SubStoreController extends Controller
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('promotion', 'history.promotion_id', '=', 'promotion.promotion_id')
                 ->join('partner', 'promotion.partner_id', '=', 'partner.partner_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
                 })
@@ -1694,7 +1728,8 @@ class SubStoreController extends Controller
                 ->join('stores', 'client.sub_store', '=', 'stores.store_id')
                 ->join('promotion', 'history.promotion_id', '=', 'promotion.promotion_id')
                 ->join('partner', 'promotion.partner_id', '=', 'partner.partner_id')
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
                 })
@@ -1728,7 +1763,8 @@ class SubStoreController extends Controller
                     'partner_category.partner_category_name',
                     DB::raw('COUNT(history.history_id) as transactions_count')
                 )
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
                 })
@@ -1748,7 +1784,8 @@ class SubStoreController extends Controller
                     'partner.partner_id',
                     DB::raw('COUNT(history.history_id) as transactions_count')
                 )
-                ->where('stores.is_sub_store', 1)
+                ;
+            $this->applySubStoreFilter($query)
                 ->when($selectedSubStore !== 'ALL', function($query) use ($selectedSubStore) {
                     return $query->where('stores.store_name', 'LIKE', "%$selectedSubStore%");
                 })
@@ -2020,8 +2057,8 @@ class SubStoreController extends Controller
                 $join->on('carte_recharge_client.client_id', '=', 'history.client_id')
                      ->whereBetween('history.time', [$startDate, $endDate]);
             })
-            ->leftJoin('client_abonnement', 'carte_recharge_client.client_id', '=', 'client_abonnement.client_id')
-            ->where('stores.is_sub_store', 1)
+            ->leftJoin('client_abonnement', 'carte_recharge_client.client_id', '=', 'client_abonnement.client_id');
+            $this->applySubStoreFilter($query)
             ->when($subStore !== 'ALL', function ($query) use ($subStore) {
                 return $query->where('stores.store_name', 'LIKE', "%$subStore%");
             })
