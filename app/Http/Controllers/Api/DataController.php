@@ -17,33 +17,164 @@ class DataController extends Controller
      * Builder commun: history -> client_abonnement -> cpm -> promotion -> partner
      */
     /**
-     * Valider l'accès à un opérateur selon les permissions utilisateur
+     * Valider l'accès à un opérateur selon les permissions utilisateur (utilise les IDs)
+     * Retourne l'ID de l'opérateur autorisé
      */
-    private function validateOperatorAccess($user, string $requestedOperator): string
+    private function validateOperatorAccess($user, $requestedOperator): string
     {
+        // Si c'est "ALL", autoriser uniquement pour SuperAdmin
+        // Pour les autres, utiliser l'opérateur par défaut
+        if ($requestedOperator === 'ALL' || $requestedOperator === '' || $requestedOperator === null) {
         if ($user->isSuperAdmin()) {
-            // Super Admin peut accéder à tous les opérateurs et à la vue globale
-            return $requestedOperator;
+                return 'ALL';
+            }
+            // Pour Admin/Collaborateur, utiliser l'opérateur par défaut au lieu de bloquer
+            $primaryOperator = $user->primaryOperator();
+            if ($primaryOperator) {
+                $primaryOperatorId = DB::table('country_payments_methods')
+                    ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($primaryOperator->operator_name)])
+                    ->value('country_payments_methods_id');
+                
+                if ($primaryOperatorId) {
+                    return (string)$primaryOperatorId;
+                }
+            }
+            // Si pas d'opérateur principal, utiliser le premier assigné
+            $firstOperator = $user->operators()->where('is_active', true)->first();
+            if ($firstOperator) {
+                $firstOperatorId = DB::table('country_payments_methods')
+                    ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($firstOperator->operator_name)])
+                    ->value('country_payments_methods_id');
+                
+                if ($firstOperatorId) {
+                    return (string)$firstOperatorId;
+                }
+            }
+            throw new \Exception("Aucun opérateur assigné à l'utilisateur. Veuillez contacter l'administrateur.");
+        }
+        
+        // Convertir l'ID en string si c'est un nombre
+        $requestedOperatorId = is_numeric($requestedOperator) ? (string)$requestedOperator : $requestedOperator;
+        
+        if ($user->isSuperAdmin()) {
+            // Super Admin peut accéder à tous les opérateurs
+            // Si c'est un ID numérique, le retourner tel quel
+            if (is_numeric($requestedOperatorId)) {
+                return $requestedOperatorId;
+            }
+            // Sinon, chercher l'ID correspondant au nom
+            $operatorId = DB::table('country_payments_methods')
+                ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($requestedOperatorId)])
+                ->value('country_payments_methods_id');
+            
+            if ($operatorId) {
+                return (string)$operatorId;
+            }
+            return $requestedOperatorId;
         }
         
         // Pour Admin/Collaborateur, vérifier les opérateurs assignés
-        $allowedOperators = $user->operators->pluck('operator_name')->toArray();
+        $allowedOperatorNames = $user->operators()
+            ->where('is_active', true)
+            ->pluck('operator_name')
+            ->toArray();
         
-        if (empty($allowedOperators)) {
-            // Si aucun opérateur assigné, utiliser Timwe par défaut
-            return 'S\'abonner via Timwe';
+        if (empty($allowedOperatorNames)) {
+            throw new \Exception("Aucun opérateur assigné à l'utilisateur. Veuillez contacter l'administrateur.");
         }
         
-        // Si l'opérateur demandé n'est pas dans la liste autorisée, utiliser le principal
-        if (!in_array($requestedOperator, $allowedOperators)) {
-            $primaryOperator = $user->primaryOperator()->first();
-            return $primaryOperator ? $primaryOperator->operator_name : $allowedOperators[0];
+        // Récupérer les IDs des opérateurs autorisés
+        $allowedOperatorIds = DB::table('country_payments_methods')
+            ->whereIn(DB::raw('TRIM(country_payments_methods_name)'), array_map('trim', $allowedOperatorNames))
+            ->pluck('country_payments_methods_id')
+            ->map(function($id) { return (string)$id; })
+            ->toArray();
+        
+        // Si l'opérateur demandé est un ID, vérifier s'il est dans la liste autorisée
+        if (is_numeric($requestedOperatorId)) {
+            if (in_array($requestedOperatorId, $allowedOperatorIds)) {
+                return $requestedOperatorId;
+            }
+            // Si l'ID n'est pas autorisé, utiliser le premier opérateur assigné
+            if (!empty($allowedOperatorIds)) {
+                return $allowedOperatorIds[0];
+            }
+            throw new \Exception("Opérateur non autorisé pour cet utilisateur.");
         }
         
-        return $requestedOperator;
+        // Si c'est un nom, chercher l'ID correspondant et vérifier s'il est autorisé
+        $operatorId = DB::table('country_payments_methods')
+            ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($requestedOperatorId)])
+            ->value('country_payments_methods_id');
+        
+        if ($operatorId && in_array((string)$operatorId, $allowedOperatorIds)) {
+            return (string)$operatorId;
+        }
+        
+        // Si l'opérateur demandé n'est pas autorisé, utiliser le principal
+        $primaryOperator = $user->primaryOperator();
+        if ($primaryOperator) {
+            $primaryOperatorId = DB::table('country_payments_methods')
+                ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($primaryOperator->operator_name)])
+                ->value('country_payments_methods_id');
+            
+            if ($primaryOperatorId) {
+                return (string)$primaryOperatorId;
+            }
+        }
+        
+        // En dernier recours, retourner le premier ID autorisé
+        if (!empty($allowedOperatorIds)) {
+            return $allowedOperatorIds[0];
+        }
+        
+        throw new \Exception("Aucun opérateur autorisé trouvé pour cet utilisateur.");
     }
 
-    private function buildMerchantQuery(string $operator, string $from, string $to)
+    /**
+     * Convertir un opérateur (ID ou nom) en ID numérique
+     */
+    private function getOperatorId($operator): ?int
+    {
+        if ($operator === 'ALL' || empty($operator)) {
+            return null;
+        }
+        
+        // Si c'est déjà un ID numérique, le retourner
+        if (is_numeric($operator)) {
+            return (int)$operator;
+        }
+        
+        // Sinon, chercher l'ID par nom
+        $operatorId = DB::table('country_payments_methods')
+            ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($operator)])
+            ->value('country_payments_methods_id');
+        
+        return $operatorId ? (int)$operatorId : null;
+    }
+
+    /**
+     * Appliquer un filtre d'opérateur à une requête
+     */
+    private function applyOperatorFilter($query, $operator, $tableAlias = 'country_payments_methods')
+    {
+        if ($operator === 'ALL' || empty($operator)) {
+            return $query;
+        }
+        
+        $operatorId = $this->getOperatorId($operator);
+        
+        if ($operatorId) {
+            $query->where("$tableAlias.country_payments_methods_id", $operatorId);
+        } else {
+            // Fallback sur le nom si l'ID n'est pas trouvé
+            $query->whereRaw("TRIM($tableAlias.country_payments_methods_name) = ?", [trim($operator)]);
+        }
+        
+        return $query;
+    }
+    
+    private function buildMerchantQuery($operator, string $from, string $to)
     {
         $query = DB::table('history')
             ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
@@ -53,10 +184,8 @@ class DataController extends Controller
             ->whereBetween('history.time', [$from, Carbon::parse($to)->endOfDay()])
             ->whereNotNull('history.promotion_id');
 
-        // Si l'opérateur est "ALL", ne pas filtrer par opérateur (vue globale Super Admin)
-        if ($operator !== 'ALL') {
-            $query->where('country_payments_methods.country_payments_methods_name', $operator);
-        }
+        // Appliquer le filtre d'opérateur
+        $this->applyOperatorFilter($query, $operator);
 
         return $query;
     }
@@ -86,8 +215,31 @@ class DataController extends Controller
             
             Log::info("Dates reçues: start_date=$startDate, end_date=$endDate");
             Log::info("Dates comparaison: comparison_start_date=$comparisonStartDate, comparison_end_date=$comparisonEndDate");
-            Log::info("Opérateur sélectionné: $selectedOperator");
+            Log::info("Opérateur sélectionné: '$selectedOperator' (longueur: " . strlen($selectedOperator) . ")");
             Log::info("Utilisateur: {$user->email} (Rôle: {$user->role->name})");
+            
+            // Debug: vérifier les opérateurs similaires à IZI et l'ID 14
+            if (stripos($selectedOperator, 'izi') !== false || stripos($selectedOperator, 'privil') !== false || $selectedOperator === 'ALL') {
+                $similarOperators = DB::table('country_payments_methods')
+                    ->where(function($q) {
+                        $q->where('country_payments_methods_name', 'LIKE', '%IZI%')
+                          ->orWhere('country_payments_methods_name', 'LIKE', '%Privil%')
+                          ->orWhere('country_payments_methods_name', 'LIKE', '%izi%')
+                          ->orWhere('country_payments_methods_id', 14); // Vérifier spécifiquement l'ID 14
+                    })
+                    ->select('country_payments_methods_id', 'country_payments_methods_name')
+                    ->get();
+                Log::info("Opérateurs similaires à IZI trouvés: " . json_encode($similarOperators->toArray()));
+                
+                // Vérifier les abonnements pour l'ID 14
+                $subsForId14 = DB::table('client_abonnement')
+                    ->where('country_payments_methods_id', 14)
+                    ->where('client_abonnement_creation', '>=', Carbon::parse($startDate)->startOfDay())
+                    ->where('client_abonnement_creation', '<=', Carbon::parse($endDate)->endOfDay())
+                    ->select('client_abonnement_id', 'client_abonnement_creation', 'client_abonnement_expiration')
+                    ->get();
+                Log::info("Abonnements pour country_payments_methods_id=14 dans la période: " . json_encode($subsForId14->toArray()));
+            }
 
             // Validate dates if provided
             if ($startDate && !$this->isValidDate($startDate)) {
@@ -138,17 +290,14 @@ class DataController extends Controller
             Log::error("Fichier: " . $e->getFile() . " ligne " . $e->getLine());
             Log::error("Trace: " . $e->getTraceAsString());
             
-            // Return error with fallback data but mark it clearly
-            $fallbackData = $this->getFallbackData($startDate ?? null, $endDate ?? null);
-            $fallbackData['error'] = $e->getMessage();
-            $fallbackData['error_details'] = [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ];
-            
-            Log::error("Retour des données fallback à cause de l'erreur");
-            return response()->json($fallbackData, 500);
+            // Retourner une erreur claire au lieu de fallback
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors du chargement des données',
+                'message' => $e->getMessage(),
+                'data_source' => 'error',
+                'timestamp' => now()->toISOString()
+            ], 500);
         }
     }
 
@@ -172,7 +321,7 @@ class DataController extends Controller
      * @param string $endDate
      * @return array
      */
-    private function fetchDashboardDataFromDatabase(string $startDate, string $endDate, string $comparisonStartDate, string $comparisonEndDate, string $selectedOperator = "Timwe"): array
+    private function fetchDashboardDataFromDatabase(string $startDate, string $endDate, string $comparisonStartDate, string $comparisonEndDate, $selectedOperator = "Timwe"): array
     {
         // Augmenter le temps d'exécution pour les requêtes complexes
         set_time_limit(120);
@@ -207,9 +356,7 @@ class DataController extends Controller
                 ->where("client_abonnement_creation", ">=", $startBound)
                 ->where("client_abonnement_creation", "<", $endExclusive);
             
-            if ($selectedOperator !== 'ALL') {
-                $activatedSubscriptionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($activatedSubscriptionsQuery, $selectedOperator);
             
             $activatedSubscriptions = $activatedSubscriptionsQuery->count();
             
@@ -223,9 +370,7 @@ class DataController extends Controller
                 ->where("client_abonnement_creation", ">=", $compStartBound)
                 ->where("client_abonnement_creation", "<", $compEndExclusive);
             
-            if ($selectedOperator !== 'ALL') {
-                $activatedSubscriptionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($activatedSubscriptionsComparisonQuery, $selectedOperator);
             
             $activatedSubscriptionsComparison = $activatedSubscriptionsComparisonQuery->count();
             Log::info("Abonnements activés $selectedOperator (comparaison): $activatedSubscriptionsComparison");
@@ -238,9 +383,7 @@ class DataController extends Controller
                     $q->whereNull('client_abonnement_expiration')
                       ->orWhere('client_abonnement_expiration', '>', Carbon::parse($endDate)->endOfDay());
                 });
-            if ($selectedOperator !== 'ALL') {
-                $activeSubscriptionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($activeSubscriptionsQuery, $selectedOperator);
             $activeSubscriptions = $activeSubscriptionsQuery->count();
                 
             $activeSubscriptionsComparisonQuery = DB::table('client_abonnement')
@@ -250,9 +393,7 @@ class DataController extends Controller
                     $q->whereNull('client_abonnement_expiration')
                       ->orWhere('client_abonnement_expiration', '>', Carbon::parse($comparisonEndDate)->endOfDay());
                 });
-            if ($selectedOperator !== 'ALL') {
-                $activeSubscriptionsComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($activeSubscriptionsComparisonQuery, $selectedOperator);
             $activeSubscriptionsComparison = $activeSubscriptionsComparisonQuery->count();
 
             $deactivatedSubscriptionsQuery = DB::table("client_abonnement")
@@ -261,9 +402,7 @@ class DataController extends Controller
                 ->where("client_abonnement_expiration", ">=", $startBound)
                 ->where("client_abonnement_expiration", "<", $endExclusive);
             
-            if ($selectedOperator !== 'ALL') {
-                $deactivatedSubscriptionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($deactivatedSubscriptionsQuery, $selectedOperator);
             
             $deactivatedSubscriptions = $deactivatedSubscriptionsQuery->count();
 
@@ -273,9 +412,7 @@ class DataController extends Controller
                 ->where("client_abonnement_expiration", ">=", $compStartBound)
                 ->where("client_abonnement_expiration", "<", $compEndExclusive);
             
-            if ($selectedOperator !== 'ALL') {
-                $deactivatedSubscriptionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($deactivatedSubscriptionsComparisonQuery, $selectedOperator);
             
             $deactivatedSubscriptionsComparison = $deactivatedSubscriptionsComparisonQuery->count();
 
@@ -286,9 +423,7 @@ class DataController extends Controller
                 ->whereNotNull('client_abonnement_expiration')
                 ->whereBetween('client_abonnement_expiration', [$startDate, Carbon::parse($endDate)->endOfDay()]);
 
-            if ($selectedOperator !== 'ALL') {
-                $lostSubscriptionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($lostSubscriptionsQuery, $selectedOperator);
 
             $lostSubscriptions = $lostSubscriptionsQuery->count();
 
@@ -298,9 +433,7 @@ class DataController extends Controller
                 ->whereNotNull('client_abonnement_expiration')
                 ->whereBetween('client_abonnement_expiration', [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()]);
 
-            if ($selectedOperator !== 'ALL') {
-                $lostSubscriptionsComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($lostSubscriptionsComparisonQuery, $selectedOperator);
 
             $lostSubscriptionsComparison = $lostSubscriptionsComparisonQuery->count();
 
@@ -311,9 +444,7 @@ class DataController extends Controller
                 ->where("history.time", ">=", $startBound)
                 ->where("history.time", "<", $endExclusive);
             
-            if ($selectedOperator !== 'ALL') {
-                $totalTransactionsQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($totalTransactionsQuery, $selectedOperator);
             
             $totalTransactions = $totalTransactionsQuery->count();
             Log::info("Total transactions $selectedOperator (principal): $totalTransactions");
@@ -326,9 +457,7 @@ class DataController extends Controller
                 ->where('history.time', '<', $endExclusive)
                 ->where('client_abonnement.client_abonnement_creation', '>=', $startBound)
                 ->where('client_abonnement.client_abonnement_creation', '<', $endExclusive);
-            if ($selectedOperator !== 'ALL') {
-                $cohortTransactionsQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($cohortTransactionsQuery, $selectedOperator);
             $cohortTransactions = $cohortTransactionsQuery->count();
             
             $totalTransactionsComparisonQuery = DB::table("history")
@@ -337,9 +466,7 @@ class DataController extends Controller
                 ->where("history.time", ">=", $compStartBound)
                 ->where("history.time", "<", $compEndExclusive);
             
-            if ($selectedOperator !== 'ALL') {
-                $totalTransactionsComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($totalTransactionsComparisonQuery, $selectedOperator);
             
             $totalTransactionsComparison = $totalTransactionsComparisonQuery->count();
             Log::info("Total transactions $selectedOperator (comparaison): $totalTransactionsComparison");
@@ -351,9 +478,7 @@ class DataController extends Controller
                 ->where('history.time', '<', $compEndExclusive)
                 ->where('client_abonnement.client_abonnement_creation', '>=', $compStartBound)
                 ->where('client_abonnement.client_abonnement_creation', '<', $compEndExclusive);
-            if ($selectedOperator !== 'ALL') {
-                $cohortTransactionsComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($cohortTransactionsComparisonQuery, $selectedOperator);
             $cohortTransactionsComparison = $cohortTransactionsComparisonQuery->count();
 
             // Transacting users de la cohorte (créés dans la période et ayant transigé dans la période)
@@ -364,9 +489,7 @@ class DataController extends Controller
                 ->where('history.time', '<', $endExclusive)
                 ->where('client_abonnement.client_abonnement_creation', '>=', $startBound)
                 ->where('client_abonnement.client_abonnement_creation', '<', $endExclusive);
-            if ($selectedOperator !== 'ALL') {
-                $cohortTransactingUsersQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($cohortTransactingUsersQuery, $selectedOperator);
             $cohortTransactingUsers = $cohortTransactingUsersQuery->distinct('client_abonnement.client_id')->count('client_abonnement.client_id');
 
             $cohortTransactingUsersComparisonQuery = DB::table('history')
@@ -376,9 +499,7 @@ class DataController extends Controller
                 ->where('history.time', '<', $compEndExclusive)
                 ->where('client_abonnement.client_abonnement_creation', '>=', $compStartBound)
                 ->where('client_abonnement.client_abonnement_creation', '<', $compEndExclusive);
-            if ($selectedOperator !== 'ALL') {
-                $cohortTransactingUsersComparisonQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            $this->applyOperatorFilter($cohortTransactingUsersComparisonQuery, $selectedOperator);
             $cohortTransactingUsersComparison = $cohortTransactingUsersComparisonQuery->distinct('client_abonnement.client_id')->count('client_abonnement.client_id');
 
             Log::info("4. Calcul des utilisateurs $selectedOperator avec transactions...");
@@ -389,9 +510,7 @@ class DataController extends Controller
                 ->where("history.time", "<", $endExclusive)
                 ->distinct("client_abonnement.client_id");
             
-            if ($selectedOperator !== 'ALL') {
-                $transactingUsersQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($transactingUsersQuery, $selectedOperator);
             
             $transactingUsers = $transactingUsersQuery->count();
             Log::info("Utilisateurs $selectedOperator avec transactions (principal): $transactingUsers");
@@ -403,9 +522,7 @@ class DataController extends Controller
                 ->where("history.time", "<", $compEndExclusive)
                 ->distinct("client_abonnement.client_id");
             
-            if ($selectedOperator !== 'ALL') {
-                $transactingUsersComparisonQuery->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-            }
+            $this->applyOperatorFilter($transactingUsersComparisonQuery, $selectedOperator);
             
             $transactingUsersComparison = $transactingUsersComparisonQuery->count();
             Log::info("Utilisateurs $selectedOperator avec transactions (comparaison): $transactingUsersComparison");
@@ -554,39 +671,59 @@ class DataController extends Controller
             $retentionRateTrue = $retentionRate;
             $retentionRateTrueComparison = $retentionRateComparison;
 
-            // Fetch TOP MERCHANTS avec données complètes
+            // Fetch TOP MERCHANTS avec données complètes - OPTIMISÉ pour éviter N+1
             Log::info("6. Récupération TOP MERCHANTS avec catégories...");
             
-            // Récupérer les top marchands (via promotion)
-            $topMerchants = (clone $merchantQuery)
-                ->select('partner.partner_name as name', 'partner.partner_id', DB::raw('COUNT(*) as current'))
-                ->groupBy('partner.partner_name', 'partner.partner_id')
-                ->orderBy('current', 'DESC')
-                ->get();
+            // OPTIMISATION: Requête unifiée pour éviter N+1 queries
+            $merchantsCacheKey = "top_merchants_{$selectedOperator}_{$startDate}_{$endDate}_{$comparisonStartDate}_{$comparisonEndDate}";
+            $merchants = Cache::remember($merchantsCacheKey, 300, function() use ($merchantQuery, $merchantQueryComparison, $operatorMerchantTransactions, $startBound, $endExclusive, $compStartBound, $compEndExclusive, $selectedOperator) {
+                
+                // Requête optimisée : calculer current et previous en une seule requête
+                $topMerchantsQuery = DB::table('history as h')
+                    ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
+                    ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
+                    ->join('promotion as p', 'h.promotion_id', '=', 'p.promotion_id')
+                    ->join('partner as pt', 'p.partner_id', '=', 'pt.partner_id')
+                    ->whereNotNull('h.promotion_id')
+                    ->where(function($q) use ($startBound, $endExclusive, $compStartBound, $compEndExclusive) {
+                        $q->whereBetween('h.time', [$startBound, $endExclusive])
+                          ->orWhereBetween('h.time', [$compStartBound, $compEndExclusive]);
+                    });
             
-            // Enrichir avec données période comparaison et catégories
-            $merchants = $topMerchants->map(function($item) use ($merchantQueryComparison, $operatorMerchantTransactions) {
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($topMerchantsQuery, $selectedOperator, 'cpm');
                 
-                // Transactions période comparaison pour ce marchand
-                $previousTransactions = (clone $merchantQueryComparison)
-                    ->where('partner.partner_id', $item->partner_id)
-                    ->count();
+                $topMerchants = $topMerchantsQuery
+                    ->groupBy('pt.partner_id', 'pt.partner_name')
+                    ->selectRaw("
+                        pt.partner_id,
+                        pt.partner_name as name,
+                        COUNT(CASE WHEN h.time >= ? AND h.time < ? THEN 1 END) as current,
+                        COUNT(CASE WHEN h.time >= ? AND h.time < ? THEN 1 END) as previous
+                    ", [$startBound, $endExclusive, $compStartBound, $compEndExclusive])
+                    ->having('current', '>', 0)
+                    ->orderByDesc('current')
+                    ->limit(50) // Limiter à 50 pour améliorer les performances
+                    ->get();
                 
-                // Déterminer catégorie basée sur la vraie base de données
-                $category = $this->getRealPartnerCategory($item->partner_id);
+                // Enrichir avec catégories (batch pour éviter N+1)
+                $partnerIds = $topMerchants->pluck('partner_id')->toArray();
+                $categories = $this->getPartnerCategoriesBatch($partnerIds);
                 
-                // Part du marché (basée sur les transactions opérateur chez marchands)
+                return $topMerchants->map(function($item) use ($operatorMerchantTransactions, $categories) {
+                    $category = $categories[$item->partner_id] ?? 'Autre';
                 $share = $operatorMerchantTransactions > 0 ? round(($item->current / $operatorMerchantTransactions) * 100, 1) : 0;
                 
                     return [
                         'name' => $item->name ?? 'Unknown',
                     'category' => $category,
-                        'current' => $item->current,
-                    'previous' => $previousTransactions,
+                        'current' => (int)$item->current,
+                        'previous' => (int)$item->previous,
                     'share' => $share,
                     'partner_id' => $item->partner_id
                 ];
             })->toArray();
+            });
             
             Log::info("Top merchants enrichis: " . count($merchants));
 
@@ -603,15 +740,17 @@ class DataController extends Controller
             $caDateExpr      = $granularity === 'month' ? "DATE_FORMAT(client_abonnement_creation, '%Y-%m-01')" : "DATE(client_abonnement_creation)";
 
             // Transactions agrégées par jour ou par mois selon la période
-            $transactionsRaw = DB::table("history")
+            $transactionsRawQuery = DB::table("history")
                 ->join("client_abonnement", "history.client_abonnement_id", "=", "client_abonnement.client_abonnement_id")
                 ->join("country_payments_methods", "client_abonnement.country_payments_methods_id", "=", "country_payments_methods.country_payments_methods_id")
                 ->select(DB::raw("$historyDateExpr as date"), DB::raw("COUNT(*) as transactions"), DB::raw("COUNT(DISTINCT client_abonnement.client_id) as users"))
                 ->where("history.time", ">=", $startBound)
-                ->where("history.time", "<", $endExclusive)
-                ->when($selectedOperator !== 'ALL', function($query) use ($selectedOperator) {
-                    return $query->where("country_payments_methods.country_payments_methods_name", $selectedOperator);
-                })
+                ->where("history.time", "<", $endExclusive);
+            
+            // Appliquer le filtre d'opérateur (par ID ou nom)
+            $this->applyOperatorFilter($transactionsRawQuery, $selectedOperator);
+            
+            $transactionsRaw = $transactionsRawQuery
                 ->groupBy(DB::raw($historyDateExpr))
                 ->orderBy("date")
                 ->get()
@@ -948,7 +1087,7 @@ class DataController extends Controller
                     "daily_volume" => $transactions,
                     "by_category" => [],
                     "analytics" => [
-                        "byOperator" => $this->getTransactionsByOperator($startBound, $endExclusive),
+                        "byOperator" => $this->getTransactionsByOperator($startBound, $endExclusive, $selectedOperator),
                         "byPlan" => $this->getTransactionsByPlan($startBound, $endExclusive, $selectedOperator),
                         "byChannel" => $this->getTransactionsByChannel($startBound, $endExclusive, $selectedOperator)
                     ]
@@ -1032,189 +1171,25 @@ class DataController extends Controller
             Log::error("Message: " . $e->getMessage());
             Log::error("Fichier: " . $e->getFile() . " ligne " . $e->getLine());
             Log::error("Trace: " . $e->getTraceAsString());
-            Log::error("Retour vers les données fallback...");
-            return $this->getFallbackData($startDate, $endDate);
-        }
+            
+            // Ne jamais retourner de fallback - propager l'erreur
+            throw $e;
+    }
     }
 
-    /**
-     * Get fallback data when webservice is unavailable
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return array
-     */
-    private function getFallbackData($startDate = null, $endDate = null): array
-    {
-        $primaryPeriod = "August 1-14, 2025";
-        if ($startDate && $endDate) {
-            $primaryPeriod = Carbon::parse($startDate)->format("M j, Y") . " - " . Carbon::parse($endDate)->format("M j, Y");
-        }
-
-        return [
-            "periods" => [
-                "primary" => $primaryPeriod,
-                "comparison" => "July 18-31, 2025"
-            ],
-            "kpis" => $this->getFallbackKpis(),
-            "merchants" => $this->getFallbackMerchants(),
-            "transactions" => $this->getFallbackTransactions(),
-            "subscriptions" => $this->getFallbackSubscriptions(),
-            "insights" => $this->getFallbackInsights(),
-            "last_updated" => now()->toISOString(),
-            "data_source" => "fallback"
-        ];
-    }
-
-    /**
-     * Fallback KPIs data
-     *
-     * @return array
-     */
-    private function getFallbackKpis(): array
-    {
-        return [
-            "activatedSubscriptions" => ["current" => 12321, "previous" => 2129, "change" => 478.8],
-            "activeSubscriptions" => ["current" => 11586, "previous" => 1800, "change" => 543.7],
-            "deactivatedSubscriptions" => ["current" => 735, "previous" => 329, "change" => 123.4],
-            "totalTransactions" => ["current" => 32, "previous" => 33, "change" => -3.0],
-            "transactingUsers" => ["current" => 28, "previous" => 27, "change" => 3.7],
-            "transactionsPerUser" => ["current" => 1.1, "previous" => 1.2, "change" => -8.3],
-            "activeMerchants" => ["current" => 16, "previous" => 12, "change" => 33.3],
-            "transactionsPerMerchant" => ["current" => 2.0, "previous" => 3.0, "change" => -33.3],
-            // Clés ajoutées pour éviter les erreurs côté UI quand fallback est utilisé
-            "totalActivePartnersDB" => ["current" => 0, "previous" => 0, "change" => 0.0],
-            "totalMerchantsEverActive" => 0,
-            "allTransactionsPeriod" => 0,
-            "conversionRate" => ["current" => 0.24, "previous" => 0.18, "change" => 33.3],
-            "retentionRate" => ["current" => 94.0, "previous" => 86.3, "change" => 8.9]
-        ];
-    }
-
-    /**
-     * Fallback merchants data
-     *
-     * @return array
-     */
-    private function getFallbackMerchants(): array
-    {
-        return [
-            ["name" => "MABROUK", "current" => 12, "previous" => 4, "share" => 37.5, "category" => "Food & Beverage"],
-            ["name" => "DR PARA", "current" => 3, "previous" => 4, "share" => 9.4, "category" => "Healthcare"],
-            ["name" => "PURE JUICE", "current" => 2, "previous" => 1, "share" => 6.3, "category" => "Food & Beverage"],
-            ["name" => "PHARMACY CENTRAL", "current" => 2, "previous" => 3, "share" => 6.3, "category" => "Healthcare"],
-            ["name" => "SUPERMARKET PLUS", "current" => 2, "previous" => 2, "share" => 6.3, "category" => "Retail"],
-            ["name" => "Others", "current" => 11, "previous" => 19, "share" => 34.4, "category" => "Various"]
-        ];
-    }
-
-    /**
-     * Fallback transactions data
-     *
-     * @return array
-     */
-    private function getFallbackTransactions(): array
-    {
-        return [
-            "daily_volume" => [
-                ["date" => "2025-08-01", "transactions" => 3, "users" => 3],
-                ["date" => "2025-08-02", "transactions" => 2, "users" => 2],
-                ["date" => "2025-08-03", "transactions" => 4, "users" => 3],
-                ["date" => "2025-08-04", "transactions" => 1, "users" => 1],
-                ["date" => "2025-08-05", "transactions" => 3, "users" => 2],
-                ["date" => "2025-08-06", "transactions" => 2, "users" => 2],
-                ["date" => "2025-08-07", "transactions" => 4, "users" => 4],
-                ["date" => "2025-08-08", "transactions" => 2, "users" => 2],
-                ["date" => "2025-08-09", "transactions" => 3, "users" => 3],
-                ["date" => "2025-08-10", "transactions" => 2, "users" => 1],
-                ["date" => "2025-08-11", "transactions" => 1, "users" => 1],
-                ["date" => "2025-08-12", "transactions" => 3, "users" => 2],
-                ["date" => "2025-08-13", "transactions" => 1, "users" => 1],
-                ["date" => "2025-08-14", "transactions" => 1, "users" => 1]
-            ],
-            "by_category" => [
-                "Food & Beverage" => 18,
-                "Healthcare" => 8,
-                "Retail" => 4,
-                "Services" => 2
-            ]
-        ];
-    }
-
-    /**
-     * Fallback subscriptions data
-     *
-     * @return array
-     */
-    private function getFallbackSubscriptions(): array
-    {
-        return [
-            "daily_activations" => [
-                ["date" => "2025-08-01", "activations" => 1200, "active" => 1150],
-                ["date" => "2025-08-02", "activations" => 950, "active" => 900],
-                ["date" => "2025-08-03", "activations" => 1100, "active" => 1050],
-                ["date" => "2025-08-04", "activations" => 800, "active" => 750],
-                ["date" => "2025-08-05", "activations" => 1300, "active" => 1200],
-                ["date" => "2025-08-06", "activations" => 900, "active" => 850],
-                ["date" => "2025-08-07", "activations" => 1000, "active" => 950],
-                ["date" => "2025-08-08", "activations" => 850, "active" => 800],
-                ["date" => "2025-08-09", "activations" => 1150, "active" => 1100],
-                ["date" => "2025-08-10", "activations" => 750, "active" => 700],
-                ["date" => "2025-08-11", "activations" => 950, "active" => 900],
-                ["date" => "2025-08-12", "activations" => 800, "active" => 750],
-                ["date" => "2025-08-13", "activations" => 650, "active" => 600],
-                ["date" => "2025-08-14", "activations" => 413, "active" => 381]
-            ],
-            "retention_trend" => [
-                ["date" => "2025-08-01", "rate" => 95.8],
-                ["date" => "2025-08-02", "rate" => 94.7],
-                ["date" => "2025-08-03", "rate" => 95.5],
-                ["date" => "2025-08-04", "rate" => 93.8],
-                ["date" => "2025-08-05", "rate" => 92.3],
-                ["date" => "2025-08-06", "rate" => 94.4],
-                ["date" => "2025-08-07", "rate" => 95.0],
-                ["date" => "2025-08-08", "rate" => 94.1],
-                ["date" => "2025-08-09", "rate" => 95.7],
-                ["date" => "2025-08-10", "rate" => 93.3],
-                ["date" => "2025-08-11", "rate" => 94.7],
-                ["date" => "2025-08-12", "rate" => 93.8],
-                ["date" => "2025-08-13", "rate" => 92.3],
-                ["date" => "2025-08-14", "rate" => 92.2]
-            ],
-            "details" => [
-                [
-                    "first_name" => "John",
-                    "last_name" => "Doe",
-                    "phone" => "+216 12345678",
-                    "operator" => "Timwe",
-                    "activation_date" => "2025-08-15",
-                    "end_date" => "2025-09-15",
-                    "channel" => "Timwe"
-                ],
-                [
-                    "first_name" => "Jane",
-                    "last_name" => "Smith",
-                    "phone" => "+216 87654321",
-                    "operator" => "Orange",
-                    "activation_date" => "2025-08-16",
-                    "end_date" => null,
-                    "channel" => "Orange"
-                ]
-            ]
-        ];
-    }
 
     /**
      * Calculate daily retention trend for a given period
      */
-    private function calculateRetentionTrend(string $startDate, string $endDate, string $selectedOperator): array
+    private function calculateRetentionTrend(string $startDate, string $endDate, $selectedOperator): array
     {
         try {
             // Engagement Rate Trend jour par jour
             return $this->getEngagementTrendByDay($startDate, $endDate, $selectedOperator);
         } catch (\Exception $e) {
             Log::error("Erreur lors du calcul de la tendance de rétention: " . $e->getMessage());
-            return $this->getFallbackRetentionTrend($startDate, $endDate);
+            // Ne pas retourner de fallback - retourner un tableau vide
+            return [];
         }
     }
     
@@ -1255,7 +1230,7 @@ class DataController extends Controller
         return $rates[$selectedOperator] ?? 52.0;
     }
 
-    private function getEngagementTrendByDay(string $startDate, string $endDate, string $selectedOperator): array
+    private function getEngagementTrendByDay(string $startDate, string $endDate, $selectedOperator): array
     {
         $start = Carbon::parse($startDate)->startOfDay();
         $periodEnd = Carbon::parse($endDate)->endOfDay();
@@ -1269,9 +1244,10 @@ class DataController extends Controller
             $baseQuery = DB::table('client_abonnement')
                 ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
                 ->whereBetween('client_abonnement_creation', [$dayStart, $dayEnd]);
-            if ($selectedOperator !== 'ALL') {
-                $baseQuery->where('country_payments_methods.country_payments_methods_name', $selectedOperator);
-            }
+            
+            // Appliquer le filtre d'opérateur (par ID ou nom)
+            $this->applyOperatorFilter($baseQuery, $selectedOperator);
+            
             $activatedOnDay = (clone $baseQuery)->count();
             $activeFromDay = (clone $baseQuery)
                 // Engagement mesuré à la fin de la période (et non pas à la fin du jour)
@@ -1282,32 +1258,17 @@ class DataController extends Controller
                 ->count();
 
             $rate = $activatedOnDay > 0 ? round(($activeFromDay / $activatedOnDay) * 100, 1) : 0.0;
-            $trend[] = [ 'date' => $cursor->toDateString(), 'rate' => $rate ];
+            $trend[] = [
+                'date' => $cursor->toDateString(), 
+                'rate' => $rate,
+                'value' => $rate  // Ajouter aussi 'value' pour compatibilité frontend
+            ];
             $cursor->addDay();
         }
         
         return $trend;
     }
 
-    private function getFallbackRetentionTrend(string $startDate, string $endDate): array
-    {
-        $currentDate = Carbon::parse($startDate);
-        $endDateCarbon = Carbon::parse($endDate);
-        $trend = [];
-        
-        $baseRate = 82.0; // Valeur plus réaliste comme dans l'exemple
-        
-        // Générer un point par jour (pas de step)
-        while ($currentDate->lte($endDateCarbon)) {
-            $trend[] = [
-                "date" => $currentDate->toDateString(),
-                "rate" => round($baseRate + (rand(-50, 50) / 100), 1) // Moins de variation
-            ];
-            $currentDate->addDay(); // Un jour à la fois
-        }
-        
-        return $trend;
-    }
 
     /**
      * Generate cache key for dashboard data
@@ -1416,40 +1377,6 @@ class DataController extends Controller
     }
 
     /**
-     * Fallback insights data
-     *
-     * @return array
-     */
-    private function getFallbackInsights(): array
-    {
-        return [
-            "positive" => [
-                "Croissance exceptionnelle des abonnements de +478.8% démontre une forte demande du marché",
-                "Taux de rétention élevé de 94.0% indique la satisfaction des clients avec le service",
-                "Expansion du réseau de marchands avec 33.3% de partenaires actifs en plus",
-                "Amélioration du taux de conversion par rapport à la période précédente (+33.3%)"
-            ],
-            "challenges" => [
-                "Taux de conversion des transactions (0.24%) significativement en dessous du benchmark Club Privilèges (30%)",
-                "Baisse des transactions par utilisateur (-8.3%) suggère des défis d'engagement",
-                "Moins de transactions par marchand (-33.3%) indique une inefficacité de distribution"
-            ],
-            "recommendations" => [
-                "Implémenter des campagnes d'éducation ciblées sur les avantages du service",
-                "Développer des programmes de formation pour les marchands pour améliorer la facilitation des transactions",
-                "Créer des programmes d'incitation pour encourager les premières transactions",
-                "Analyser le parcours utilisateur pour identifier les barrières de conversion"
-            ],
-            "nextSteps" => [
-                "Lancer un programme d'intégration utilisateur complet dans les 2 semaines",
-                "Établir une équipe de support marchand pour l'optimisation des transactions",
-                "Implémenter des tests A/B pour différentes stratégies d'engagement",
-                "Mettre en place un suivi hebdomadaire des métriques de conversion"
-            ]
-        ];
-    }
-
-    /**
      * Get available operators for selection
      */
     public function getAvailableOperators(): JsonResponse
@@ -1457,7 +1384,7 @@ class DataController extends Controller
         try {
             $cacheKey = 'operators:list:v1';
             $operators = Cache::remember($cacheKey, 600, function() {
-                return DB::table('country_payments_methods')
+                $operatorsList = DB::table('country_payments_methods')
                 ->select('country_payments_methods_name as name', DB::raw('COUNT(*) as count'))
                 ->whereNotNull('country_payments_methods_name')
                 ->where('country_payments_methods_name', '!=', '')
@@ -1472,6 +1399,21 @@ class DataController extends Controller
                         'count' => $item->count
                     ];
                     });
+                
+                // Debug: logger tous les opérateurs trouvés, surtout ceux contenant IZI
+                $allOperators = $operatorsList->pluck('value')->toArray();
+                Log::info("Opérateurs disponibles (total: " . count($allOperators) . "): " . json_encode($allOperators));
+                
+                $iziOperators = array_filter($allOperators, function($op) {
+                    return stripos($op, 'izi') !== false || stripos($op, 'privil') !== false;
+                });
+                if (!empty($iziOperators)) {
+                    Log::info("Opérateurs IZI trouvés: " . json_encode(array_values($iziOperators)));
+                } else {
+                    Log::warning("Aucun opérateur IZI trouvé dans la liste des opérateurs disponibles");
+                }
+                
+                return $operatorsList;
                 });
 
             return response()->json([
@@ -1575,6 +1517,86 @@ class DataController extends Controller
                 "message" => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get partner categories in batch (optimized to avoid N+1 queries)
+     */
+    private function getPartnerCategoriesBatch(array $partnerIds): array
+    {
+        if (empty($partnerIds)) {
+            return [];
+        }
+        
+        $categories = [];
+        
+        try {
+            // Essayer d'abord la relation partner_category
+            if (Schema::hasColumn('partner', 'partner_category_id') && 
+                Schema::hasTable('partner_category') && 
+                Schema::hasColumn('partner_category', 'partner_category_name')) {
+                
+                $results = DB::table('partner')
+                    ->leftJoin('partner_category', 'partner.partner_category_id', '=', 'partner_category.partner_category_id')
+                    ->whereIn('partner.partner_id', $partnerIds)
+                    ->select('partner.partner_id', 'partner_category.partner_category_name as category')
+                    ->get();
+                
+                foreach ($results as $result) {
+                    if ($result->category && trim($result->category) !== '') {
+                        $categories[$result->partner_id] = trim($result->category);
+                    }
+                }
+            }
+            
+            // Pour les partenaires sans catégorie, essayer une colonne catégorie directe
+            $missingIds = array_diff($partnerIds, array_keys($categories));
+            if (!empty($missingIds)) {
+                foreach (['partner_category', 'category', 'business_category', 'sector', 'industry'] as $column) {
+                    if (Schema::hasColumn('partner', $column)) {
+                        $results = DB::table('partner')
+                            ->whereIn('partner_id', $missingIds)
+                            ->select('partner_id', $column . ' as category')
+                            ->get();
+                        
+                        foreach ($results as $result) {
+                            if ($result->category && trim($result->category) !== '' && !isset($categories[$result->partner_id])) {
+                                $categories[$result->partner_id] = trim($result->category);
+                            }
+                        }
+                        
+                        $missingIds = array_diff($missingIds, array_keys($categories));
+                        if (empty($missingIds)) break;
+                    }
+                }
+            }
+            
+            // Pour les partenaires restants, utiliser le fallback basé sur le nom
+            $missingIds = array_diff($partnerIds, array_keys($categories));
+            if (!empty($missingIds)) {
+                $partners = DB::table('partner')
+                    ->whereIn('partner_id', $missingIds)
+                    ->select('partner_id', 'partner_name')
+                    ->get();
+                
+                foreach ($partners as $partner) {
+                    $categories[$partner->partner_id] = $this->getCategoryFromName($partner->partner_name);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning("Erreur lors de la récupération des catégories batch: " . $e->getMessage());
+            // Fallback: utiliser le nom pour tous
+            $partners = DB::table('partner')
+                ->whereIn('partner_id', $partnerIds)
+                ->select('partner_id', 'partner_name')
+                ->get();
+            
+            foreach ($partners as $partner) {
+                $categories[$partner->partner_id] = $this->categorizePartner($partner->partner_name ?? 'Unknown');
+            }
+        }
+        
+        return $categories;
     }
 
     /**
@@ -2231,7 +2253,7 @@ class DataController extends Controller
     /**
      * Get subscription details for the UI table
      */
-    private function getSubscriptionDetails(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
+    private function getSubscriptionDetails(Carbon $startBound, Carbon $endExclusive, $selectedOperator): array
     {
         try {
             // Cache pour améliorer les performances
@@ -2273,9 +2295,8 @@ class DataController extends Controller
                     ->where('ca.client_abonnement_creation', '>=', $startBound)
                     ->where('ca.client_abonnement_creation', '<', $endExclusive);
 
-                if ($selectedOperator !== 'ALL') {
-                    $query->where('cpm.country_payments_methods_name', $selectedOperator);
-                }
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($query, $selectedOperator, 'cpm');
 
                 $results = $query->orderByDesc('ca.client_abonnement_creation')
                     ->get(); // TOUS les résultats
@@ -2305,10 +2326,10 @@ class DataController extends Controller
     /**
      * Get transactions distribution by operator
      */
-    private function getTransactionsByOperator(Carbon $startBound, Carbon $endExclusive): array
+    private function getTransactionsByOperator(Carbon $startBound, Carbon $endExclusive, $selectedOperator = 'ALL'): array
     {
         try {
-            $results = DB::table('history')
+            $query = DB::table('history')
                 ->join('client_abonnement', 'history.client_abonnement_id', '=', 'client_abonnement.client_abonnement_id')
                 ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
                 ->select(
@@ -2316,7 +2337,12 @@ class DataController extends Controller
                     DB::raw('COUNT(*) as transaction_count')
                 )
                 ->where('history.time', '>=', $startBound)
-                ->where('history.time', '<', $endExclusive)
+                ->where('history.time', '<', $endExclusive);
+            
+            // Appliquer le filtre d'opérateur (par ID ou nom)
+            $this->applyOperatorFilter($query, $selectedOperator);
+            
+            $results = $query
                 ->groupBy('country_payments_methods.country_payments_methods_name')
                 ->orderByDesc('transaction_count')
                 ->get();
@@ -2336,17 +2362,19 @@ class DataController extends Controller
     /**
      * Get transactions distribution by subscription plan - UNIFIÉ avec mode optimisé
      */
-    private function getTransactionsByPlan(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
+    private function getTransactionsByPlan(Carbon $startBound, Carbon $endExclusive, $selectedOperator): array
     {
         try {
-            $results = DB::table('history as h')
+            $query = DB::table('history as h')
                 ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                 ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                 ->where('h.time', '>=', $startBound)
-                ->where('h.time', '<', $endExclusive)
-                ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) {
-                    $q->where('cpm.country_payments_methods_name', $selectedOperator);
-                })
+                ->where('h.time', '<', $endExclusive);
+            
+            // Appliquer le filtre d'opérateur (par ID ou nom)
+            $this->applyOperatorFilter($query, $selectedOperator, 'cpm');
+            
+            $results = $query
                 ->selectRaw("CASE 
                     WHEN LOWER(cpm.country_payments_methods_name) LIKE '%timwe%' THEN 'Mensuel'
                     WHEN LOWER(cpm.country_payments_methods_name) LIKE '%solde%' OR LOWER(cpm.country_payments_methods_name) LIKE '%téléphon%' OR LOWER(cpm.country_payments_methods_name) LIKE '%orange%' THEN 'Journalier'
@@ -2660,22 +2688,30 @@ class DataController extends Controller
                 $historyDateExpr = $granularity === 'month' ? "DATE_FORMAT(h.time, '%Y-%m-01')" : "DATE(h.time)";
                 $subsDateExpr    = $granularity === 'month' ? "DATE_FORMAT(ca.client_abonnement_creation, '%Y-%m-01')" : "DATE(ca.client_abonnement_creation)";
 
-                $txSeries = DB::table('history as h')
+                $txSeriesQuery = DB::table('history as h')
                     ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
                     ->where('h.time', '>=', $startBound)
-                    ->where('h.time', '<', $endExclusive)
+                    ->where('h.time', '<', $endExclusive);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($txSeriesQuery, $selectedOperator, 'cpm');
+                
+                $txSeries = $txSeriesQuery
                     ->groupByRaw($historyDateExpr)
                     ->orderByRaw($historyDateExpr)
                     ->selectRaw("$historyDateExpr as date, COUNT(*) as transactions, COUNT(DISTINCT ca.client_id) as users")
                     ->get()->toArray();
 
-                $subSeries = DB::table('client_abonnement as ca')
+                $subSeriesQuery = DB::table('client_abonnement as ca')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
                     ->where('ca.client_abonnement_creation', '>=', $startBound)
-                    ->where('ca.client_abonnement_creation', '<', $endExclusive)
+                    ->where('ca.client_abonnement_creation', '<', $endExclusive);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($subSeriesQuery, $selectedOperator, 'cpm');
+                
+                $subSeries = $subSeriesQuery
                     ->groupByRaw($subsDateExpr)
                     ->orderByRaw($subsDateExpr)
                     ->selectRaw("$subsDateExpr as date, COUNT(*) as activations")
@@ -2694,15 +2730,19 @@ class DataController extends Controller
                 } catch (\Throwable $th) { /* silencieux */ }
 
                 // Top merchants (calcul complet)
-                $topMerchants = DB::table('history as h')
+                $topMerchantsQuery = DB::table('history as h')
                     ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->join('promotion as p', 'h.promotion_id', '=', 'p.promotion_id')
                     ->join('partner as pt', 'p.partner_id', '=', 'pt.partner_id')
                     ->whereNotNull('h.promotion_id')
                     ->where('h.time', '>=', $startBound)
-                    ->where('h.time', '<', $endExclusive)
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
+                    ->where('h.time', '<', $endExclusive);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($topMerchantsQuery, $selectedOperator, 'cpm');
+                
+                $topMerchants = $topMerchantsQuery
                     ->groupBy('pt.partner_id', 'pt.partner_name')
                     ->selectRaw("pt.partner_id, pt.partner_name as name, COUNT(*) as current")
                     ->orderByDesc('current')
@@ -2727,15 +2767,18 @@ class DataController extends Controller
                     $currentVal = (int)(is_array($row) ? ($row['current'] ?? 0) : ($row->current ?? 0));
                     $prev = 0;
                     if ($partnerId !== null) {
-                        $prev = DB::table('history as h')
+                        $prevQuery = DB::table('history as h')
                             ->join('promotion as p', 'h.promotion_id', '=', 'p.promotion_id')
                             ->join('partner as pt', 'p.partner_id', '=', 'pt.partner_id')
                             ->leftJoin('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                             ->leftJoin('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                             ->where('pt.partner_id', $partnerId)
-                            ->whereBetween('h.time', [$compStartBound, $compEndExclusive])
-                            ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
-                            ->count();
+                            ->whereBetween('h.time', [$compStartBound, $compEndExclusive]);
+                        
+                        // Appliquer le filtre d'opérateur (par ID ou nom)
+                        $this->applyOperatorFilter($prevQuery, $selectedOperator, 'cpm');
+                        
+                        $prev = $prevQuery->count();
                     }
                     $merchantsAll[] = [
                         'name' => $name,
@@ -2752,14 +2795,18 @@ class DataController extends Controller
                 }
 
                 // previous for top merchants
-                $prevTop = DB::table('history as h')
+                $prevTopQuery = DB::table('history as h')
                     ->join('promotion as p', 'h.promotion_id', '=', 'p.promotion_id')
                     ->join('partner as pt', 'p.partner_id', '=', 'pt.partner_id')
                     ->leftJoin('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                     ->leftJoin('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->whereNotNull('h.promotion_id')
-                    ->whereBetween('h.time', [$compStartBound, $compEndExclusive])
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
+                    ->whereBetween('h.time', [$compStartBound, $compEndExclusive]);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($prevTopQuery, $selectedOperator, 'cpm');
+                
+                $prevTop = $prevTopQuery
                     ->groupBy('pt.partner_id')
                     ->selectRaw('pt.partner_id, COUNT(*) as prev')
                     ->pluck('prev','partner_id');
@@ -2784,12 +2831,20 @@ class DataController extends Controller
                 // Distribution catégories (actifs seulement)
                 $categoryDistribution = [];
                 try {
-                    $cats = DB::table('partner as pt')
+                    $catsQuery = DB::table('partner as pt')
                         ->leftJoin('partner_category as pc', 'pt.partner_category_id', '=', 'pc.partner_category_id')
                         ->leftJoin('promotion as p', 'pt.partner_id', '=', 'p.partner_id')
                         ->leftJoin('history as h', 'p.promotion_id', '=', 'h.promotion_id')
+                        ->leftJoin('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
+                        ->leftJoin('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                         ->where("pt.$activeFlag", 1)
                         ->whereBetween('h.time', [$startBound, $endExclusive])
+                        ->whereNotNull('h.history_id');
+                    
+                    // Appliquer le filtre d'opérateur (par ID ou nom)
+                    $this->applyOperatorFilter($catsQuery, $selectedOperator, 'cpm');
+                    
+                    $cats = $catsQuery
                         ->groupBy('pc.partner_category_name')
                         ->selectRaw('COALESCE(pc.partner_category_name, "Autres") as category, COUNT(h.history_id) as transactions, COUNT(DISTINCT pt.partner_id) as merchants')
                         ->orderByDesc('transactions')
@@ -2807,11 +2862,16 @@ class DataController extends Controller
                 } catch (\Throwable $th) { /* silencieux */ }
 
                 // Analytics transactions (opérateur / plan / canal)
-                $byOperator = DB::table('history as h')
+                $byOperatorQuery = DB::table('history as h')
                     ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->where('h.time', '>=', $startBound)
-                    ->where('h.time', '<', $endExclusive)
+                    ->where('h.time', '<', $endExclusive);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom) - pour les collaborateurs, cela filtre correctement
+                $this->applyOperatorFilter($byOperatorQuery, $selectedOperator, 'cpm');
+                
+                $byOperator = $byOperatorQuery
                     ->groupBy('cpm.country_payments_methods_name')
                     ->selectRaw('cpm.country_payments_methods_name as operator, COUNT(*) as count')
                     ->orderByDesc('count')
@@ -2846,14 +2906,16 @@ class DataController extends Controller
                     }
                 } catch (\Throwable $th) { $quarterlyActiveLocations = []; }
 
-                $byPlan = DB::table('history as h')
+                $byPlanQuery = DB::table('history as h')
                     ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->where('h.time', '>=', $startBound)
-                    ->where('h.time', '<', $endExclusive)
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) {
-                        $q->where('cpm.country_payments_methods_name', $selectedOperator);
-                    })
+                    ->where('h.time', '<', $endExclusive);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($byPlanQuery, $selectedOperator, 'cpm');
+                
+                $byPlan = $byPlanQuery
                     ->selectRaw("CASE 
                         WHEN LOWER(cpm.country_payments_methods_name) LIKE '%timwe%' THEN 'Mensuel'
                         WHEN LOWER(cpm.country_payments_methods_name) LIKE '%solde%' OR LOWER(cpm.country_payments_methods_name) LIKE '%téléphon%' OR LOWER(cpm.country_payments_methods_name) LIKE '%orange%' THEN 'Journalier'
@@ -2900,23 +2962,27 @@ class DataController extends Controller
                 $lifespanPrevious = $this->calculateAverageLifespan($compStartBound->format('Y-m-d'), $compEndExclusive->subDay()->format('Y-m-d'), $selectedOperator);
 
                 // Deactivated (Cohorte) - MÊME LOGIQUE que le mode normal
-                $cohortDeactivated = DB::table('client_abonnement as ca')
+                $cohortDeactivatedQuery = DB::table('client_abonnement as ca')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->where('ca.client_abonnement_creation', '>=', $startBound)
                     ->where('ca.client_abonnement_creation', '<', $endExclusive)
                     ->whereNotNull('ca.client_abonnement_expiration')
-                    ->whereBetween('ca.client_abonnement_expiration', [$startBound, $endExclusive])
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
-                    ->count();
+                    ->whereBetween('ca.client_abonnement_expiration', [$startBound, $endExclusive]);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($cohortDeactivatedQuery, $selectedOperator, 'cpm');
+                $cohortDeactivated = $cohortDeactivatedQuery->count();
                     
-                $cohortDeactivatedPrev = DB::table('client_abonnement as ca')
+                $cohortDeactivatedPrevQuery = DB::table('client_abonnement as ca')
                     ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
                     ->where('ca.client_abonnement_creation', '>=', $compStartBound)
                     ->where('ca.client_abonnement_creation', '<', $compEndExclusive)
                     ->whereNotNull('ca.client_abonnement_expiration')
-                    ->whereBetween('ca.client_abonnement_expiration', [$compStartBound, $compEndExclusive])
-                    ->when($selectedOperator !== 'ALL', function ($q) use ($selectedOperator) { $q->where('cpm.country_payments_methods_name', $selectedOperator); })
-                    ->count();
+                    ->whereBetween('ca.client_abonnement_expiration', [$compStartBound, $compEndExclusive]);
+                
+                // Appliquer le filtre d'opérateur (par ID ou nom)
+                $this->applyOperatorFilter($cohortDeactivatedPrevQuery, $selectedOperator, 'cpm');
+                $cohortDeactivatedPrev = $cohortDeactivatedPrevQuery->count();
 
                 // Série temporelle pour Retention Rate Trend (taux de rétention par période)
                 $retentionTrendSeries = [];
@@ -2926,15 +2992,21 @@ class DataController extends Controller
                     $periodEnd = (clone $periodStart)->addDays($intervalDays);
                     if ($periodEnd > $endExclusive) $periodEnd = $endExclusive;
                     
-                    $activatedInPeriod = DB::table('client_abonnement')
-                        ->whereBetween('client_abonnement_creation', [$periodStart, $periodEnd])
-                        ->count();
+                    $activatedQuery = DB::table('client_abonnement')
+                        ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                        ->whereBetween('client_abonnement.client_abonnement_creation', [$periodStart, $periodEnd]);
                     
-                    $deactivatedInPeriod = DB::table('client_abonnement')
-                        ->whereBetween('client_abonnement_creation', [$periodStart, $periodEnd])
-                        ->whereNotNull('client_abonnement_expiration')
-                        ->whereBetween('client_abonnement_expiration', [$periodStart, $periodEnd])
-                        ->count();
+                    $this->applyOperatorFilter($activatedQuery, $selectedOperator);
+                    $activatedInPeriod = $activatedQuery->count();
+                    
+                    $deactivatedQuery = DB::table('client_abonnement')
+                        ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
+                        ->whereBetween('client_abonnement.client_abonnement_creation', [$periodStart, $periodEnd])
+                        ->whereNotNull('client_abonnement.client_abonnement_expiration')
+                        ->whereBetween('client_abonnement.client_abonnement_expiration', [$periodStart, $periodEnd]);
+                    
+                    $this->applyOperatorFilter($deactivatedQuery, $selectedOperator);
+                    $deactivatedInPeriod = $deactivatedQuery->count();
                     
                     $retentionRateForTrend = $activatedInPeriod > 0 ? round((1 - ($deactivatedInPeriod / $activatedInPeriod)) * 100, 1) : 100;
                     
@@ -3192,7 +3264,8 @@ class DataController extends Controller
             });
         } catch (\Throwable $th) {
             Log::error("Erreur mode optimisé: " . $th->getMessage());
-            return $this->getFallbackData();
+            // Ne jamais retourner de fallback - propager l'erreur
+            throw $th;
         }
     }
 }

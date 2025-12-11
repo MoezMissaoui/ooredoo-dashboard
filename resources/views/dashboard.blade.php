@@ -2334,7 +2334,8 @@
           </div>
         </div>
 
-      <!-- Nouveaux KPIs Avancés -->
+      <!-- Nouveaux KPIs Avancés - Masqué pour les collaborateurs -->
+      @if(!Auth::user()->isCollaborator())
       <div class="grid" style="margin-top: 20px;">
         <h3 style="grid-column: 1 / -1; margin-bottom: 15px; color: var(--text); font-size: 18px; font-weight: 600;">📊 Analyses Avancées</h3>
         
@@ -2385,10 +2386,10 @@
         </div>
         
       </div>
+      @endif
 
-      
-
-      <!-- Graphiques Avancés -->
+      <!-- Graphiques Avancés - Masqués pour les collaborateurs -->
+      @if(!Auth::user()->isCollaborator())
       <div class="grid" style="margin-top: 20px;">
         <div class="card chart-card">
           <div class="chart-title">Répartition des Activations par Canal <span style="margin-left:4px; cursor: help; color: var(--muted);" title="D'où viennent les activations: carte, recharge, solde téléphonique…">ⓘ</span></div>
@@ -2411,6 +2412,7 @@
           </div>
         </div>
       </div>
+      @endif
 
       <!-- Tableau des abonnements (détails) -->
       <div class="card table-card" style="margin-top: 20px;">
@@ -2528,7 +2530,8 @@
           </div>
         </div>
 
-        <!-- Nouveaux graphiques d'analyse des transactions -->
+        <!-- Nouveaux graphiques d'analyse des transactions - Masqués pour les collaborateurs -->
+        @if(!Auth::user()->isCollaborator())
         <div class="card chart-card">
           <div class="chart-title">📊 Transactions par Opérateurs <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Répartition des transactions par moyen de paiement/opérateur.">ⓘ</span></div>
           <div class="chart-container">
@@ -2542,6 +2545,7 @@
             <canvas id="transactionsByPlanChart"></canvas>
           </div>
         </div>
+        @endif
       </div>
     </div>
 
@@ -3475,8 +3479,8 @@
         
         // Load operators in parallel (non-blocking)
         loadOperators().catch(error => {
-          console.warn('Operators loading failed, using fallback:', error);
-          setupFallbackOperators();
+          console.warn('Operators loading failed:', error);
+          // Ne pas utiliser setupFallbackOperators - laisser loadOperators gérer les retries
         });
         
       } catch (error) {
@@ -3486,16 +3490,15 @@
       }
     }
     
-    // Setup fallback operators if API fails
+    // Cette fonction n'est plus utilisée - les opérateurs doivent toujours venir de l'API
+    // Conservée uniquement pour référence mais ne devrait jamais être appelée
     function setupFallbackOperators() {
+      console.warn('⚠️ setupFallbackOperators appelée - cela ne devrait pas arriver');
       const operatorInfo = document.getElementById('operator-info');
-      
       if (operatorInfo) {
-        operatorInfo.textContent = 'Mode hors ligne - Vue globale activée';
+        operatorInfo.textContent = 'Erreur: Impossible de charger les opérateurs depuis l\'API. Veuillez rafraîchir la page.';
+        operatorInfo.style.color = '#ef4444';
       }
-      
-      // L'option par défaut est déjà dans le HTML, pas besoin de la recréer
-      console.log('🔄 Fallback: Using default operators');
     }
     
     // Show skeleton loading for KPIs immediately
@@ -4035,7 +4038,8 @@
 
     // Variables globales pour les opérateurs
     let availableOperators = [];
-    let selectedOperators = ['ALL'];
+    let selectedOperators = []; // Sera initialisé selon le rôle utilisateur
+    let hasAllOption = false; // Indique si "Tous les opérateurs" est disponible
 
     // Center active tab on mobile
     function centerActiveTab(activeTab) {
@@ -5374,26 +5378,31 @@
       }
     }
     
-    // Load available operators with timeout and fallback
+    // Load available operators with improved error handling
     async function loadOperators() {
       let timeoutId = null;
       
       const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      // Timeout augmenté à 60s pour SuperAdmin (beaucoup d'opérateurs)
+      // Le timeout est silencieux si les opérateurs sont déjà chargés
+      timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
       
       try {
         const response = await fetch('/api/operators', {
           signal: controller.signal,
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin'
         });
         
         clearTimeout(timeoutId);
         
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
         }
         
         const data = await response.json();
@@ -5404,7 +5413,7 @@
           user_role: data.user_role
         });
         
-        if (data.operators && data.operators.length > 0) {
+        if (data.operators && Array.isArray(data.operators) && data.operators.length > 0) {
           const operatorsList = document.getElementById('operators-list');
           const operatorInfo = document.getElementById('operator-info');
           
@@ -5413,6 +5422,28 @@
           
           // Clear existing operators
           operatorsList.innerHTML = '';
+          
+          // Vérifier si "ALL" est disponible (seulement pour SuperAdmin et Admin)
+          hasAllOption = data.operators.some(op => op.value === 'ALL');
+          const selectAllCheckbox = document.getElementById('select-all-operators');
+          const selectAllOption = selectAllCheckbox ? selectAllCheckbox.closest('.select-all-option') : null;
+          
+          // Masquer "Tous les opérateurs" pour les collaborateurs
+          if (!hasAllOption) {
+            if (selectAllOption) {
+              selectAllOption.style.display = 'none';
+            }
+            if (selectAllCheckbox) {
+              selectAllCheckbox.checked = false;
+            }
+          } else {
+            if (selectAllOption) {
+              selectAllOption.style.display = 'block';
+            }
+          }
+          
+          // Stocker les opérateurs disponibles globalement
+          availableOperators = data.operators;
           
           // Add operators to multi-select
           data.operators.forEach(operator => {
@@ -5444,25 +5475,61 @@
             console.log(`🔍 Opérateur ajouté: ${operator.label} (${operator.value})`);
           });
           
-          // Set default selection
+          // Set default selection - s'assurer qu'un opérateur est toujours sélectionné
+          let defaultOperatorSelected = false;
+          
           if (data.default_operator && data.default_operator !== 'ALL') {
-            selectedOperators = [data.default_operator];
-            const selectAllCheckbox = document.getElementById('select-all-operators');
-            selectAllCheckbox.checked = false;
+            // Vérifier que l'opérateur par défaut existe dans la liste
+            const defaultOpExists = data.operators.some(op => op.value === data.default_operator);
+            if (defaultOpExists) {
+              selectedOperators = [data.default_operator];
+              selectAllCheckbox.checked = false;
+              
+              // Check the default operator
+              const defaultCheckbox = operatorsList.querySelector(`input[value="${data.default_operator}"]`);
+              if (defaultCheckbox) {
+                defaultCheckbox.checked = true;
+                defaultOperatorSelected = true;
+              }
+            }
+          } else if (data.default_operator === 'ALL' && hasAllOption) {
+            // Si "ALL" est le défaut et disponible, le sélectionner
+            selectedOperators = ['ALL'];
+            selectAllCheckbox.checked = true;
+            defaultOperatorSelected = true;
+          }
+          
+          // Si aucun opérateur par défaut n'a été sélectionné, sélectionner le premier disponible
+          if (!defaultOperatorSelected && data.operators.length > 0) {
+            const firstOperator = hasAllOption && data.operators.some(op => op.value === 'ALL') 
+              ? 'ALL' 
+              : data.operators[0].value;
             
-            // Check the default operator
-            const defaultCheckbox = operatorsList.querySelector(`input[value="${data.default_operator}"]`);
-            if (defaultCheckbox) {
-              defaultCheckbox.checked = true;
+            selectedOperators = [firstOperator];
+            
+            if (firstOperator === 'ALL' && selectAllCheckbox) {
+              selectAllCheckbox.checked = true;
+            } else {
+              const firstCheckbox = operatorsList.querySelector(`input[value="${firstOperator}"]`);
+              if (firstCheckbox) {
+                firstCheckbox.checked = true;
+              }
             }
           }
           
           updateSelectedOperatorsDisplay();
           updateOperatorInfo();
           
+          // Déclencher le chargement des données avec l'opérateur sélectionné
+          if (selectedOperators.length > 0) {
+            loadDashboardData();
+          }
+          
           // Update info text based on user role
           if (data.user_role === 'super_admin') {
             operatorInfo.textContent = `Vue globale disponible (${data.operators.length} opérateurs)`;
+          } else if (data.user_role === 'collaborator') {
+            operatorInfo.textContent = `${data.operators.length} opérateur(s) assigné(s)`;
           } else {
             operatorInfo.textContent = `${data.operators.length} opérateur(s) assigné(s)`;
           }
@@ -5475,8 +5542,45 @@
         
       } catch (error) {
         clearTimeout(timeoutId);
-        console.warn('⚠️ Operators loading failed:', error.message);
-        throw error;
+        
+        // Ne pas afficher d'erreur si c'est juste une annulation (timeout)
+        // Vérifier si les opérateurs ont déjà été chargés (cas où le timeout arrive après chargement)
+        if (error.name === 'AbortError') {
+          // Vérifier de manière robuste si les opérateurs sont déjà chargés
+          const operatorsList = document.getElementById('operators-list');
+          const hasOperatorsInList = operatorsList && operatorsList.children.length > 0;
+          const operatorInfo = document.getElementById('operator-info');
+          const hasOperatorInfo = operatorInfo && operatorInfo.textContent && (
+            operatorInfo.textContent.includes('opérateur') || 
+            operatorInfo.textContent.includes('Vue globale') ||
+            operatorInfo.textContent.includes('assigné')
+          );
+          
+          // Vérifier aussi si availableOperators est défini et non vide
+          const hasAvailableOperators = availableOperators && Array.isArray(availableOperators) && availableOperators.length > 0;
+          
+          // Vérifier si les opérateurs sont réellement chargés
+          // Si au moins un indicateur montre que les opérateurs sont chargés, ignorer le timeout complètement
+          if (hasOperatorsInList || hasOperatorInfo || hasAvailableOperators) {
+            // Les opérateurs sont déjà chargés - ignorer silencieusement le timeout
+            // Ne rien afficher, ne rien logger
+            return;
+          }
+          
+          // Seulement afficher le warning si les opérateurs ne sont vraiment pas chargés
+          console.warn('⚠️ Chargement des opérateurs annulé (timeout) - réessayez si les opérateurs ne sont pas visibles');
+          if (operatorInfo) {
+            operatorInfo.textContent = 'Erreur: Impossible de charger les opérateurs. Veuillez rafraîchir la page.';
+            operatorInfo.style.color = '#ef4444';
+          }
+        } else {
+          console.error('❌ Erreur lors du chargement des opérateurs:', error.message);
+          const operatorInfo = document.getElementById('operator-info');
+          if (operatorInfo) {
+            operatorInfo.textContent = 'Erreur: Impossible de charger les opérateurs. Veuillez rafraîchir la page.';
+            operatorInfo.style.color = '#ef4444';
+          }
+        }
       }
     }
     
@@ -5536,10 +5640,17 @@
         selectedOperators = selectedOperators.filter(op => op !== operatorValue);
         selectAllCheckbox.checked = false;
         
-        // Si aucun opérateur sélectionné, revenir à "Tous"
-        if (selectedOperators.length === 0) {
+        // Si aucun opérateur sélectionné, revenir à "Tous" seulement si disponible
+        if (selectedOperators.length === 0 && hasAllOption) {
           selectedOperators = ['ALL'];
           selectAllCheckbox.checked = true;
+        } else if (selectedOperators.length === 0 && !hasAllOption && availableOperators.length > 0) {
+          // Pour les collaborateurs, sélectionner le premier opérateur disponible
+          selectedOperators = [availableOperators[0].value];
+          const firstCheckbox = document.querySelector(`input[value="${availableOperators[0].value}"]`);
+          if (firstCheckbox) {
+            firstCheckbox.checked = true;
+          }
         }
       }
       
@@ -6019,8 +6130,11 @@
       createTransactingUsersChart(data);
       
       // Nouveaux graphiques d'analyse des transactions
+      // Ne pas afficher ces graphiques pour les collaborateurs
+      @if(!Auth::user()->isCollaborator())
       createTransactionsByOperatorChart(data);
       createTransactionsByPlanChart(data);
+      @endif
 
       // Merchants Charts (réactivés)
       createTopMerchantsChart(data);
@@ -6110,6 +6224,9 @@
     function createTransactionsByPlanChart(data) {
       const ctx = document.getElementById('transactionsByPlanChart');
       if (!ctx) return;
+      
+      // Ne pas créer le graphique si l'élément n'existe pas (masqué pour collaborateur)
+      if (!ctx.parentElement || ctx.parentElement.style.display === 'none') return;
 
       if (charts.transactionsByPlan) {
         charts.transactionsByPlan.destroy();
@@ -6285,22 +6402,33 @@
       
       // Use real retention trend data from backend
       const retentionTrend = data.subscriptions?.retention_trend || [];
+      
+      if (!retentionTrend || retentionTrend.length === 0) {
+        // Afficher un message si pas de données
+        ctx.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Aucune donnée de rétention disponible</div>';
+        return;
+      }
+      
       // Aligner les dates avec le graphe Daily Activated Subscriptions
       const mapDateToValue = new Map();
       retentionTrend.forEach(it => {
-        if (it && it.date) mapDateToValue.set(it.date, Number((it.value ?? it.rate) || 0));
+        if (it && (it.date || it.period)) {
+          const dateKey = it.date || it.period;
+          const value = Number((it.value ?? it.rate ?? 0) || 0);
+          mapDateToValue.set(dateKey, value);
+        }
       });
+      
       const sorted = Array.from(mapDateToValue.keys()).sort();
-      if (sorted.length === 0) return;
-      const start = new Date(sorted[0] + 'T00:00:00');
-      const end = new Date(sorted[sorted.length - 1] + 'T00:00:00');
-      const days = [];
-      const retentionData = [];
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        const iso = d.toISOString().slice(0, 10);
-        days.push(iso);
-        retentionData.push(mapDateToValue.has(iso) ? mapDateToValue.get(iso) : 0);
+      if (sorted.length === 0) {
+        ctx.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Aucune donnée de rétention disponible</div>';
+        return;
       }
+      
+      // Utiliser directement les dates des données plutôt que de générer tous les jours
+      // Cela évite d'avoir beaucoup de valeurs nulles
+      const days = sorted;
+      const retentionData = sorted.map(date => mapDateToValue.get(date));
       
       charts.retention = new Chart(ctx, {
         type: 'line',
@@ -6355,8 +6483,15 @@
       
       // Use real daily transactions data from backend
       const dailyTransactions = data.transactions?.daily_volume || [];
+      
+      if (!dailyTransactions || dailyTransactions.length === 0) {
+        // Afficher un message si pas de données
+        ctx.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Aucune donnée de transaction disponible</div>';
+        return;
+      }
+      
       const days = dailyTransactions.map((item) => item.date || '');
-      const transactionData = dailyTransactions.map(item => item.transactions || 0);
+      const transactionData = dailyTransactions.map(item => Number(item.transactions || item.count || 0));
       
       // Build cumulative series
       const cumulativeTransactions = transactionData.reduce((acc, val, idx) => {
@@ -6410,8 +6545,15 @@
       
       // Use real daily transactions data from backend to extract users
       const dailyTransactions = data.transactions?.daily_volume || [];
+      
+      if (!dailyTransactions || dailyTransactions.length === 0) {
+        // Afficher un message si pas de données
+        ctx.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Aucune donnée d\'utilisateurs disponible</div>';
+        return;
+      }
+      
       const days = dailyTransactions.map((item) => item.date || '');
-      const userData = dailyTransactions.map(item => item.users || 0);
+      const userData = dailyTransactions.map(item => Number(item.users || item.unique_users || 0));
       
       const cumulativeUsers = userData.reduce((acc, val, idx) => {
         acc.push((acc[idx - 1] || 0) + val);
@@ -6463,9 +6605,17 @@
         charts.topMerchants.destroy();
       }
       
-      const top10 = (data.merchants || []).slice(0, 10);
-      const merchantNames = top10.map(m => m.name);
-      const merchantValues = top10.map(m => m.current);
+      const merchants = data.merchants || [];
+      
+      if (!merchants || merchants.length === 0) {
+        // Afficher un message si pas de données
+        ctx.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Aucun marchand disponible</div>';
+        return;
+      }
+      
+      const top10 = merchants.slice(0, 10);
+      const merchantNames = top10.map(m => m.name || m.merchant_name || 'Sans nom');
+      const merchantValues = top10.map(m => Number(m.current || m.transactions || 0));
       
       charts.topMerchants = new Chart(ctx, {
         type: 'doughnut',
@@ -6504,18 +6654,28 @@
         charts.category.destroy();
       }
       
-      const dist = (data.categoryDistribution || []).slice(0, 10);
-      const labels = dist.map(d => `${d.category} (${d.merchants ?? d.merchants_count ?? 0})`);
-      const values = dist.map(d => (typeof d.merchants !== 'undefined') ? d.merchants : (d.merchants_count ?? 0));
-      const colors = ['#E30613','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#f97316','#64748b'];
+      const dist = data.categoryDistribution || [];
+      
+      if (!dist || dist.length === 0) {
+        // Afficher un message si pas de données
+        ctx.parentElement.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--muted);">Aucune catégorie disponible</div>';
+        return;
+      }
+      
+      const top10 = dist.slice(0, 10);
+      // Utiliser transactions pour le volume, mais afficher aussi le nombre de marchands dans le label
+      const labels = top10.map(d => `${d.category || 'Sans catégorie'} (${d.merchants ?? d.merchants_count ?? 0} marchands)`);
+      // Utiliser transactions pour représenter le volume par catégorie
+      const values = top10.map(d => Number(d.transactions ?? d.transaction_count ?? d.count ?? 0));
+      const colors = ['#E30613','#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#f97316','#64748b','#ec4899','#14b8a6'];
       
       charts.category = new Chart(ctx, {
         type: 'pie',
         data: {
-          labels: labels.length ? labels : ['Aucune catégorie'],
+          labels: labels,
           datasets: [{
-            data: values.length ? values : [100],
-            backgroundColor: colors.slice(0, Math.max(1, labels.length)),
+            data: values,
+            backgroundColor: colors.slice(0, labels.length),
             borderWidth: 2,
             borderColor: '#ffffff'
           }]
@@ -6784,6 +6944,19 @@
     function updateMerchantsTable(merchants) {
       allMerchants = merchants || [];
       currentMerchantsPage = 1;
+      
+      if (!allMerchants || allMerchants.length === 0) {
+        const tbody = document.getElementById('merchantsTableBody');
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="7" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucun marchand disponible</td></tr>';
+        }
+        // Mettre à jour la pagination
+        document.getElementById('merchantsPaginationInfo').textContent = 'Affichage de 0-0 sur 0 marchands';
+        document.getElementById('merchantsPrevBtn').disabled = true;
+        document.getElementById('merchantsNextBtn').disabled = true;
+        return;
+      }
+      
       renderMerchantsPage();
     }
 
@@ -6812,24 +6985,32 @@
           // Nouvelle structure avec meta
           detailsData = subscriptions.details.data;
           meta = subscriptions.details.meta;
+        } else if (subscriptions.details.data === undefined && Object.keys(subscriptions.details).length > 0) {
+          // Si c'est un objet avec des propriétés mais pas de .data, peut-être que c'est déjà un tableau d'objets
+          const testItem = subscriptions.details[0] || subscriptions.details;
+          if (testItem && (testItem.first_name !== undefined || testItem.client_prenom !== undefined)) {
+            detailsData = Array.isArray(subscriptions.details) ? subscriptions.details : [subscriptions.details];
+          }
         }
       }
       
-      if (detailsData.length > 0) {
-        // Simule un petit délai pour montrer le chargement
-        setTimeout(() => {
-          allSubscriptionDetails = detailsData;
-          currentSubscriptionPage = 1;
-          renderSubscriptionsPage();
-          
-          // Afficher les informations de performance
-          if (meta) {
-            updateSubscriptionTableInfo(meta);
-          }
-        }, 100);
-      } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data">Aucune donnée disponible</td></tr>';
+      // Si pas de données, afficher le message
+      if (!detailsData || detailsData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
       }
+      
+      // Simule un petit délai pour montrer le chargement
+      setTimeout(() => {
+        allSubscriptionDetails = detailsData;
+        currentSubscriptionPage = 1;
+        renderSubscriptionsPage();
+        
+        // Afficher les informations de performance
+        if (meta) {
+          updateSubscriptionTableInfo(meta);
+        }
+      }, 100);
     }
 
     function updateSubscriptionTableInfo(meta) {
@@ -6853,22 +7034,38 @@
       const endIndex = startIndex + subscriptionsPerPage;
       const pageData = allSubscriptionDetails.slice(startIndex, endIndex);
       
+      if (!pageData || pageData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
       tbody.innerHTML = pageData.map(row => {
-        const fullName = `${row.first_name || ''} ${row.last_name || ''}`.trim();
+        // Gérer différents formats de données (objets Laravel ou tableaux associatifs)
+        const firstName = row.first_name || row.client_prenom || '';
+        const lastName = row.last_name || row.client_nom || '';
+        const fullName = `${firstName} ${lastName}`.trim() || '-';
+        const phone = row.phone || row.client_telephone || '-';
+        const operator = row.operator || row.country_payments_methods_name || '-';
         const plan = row.plan || '-';
         const planBadgeClass = 
           plan === 'Journalier' ? 'badge-warning' :
           plan === 'Mensuel' ? 'badge-info' :
           plan === 'Annuel' ? 'badge-success' : 'badge-secondary';
         
+        // Formater les dates
+        const activationDate = row.activation_date || row.client_abonnement_creation || null;
+        const endDate = row.end_date || row.client_abonnement_expiration || null;
+        const formattedActivation = activationDate ? (typeof activationDate === 'string' ? activationDate.substring(0, 10) : activationDate) : '-';
+        const formattedEnd = endDate ? (typeof endDate === 'string' ? endDate.substring(0, 10) : endDate) : '-';
+        
         return `
           <tr>
-            <td>${fullName || '-'}</td>
-            <td>${row.phone || '-'}</td>
-            <td>${row.operator || '-'}</td>
+            <td>${fullName}</td>
+            <td>${phone}</td>
+            <td>${operator}</td>
             <td><span class="badge ${planBadgeClass}">${plan}</span></td>
-            <td>${row.activation_date ? row.activation_date.substring(0,10) : '-'}</td>
-            <td>${row.end_date ? row.end_date.substring(0,10) : '-'}</td>
+            <td>${formattedActivation}</td>
+            <td>${formattedEnd}</td>
           </tr>
         `;
       }).join('');

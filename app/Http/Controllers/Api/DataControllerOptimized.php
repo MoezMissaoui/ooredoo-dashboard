@@ -73,23 +73,15 @@ class DataControllerOptimized extends Controller
             Log::error("Message: " . $e->getMessage());
             Log::error("Fichier: " . $e->getFile() . " ligne " . $e->getLine());
             
-            // Tentative de récupération avec fallback
-            try {
-                $fallbackData = $this->getFallbackData($params ?? []);
-                $fallbackData['error'] = 'Données de fallback utilisées';
-                $fallbackData['error_message'] = $e->getMessage();
-                
-                return response()->json($fallbackData, 206); // 206 Partial Content
-                
-            } catch (\Exception $fallbackError) {
-                Log::error("Erreur fallback: " . $fallbackError->getMessage());
-                
+            // Ne jamais retourner de fallback - retourner une erreur claire
                 return response()->json([
+                "success" => false,
                     "error" => "Erreur système",
                     "message" => "Impossible de récupérer les données",
+                "error_details" => $e->getMessage(),
+                "data_source" => "error",
                     "timestamp" => now()->toISOString()
                 ], 500);
-            }
         }
     }
     
@@ -181,44 +173,6 @@ class DataControllerOptimized extends Controller
         }
     }
     
-    /**
-     * Données de fallback améliorées
-     */
-    private function getFallbackData(array $params = []): array
-    {
-        $startDate = $params['start_date'] ?? Carbon::now()->subDays(13)->toDateString();
-        $endDate = $params['end_date'] ?? Carbon::now()->toDateString();
-        $operator = $params['operator'] ?? 'Timwe';
-        
-        return [
-            "periods" => [
-                "primary" => Carbon::parse($startDate)->format("M j, Y") . " - " . Carbon::parse($endDate)->format("M j, Y"),
-                "comparison" => "Période de comparaison"
-            ],
-            "kpis" => [
-                "activatedSubscriptions" => ["current" => 0, "previous" => 0, "change" => 0],
-                "activeSubscriptions" => ["current" => 0, "previous" => 0, "change" => 0],
-                "totalTransactions" => ["current" => 0, "previous" => 0, "change" => 0],
-                "transactingUsers" => ["current" => 0, "previous" => 0, "change" => 0],
-                "retentionRate" => ["current" => 0, "previous" => 0, "change" => 0],
-                "conversionRate" => ["current" => 0, "previous" => 0, "change" => 0]
-            ],
-            "merchants" => [],
-            "categoryDistribution" => [],
-            "transactions" => ["daily_volume" => [], "by_category" => []],
-            "subscriptions" => ["daily_activations" => [], "retention_trend" => []],
-            "insights" => [
-                "positive" => ["Système en mode de récupération"],
-                "challenges" => ["Données temporairement indisponibles"],
-                "recommendations" => ["Réessayer dans quelques minutes"],
-                "nextSteps" => ["Contacter le support si le problème persiste"]
-            ],
-            "last_updated" => now()->toISOString(),
-            "data_source" => "fallback",
-            "operator" => $operator,
-            "fallback_reason" => "Erreur lors de la récupération des données"
-        ];
-    }
     
     /**
      * Get available operators - VERSION OPTIMISÉE
