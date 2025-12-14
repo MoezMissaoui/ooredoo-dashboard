@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\EklektikCronController;
 use App\Http\Controllers\SubStoreController;
 use App\Http\Controllers\Api\DataController;
+use App\Http\Controllers\Api\DataControllerOptimized;
 use App\Http\Controllers\EklektikSyncController;
 
 /*
@@ -78,7 +79,7 @@ Route::middleware('auth')->group(function () {
         
         // API routes pour données dashboard
         Route::get('/api/operators', [DataController::class, 'getUserOperators'])->name('api.user.operators');
-        Route::get('/api/dashboard/data', [DataController::class, 'getDashboardData'])->name('api.dashboard.data');
+        Route::get('/api/dashboard/data', [DataControllerOptimized::class, 'getDashboardData'])->name('api.dashboard.data');
         Route::get('/api/dashboard/operators', [DataController::class, 'getAvailableOperators'])->name('api.dashboard.operators');
         Route::get('/api/dashboard/partners', [DataController::class, 'getPartnersList'])->name('api.dashboard.partners');
         Route::get('/api/dashboard/kpis', [DataController::class, 'getKpis'])->name('api.dashboard.kpis');

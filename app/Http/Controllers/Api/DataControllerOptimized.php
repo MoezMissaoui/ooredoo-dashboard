@@ -27,6 +27,9 @@ class DataControllerOptimized extends Controller
      */
     public function getDashboardData(Request $request): JsonResponse
     {
+        // Augmenter le temps d'exécution pour les longues périodes
+        set_time_limit(60); // 60 secondes au lieu de 30
+        
         $startTime = microtime(true);
         
         try {
@@ -138,26 +141,111 @@ class DataControllerOptimized extends Controller
     }
     
     /**
-     * Validation de l'accès opérateur selon les permissions
+     * Validation de l'accès opérateur selon les permissions (gère les IDs et les noms)
      */
     private function validateOperatorAccess($user, string $requestedOperator): string
     {
-        if ($user->isSuperAdmin()) {
-            return $requestedOperator;
-        }
-        
-        $allowedOperators = $user->operators->pluck('operator_name')->toArray();
-        
-        if (empty($allowedOperators)) {
+        // Si c'est "ALL", autoriser uniquement pour SuperAdmin
+        if ($requestedOperator === 'ALL' || $requestedOperator === '' || $requestedOperator === null) {
+            if ($user->isSuperAdmin()) {
+                return 'ALL';
+            }
+            // Pour Admin/Collaborateur, utiliser l'opérateur par défaut
+            $primaryOperator = $user->primaryOperator();
+            if ($primaryOperator) {
+                $primaryOperatorId = DB::table('country_payments_methods')
+                    ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($primaryOperator->operator_name)])
+                    ->value('country_payments_methods_id');
+                if ($primaryOperatorId) {
+                    return (string)$primaryOperatorId;
+                }
+            }
+            $firstOperator = $user->operators()->where('is_active', true)->first();
+            if ($firstOperator) {
+                $firstOperatorId = DB::table('country_payments_methods')
+                    ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($firstOperator->operator_name)])
+                    ->value('country_payments_methods_id');
+                if ($firstOperatorId) {
+                    return (string)$firstOperatorId;
+                }
+            }
             return 'S\'abonner via Timwe';
         }
         
-        if (!in_array($requestedOperator, $allowedOperators)) {
-            $primaryOperator = $user->primaryOperator()->first();
-            return $primaryOperator ? $primaryOperator->operator_name : $allowedOperators[0];
+        // Convertir l'ID en string si c'est un nombre
+        $requestedOperatorId = is_numeric($requestedOperator) ? (string)$requestedOperator : $requestedOperator;
+        
+        if ($user->isSuperAdmin()) {
+            // Super Admin peut accéder à tous les opérateurs
+            if (is_numeric($requestedOperatorId)) {
+                return $requestedOperatorId;
+            }
+            // Chercher l'ID correspondant au nom
+            $operatorId = DB::table('country_payments_methods')
+                ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($requestedOperatorId)])
+                ->value('country_payments_methods_id');
+            if ($operatorId) {
+                return (string)$operatorId;
+            }
+            return $requestedOperatorId;
         }
         
-        return $requestedOperator;
+        // Pour Admin/Collaborateur, vérifier les opérateurs assignés
+        $allowedOperatorNames = $user->operators()
+            ->where('is_active', true)
+            ->pluck('operator_name')
+            ->toArray();
+        
+        if (empty($allowedOperatorNames)) {
+            return 'S\'abonner via Timwe';
+        }
+        
+        // Récupérer les IDs des opérateurs autorisés
+        $allowedOperatorIds = DB::table('country_payments_methods')
+            ->whereIn(DB::raw('TRIM(country_payments_methods_name)'), array_map('trim', $allowedOperatorNames))
+            ->pluck('country_payments_methods_id')
+            ->map(function($id) { return (string)$id; })
+            ->toArray();
+        
+        // Si l'opérateur demandé est un ID, vérifier s'il est dans la liste autorisée
+        if (is_numeric($requestedOperatorId)) {
+            if (in_array($requestedOperatorId, $allowedOperatorIds)) {
+                return $requestedOperatorId;
+            }
+            // Si l'ID n'est pas autorisé, utiliser le premier opérateur assigné
+            if (!empty($allowedOperatorIds)) {
+                return $allowedOperatorIds[0];
+            }
+        }
+        
+        // Si c'est un nom, vérifier s'il est dans la liste autorisée
+        if (in_array($requestedOperator, $allowedOperatorNames)) {
+            // Convertir le nom en ID pour cohérence
+            $operatorId = DB::table('country_payments_methods')
+                ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($requestedOperator)])
+                ->value('country_payments_methods_id');
+            if ($operatorId) {
+                return (string)$operatorId;
+            }
+            return $requestedOperator;
+        }
+        
+        // Si l'opérateur n'est pas autorisé, utiliser le premier opérateur assigné
+        $primaryOperator = $user->primaryOperator()->first();
+        if ($primaryOperator) {
+            $primaryOperatorId = DB::table('country_payments_methods')
+                ->whereRaw("TRIM(country_payments_methods_name) = ?", [trim($primaryOperator->operator_name)])
+                ->value('country_payments_methods_id');
+            if ($primaryOperatorId) {
+                return (string)$primaryOperatorId;
+            }
+        }
+        
+        if (!empty($allowedOperatorIds)) {
+            return $allowedOperatorIds[0];
+        }
+        
+        return 'S\'abonner via Timwe';
     }
     
     /**
