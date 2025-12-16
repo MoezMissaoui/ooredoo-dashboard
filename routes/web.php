@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
         // API routes pour données dashboard
         Route::get('/api/operators', [DataController::class, 'getUserOperators'])->name('api.user.operators');
         Route::get('/api/dashboard/data', [DataControllerOptimized::class, 'getDashboardData'])->name('api.dashboard.data');
+        Route::get('/api/dashboard/subscriptions/{clientId}', [DataControllerOptimized::class, 'getUserSubscriptions'])->name('api.dashboard.user.subscriptions');
         Route::get('/api/dashboard/operators', [DataController::class, 'getAvailableOperators'])->name('api.dashboard.operators');
         Route::get('/api/dashboard/partners', [DataController::class, 'getPartnersList'])->name('api.dashboard.partners');
         Route::get('/api/dashboard/kpis', [DataController::class, 'getKpis'])->name('api.dashboard.kpis');

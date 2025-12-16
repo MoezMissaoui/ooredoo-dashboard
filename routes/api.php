@@ -29,6 +29,7 @@ Route::middleware('auth')->get('/operators', [\App\Http\Controllers\Api\Operator
 // Dashboard API routes
 Route::prefix('dashboard')->name('api.dashboard.')->group(function () {
     Route::get('/data', [DataControllerOptimized::class, 'getDashboardData'])->name('data');
+    Route::get('/subscriptions/{clientId}', [DataControllerOptimized::class, 'getUserSubscriptions'])->name('user.subscriptions');
     Route::get('/operators', [DataController::class, 'getUserOperators'])->name('operators');
     Route::get('/partners', [DataController::class, 'getPartnersList'])->name('partners');
     Route::get('/kpis', [DataController::class, 'getKpis'])->name('kpis');

@@ -27,8 +27,9 @@ class DataControllerOptimized extends Controller
      */
     public function getDashboardData(Request $request): JsonResponse
     {
-        // Augmenter le temps d'exécution pour les longues périodes
-        set_time_limit(60); // 60 secondes au lieu de 30
+        // Augmenter le temps d'exécution et la limite de mémoire pour les longues périodes
+        set_time_limit(120); // 120 secondes
+        ini_set('memory_limit', '512M'); // 512MB
         
         $startTime = microtime(true);
         
@@ -419,6 +420,29 @@ class DataControllerOptimized extends Controller
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Récupère tous les abonnements d'un utilisateur spécifique
+     */
+    public function getUserSubscriptions(Request $request, int $clientId): JsonResponse
+    {
+        try {
+            Log::info("Récupération des abonnements pour le client: {$clientId}");
+            
+            $subscriptions = $this->dashboardService->getUserSubscriptions($clientId);
+            
+            return response()->json($subscriptions);
+            
+        } catch (\Exception $e) {
+            Log::error("Erreur lors de la récupération des abonnements du client {$clientId}: " . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Impossible de récupérer les abonnements',
+                'message' => $e->getMessage()
             ], 500);
         }
     }

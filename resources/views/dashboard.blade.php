@@ -2036,6 +2036,9 @@
       <button class="nav-tab" onclick="showTab('subscriptions')">Subscriptions</button>
       <button class="nav-tab" onclick="showTab('transactions')">Transactions</button>
       <button class="nav-tab" onclick="showTab('merchants')">Merchants</button>
+      @if(Auth::user()->canViewTimweSection())
+      <button class="nav-tab" onclick="showTab('timwe')">📱 Timwe</button>
+      @endif
       @if(Auth::user()->canViewEklektikSection())
       <button class="nav-tab" onclick="showTab('eklektik')">📞 Eklektik</button>
       @endif
@@ -2293,7 +2296,7 @@
         </div>
       </div>
 
-      <!-- Subscriptions KPIs: Row 2 (4 KPI) -->
+      <!-- Subscriptions KPIs: Row 2 (2 KPI) -->
       <div class="sub-kpis-row">
         <div class="card kpi-card">
           <div class="kpi-title">Deactivated (Période) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Période: Tous les abonnements expirés dans la période sélectionnée.">ⓘ</span></div>
@@ -2437,15 +2440,17 @@
                 <th>Plan</th>
                 <th>Date Activation</th>
                 <th>Date Fin</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="subs-details-body">
-              <tr><td colspan="6" class="loading">Chargement...</td></tr>
+              <tr><td colspan="7" class="loading">Chargement...</td></tr>
             </tbody>
           </table>
         </div>
         <div class="subscriptions-pagination"></div>
       </div>
+
     </div>
 
     <!-- Tab 3: Detailed Transaction Analysis -->
@@ -2793,6 +2798,131 @@
         </div>
       </div>
 
+
+    </div>
+    @endif
+
+    <!-- Tab 5: Timwe Integration (Super Admin Only) -->
+    @if(Auth::user()->canViewTimweSection())
+    <div id="timwe" class="tab-content">
+
+      <!-- Statistiques Timwe KPIs - 3 lignes de KPIs -->
+      <div class="grid">
+        <!-- Première ligne - 4 KPIs principaux -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Taux de Facturation <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Clients facturés) / (Total clients Timwe) * 100. Seules les transactions avec pricepointId=63980 ET mnoDeliveryCode=DELIVERED sont comptées.">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-billing-rate">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Total Inscrits <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de clients uniques avec abonnements Timwe actifs à la fin de la période">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-total-clients">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Total Facturations <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions de facturation réussies (pricepointId=63980 ET mnoDeliveryCode=DELIVERED)">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-total-billings">Loading...</div>
+          <div class="kpi-delta" id="timwe-total-billings-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d'abonnements actifs à la fin de la période">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-active-subs">Loading...</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Deuxième ligne - 4 KPIs d'abonnements -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Nouveaux Abonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nouveaux abonnements créés dans la période">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-new-subscriptions">Loading...</div>
+          <div class="kpi-delta" id="timwe-new-subscriptions-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Désabonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de désabonnements dans la période">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-unsubscriptions">Loading...</div>
+          <div class="kpi-delta" id="timwe-unsubscriptions-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Simchurn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Abonnements créés et expirés le même jour">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-simchurn">Loading...</div>
+          <div class="kpi-delta" id="timwe-simchurn-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenu Simchurn <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu généré par les simchurn">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-simchurn-revenue">Loading...</div>
+          <div class="kpi-delta" id="timwe-simchurn-revenue-delta">Loading...</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Troisième ligne - 4 KPIs de revenus -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenu Total TND <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu total en TND (dinars tunisiens)">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-revenue-tnd">Loading...</div>
+          <div class="kpi-delta" id="timwe-revenue-tnd-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenu Total USD <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu total converti en USD">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-revenue-usd">Loading...</div>
+          <div class="kpi-delta" id="timwe-revenue-usd-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">ARPU (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par utilisateur (Revenu Total / Total Inscrits)">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-arpu">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenu Moyen/Facturation <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par facturation (Revenu Total / Total Facturations)">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-avg-billing-revenue">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Tableau Statistiques Quotidiennes Timwe -->
+      <div class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="chart-title">
+            📊 Statistiques Quotidiennes Timwe
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Statistiques détaillées par jour pour Timwe">ⓘ</span>
+            <button onclick="exportTimweStatsToExcel()" style="float: right; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 8px;">
+              📥 Excel
+            </button>
+            <button onclick="copyTimweStatsToClipboard()" style="float: right; padding: 8px 16px; background: var(--secondary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              📋 Copy
+            </button>
+          </div>
+          
+          <!-- Search bar -->
+          <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+            <input type="text" id="timweStatsSearch" placeholder="🔍 Rechercher..." 
+                   onkeyup="filterTimweStats()" 
+                   style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px;">
+          </div>
+          
+          <div class="table-container" style="max-height: 600px; overflow-y: auto;">
+            <table id="timweStatsTable">
+              <thead style="position: sticky; top: 0; background: var(--card); z-index: 10;">
+                <tr>
+                  <th onclick="sortTimweStatistics(0)" style="cursor: pointer;">Date <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(1)" style="cursor: pointer;">Offre <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(2)" style="cursor: pointer;">New Sub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(3)" style="cursor: pointer;">Unsub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(4)" style="cursor: pointer;">Simchurn <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(5)" style="cursor: pointer;">Rev Simchurn <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(6)" style="cursor: pointer;">Active Sub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(7)" style="cursor: pointer;">NB Facturation <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(8)" style="cursor: pointer;">Taux Fact % <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(9)" style="cursor: pointer;">Revenu TND <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortTimweStatistics(10)" style="cursor: pointer;">Revenu USD <span class="sort-icon">⇅</span></th>
+                </tr>
+              </thead>
+              <tbody id="timweStatsTableBody">
+                <tr>
+                  <td colspan="11" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin"></i> Chargement des statistiques...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
     </div>
     @endif
@@ -3510,7 +3640,11 @@
       
       const kpiDeltas = document.querySelectorAll('.kpi-delta');
       kpiDeltas.forEach(el => {
-        el.innerHTML = '<div class="skeleton-text-small"></div>';
+        // Ne pas ajouter de skeleton pour les KPIs Timwe (qui seront masqués par updateKPI)
+        const isTimweKPI = el.id && el.id.startsWith('timwe-');
+        if (!isTimweKPI) {
+          el.innerHTML = '<div class="skeleton-text-small"></div>';
+        }
       });
       
       // Reset progress bars to 0
@@ -5115,9 +5249,9 @@
         
         const startTime = performance.now();
         
-        // Add timeout to prevent hanging
+        // Add timeout to prevent hanging - Augmenté à 3 minutes pour permettre le calcul des Analyses Avancées
         const controller = new AbortController();
-        timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes timeout pour longues périodes
+        timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout pour longues périodes
         
         const response = await fetch(apiUrl, {
           signal: controller.signal,
@@ -5143,6 +5277,24 @@
           loadTime: `${loadTime.toFixed(0)}ms`,
           optimizationMode: data.optimization_mode || 'normal'
         });
+        
+        // Debug: Vérifier les KPIs Timwe et Analyses Avancées
+        if (data.kpis) {
+          console.log('📊 KPIs Timwe:', {
+            billingRateTimwe: data.kpis.billingRateTimwe,
+            totalTimweClients: data.kpis.totalTimweClients,
+            totalTimweBillings: data.kpis.totalTimweBillings
+          });
+        }
+        if (data.subscriptions) {
+          console.log('📊 Analyses Avancées:', {
+            activations_by_channel: data.subscriptions.activations_by_channel,
+            plan_distribution: data.subscriptions.plan_distribution,
+            renewal_rate: data.subscriptions.renewal_rate,
+            average_lifespan: data.subscriptions.average_lifespan,
+            cohorts: data.subscriptions.cohorts?.length || 0
+          });
+        }
 
         // Masquer le message d'optimisation
         hideOptimizationMessage();
@@ -5953,6 +6105,93 @@
       // Taux de churn doit utiliser la valeur churnRate
       updateKPI('sub-retentionRateTrue', normalizeKPI(kpis?.churnRate), '%');
       
+      // Timwe Tab KPIs (super admin uniquement)
+      if (kpis?.billingRateTimwe) {
+        updateKPI('timwe-billing-rate', normalizeKPI(kpis?.billingRateTimwe), '%');
+        updateKPI('timwe-total-clients', normalizeKPI(kpis?.totalTimweClients));
+        updateKPI('timwe-total-billings', normalizeKPI(kpis?.totalTimweBillings));
+        
+        // Récupérer les statistiques quotidiennes depuis les données du dashboard
+        if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.daily_statistics) {
+          updateTimweStatisticsTable(dashboardData.subscriptions.daily_statistics);
+          
+          // Calculer les KPIs agrégés avec comparaison
+          const dailyStats = dashboardData.subscriptions.daily_statistics;
+          const dailyStatsComparison = dashboardData.subscriptions.daily_statistics_comparison || [];
+          
+          const totals = calculateTimweTotals(dailyStats);
+          const comparisonTotals = dailyStatsComparison.length > 0 
+            ? calculateTimweTotals(dailyStatsComparison) 
+            : null;
+          
+          console.log('🔍 [TIMWE] Statistiques:', {
+            current: dailyStats.length,
+            comparison: dailyStatsComparison.length,
+            hasSeparateComparison: !!dashboardData.subscriptions.daily_statistics_comparison
+          });
+          
+          // Helper pour calculer le delta en pourcentage
+          const calculateChange = (current, previous) => {
+            if (!previous || previous === 0) return 0;
+            return ((current - previous) / previous) * 100;
+          };
+          
+          // Helper pour créer un objet KPI avec ou sans comparaison
+          const makeKPI = (current, previous) => {
+            if (previous === null || previous === undefined || !comparisonTotals) {
+              return { current, previous: 0, change: 0 };
+            }
+            return {
+              current,
+              previous,
+              change: calculateChange(current, previous)
+            };
+          };
+          
+          // Mise à jour des KPIs avec comparaison (si disponible)
+          const newSubsKPI = makeKPI(totals.newSubs, comparisonTotals?.newSubs);
+          console.log('🔍 [TIMWE KPI] Nouveaux Abonnements:', newSubsKPI);
+          
+          updateKPI('timwe-active-subs', makeKPI(
+            totals.activeSubsEndOfPeriod,
+            comparisonTotals?.activeSubsEndOfPeriod
+          ));
+          
+          updateKPI('timwe-new-subscriptions', newSubsKPI);
+          
+          updateKPI('timwe-unsubscriptions', makeKPI(
+            totals.unsubs,
+            comparisonTotals?.unsubs
+          ));
+          
+          updateKPI('timwe-simchurn', makeKPI(
+            totals.simchurn,
+            comparisonTotals?.simchurn
+          ));
+          
+          updateKPI('timwe-simchurn-revenue', makeKPI(
+            totals.simchurnRevenue,
+            comparisonTotals?.simchurnRevenue
+          ), ' TND');
+          
+          updateKPI('timwe-revenue-tnd', makeKPI(
+            totals.revenueTnd,
+            comparisonTotals?.revenueTnd
+          ), ' TND');
+          
+          updateKPI('timwe-revenue-usd', makeKPI(
+            totals.revenueUsd,
+            comparisonTotals?.revenueUsd
+          ), ' USD');
+          
+          const arpu = kpis?.totalTimweClients?.current > 0 ? (totals.revenueTnd / kpis.totalTimweClients.current).toFixed(2) : 0;
+          updateKPI('timwe-arpu', { current: arpu, previous: 0, change: 0 }, ' TND');
+          
+          const avgBillingRevenue = kpis?.totalTimweBillings?.current > 0 ? (totals.revenueTnd / kpis.totalTimweBillings.current).toFixed(2) : 0;
+          updateKPI('timwe-avg-billing-revenue', { current: avgBillingRevenue, previous: 0, change: 0 }, ' TND');
+        }
+      }
+      
       // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
       if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.activations_by_channel) {
         const activations = dashboardData.subscriptions.activations_by_channel;
@@ -6055,15 +6294,17 @@
     // Update individual KPI
     function updateKPI(elementId, data, suffix = '') {
       const valueElement = document.getElementById(elementId);
-      const deltaElement = document.getElementById(elementId + 'Delta');
+      // Pour les KPIs Timwe, utiliser '-delta' au lieu de 'Delta'
+      const deltaId = elementId.startsWith('timwe-') ? elementId + '-delta' : elementId + 'Delta';
+      const deltaElement = document.getElementById(deltaId);
       
       // Normalisation: éviter les erreurs si data est undefined/null
       const safe = (data && typeof data.current !== 'undefined')
         ? data
         : { current: 0, previous: 0, change: 0 };
 
-      // DEBUG: tracer tous les KPI subscription problématiques
-      if (elementId.startsWith('sub-')) {
+      // DEBUG: tracer tous les KPI subscription ET timwe problématiques
+      if (elementId.startsWith('sub-') || elementId.startsWith('timwe-')) {
         console.log('[KPI DEBUG]', elementId, JSON.parse(JSON.stringify(safe)));
       }
       
@@ -6076,22 +6317,47 @@
       }
       
       if (deltaElement) {
-        // Force la mise à jour du delta aussi
-        deltaElement.innerHTML = ''; // Clear any existing content including loading states
-        // Force un nouveau rendu pour éviter les résidus
-        deltaElement.className = deltaElement.className; // Trigger reflow
-        
         const change = Number.isFinite(safe.change) ? safe.change : 0;
         const isPositive = change > 0;
         const isNegative = change < 0;
 
-        // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated, churn, durée entre transactions)
-        const inverse = elementId.includes('deactivated') || elementId.includes('churn') || elementId.includes('lostSubscriptions') || elementId.includes('retentionRateTrue') || elementId.includes('avgInterTxDays');
-        const positiveClass = inverse ? 'delta-negative' : 'delta-positive';
-        const negativeClass = inverse ? 'delta-positive' : 'delta-negative';
-        
-        deltaElement.textContent = `${isPositive ? '↗' : isNegative ? '↘' : '→'} ${isPositive ? '+' : ''}${change.toFixed(1)}%`;
-        deltaElement.className = `kpi-delta ${isPositive ? positiveClass : isNegative ? negativeClass : 'delta-neutral'}`;
+        // DEBUG pour Timwe
+        if (elementId.startsWith('timwe-')) {
+          console.log(`🔍 [DELTA] ${elementId}:`, {
+            exists: !!deltaElement,
+            change,
+            previous: safe.previous,
+            willShow: !(change === 0 && safe.previous === 0)
+          });
+        }
+
+        // Masquer le delta si pas de données de comparaison (change = 0 ET previous = 0)
+        if (change === 0 && safe.previous === 0) {
+          // Nettoyer complètement le contenu et masquer
+          deltaElement.innerHTML = '';
+          deltaElement.textContent = '';
+          deltaElement.style.display = 'none';
+          deltaElement.className = 'kpi-delta';
+        } else {
+          // Afficher le delta avec les bonnes classes
+          deltaElement.style.display = '';
+          deltaElement.innerHTML = ''; // Nettoyer d'abord
+          
+          // Inverser la couleur pour les KPI où une baisse est positive (ex: deactivated, churn, durée entre transactions)
+          const inverse = elementId.includes('deactivated') || elementId.includes('churn') || elementId.includes('lostSubscriptions') || elementId.includes('retentionRateTrue') || elementId.includes('avgInterTxDays');
+          const positiveClass = inverse ? 'delta-negative' : 'delta-positive';
+          const negativeClass = inverse ? 'delta-positive' : 'delta-negative';
+          
+          deltaElement.textContent = `${isPositive ? '↗' : isNegative ? '↘' : '→'} ${isPositive ? '+' : ''}${change.toFixed(1)}%`;
+          deltaElement.className = `kpi-delta ${isPositive ? positiveClass : isNegative ? negativeClass : 'delta-neutral'}`;
+          
+          // DEBUG pour Timwe
+          if (elementId.startsWith('timwe-')) {
+            console.log(`✅ [DELTA SET] ${elementId}:`, deltaElement.textContent);
+          }
+        }
+      } else if (elementId.startsWith('timwe-')) {
+        console.log(`❌ [DELTA] ${elementId}: deltaElement NOT FOUND`);
       }
     }
 
@@ -6794,6 +7060,8 @@
       const phoneVal = (activations.phone_balance && typeof activations.phone_balance === 'object') ? (activations.phone_balance.current ?? 0) : (activations.phone_balance ?? 0);
       const otherVal = (activations.other && typeof activations.other === 'object') ? (activations.other.current ?? 0) : (activations.other ?? 0);
 
+      console.log('📊 Activations By Channel Chart:', { activations, cbVal, rechargeVal, phoneVal, otherVal });
+
       charts.activationsByChannel = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -6836,6 +7104,8 @@
       const monthlyVal = (plans.monthly && typeof plans.monthly === 'object') ? (plans.monthly.current ?? 0) : (plans.monthly ?? 0);
       const annualVal = (plans.annual && typeof plans.annual === 'object') ? (plans.annual.current ?? 0) : (plans.annual ?? 0);
       const otherPlanVal = (plans.other && typeof plans.other === 'object') ? (plans.other.current ?? 0) : (plans.other ?? 0);
+      
+      console.log('📊 Plan Distribution Chart:', { plans, dailyVal, monthlyVal, annualVal, otherPlanVal });
       
       charts.planDistribution = new Chart(ctx, {
         type: 'bar',
@@ -6880,9 +7150,19 @@
       }
       
       const cohorts = data.subscriptions?.cohorts || [];
-      const months = cohorts.map(c => c.month);
-      const survivalD30 = cohorts.map(c => c.survival_d30 || 0);
-      const survivalD60 = cohorts.map(c => c.survival_d60 || 0);
+      
+      // Si pas de données, créer un graphique vide avec des labels par défaut
+      const months = cohorts.length > 0 
+        ? cohorts.map(c => c.month)
+        : ['Aucune donnée'];
+      const survivalD30 = cohorts.length > 0
+        ? cohorts.map(c => c.survival_d30 || 0)
+        : [0];
+      const survivalD60 = cohorts.length > 0
+        ? cohorts.map(c => c.survival_d60 || 0)
+        : [0];
+      
+      console.log('📊 Cohorts Analysis Chart:', { cohorts_count: cohorts.length, months, survivalD30, survivalD60 });
       
       charts.cohortsAnalysis = new Chart(ctx, {
         type: 'line',
@@ -6937,7 +7217,504 @@
       // Chargement paresseux du tableau des abonnements
       setTimeout(() => {
         updateSubscriptionsTable(data.subscriptions);
+        updateDailyStatisticsTable(data.subscriptions);
       }, 200);
+    }
+    
+    // Variables pour le tableau des statistiques quotidiennes
+    let allDailyStatistics = [];
+    let currentDailyStatsSortColumn = -1;
+    let dailyStatsSortDirection = 'asc';
+    
+    // Fonction pour mettre à jour le tableau des statistiques quotidiennes
+    function updateDailyStatisticsTable(subscriptions) {
+      const tbody = document.getElementById('daily-statistics-body');
+      if (!tbody) return;
+      
+      // Récupérer les statistiques quotidiennes
+      let dailyStats = [];
+      if (subscriptions && subscriptions.daily_statistics && Array.isArray(subscriptions.daily_statistics)) {
+        dailyStats = subscriptions.daily_statistics;
+      }
+      
+      allDailyStatistics = dailyStats;
+      
+      if (!dailyStats || dailyStats.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
+      renderDailyStatisticsTable();
+    }
+    
+    // Fonction pour afficher le tableau des statistiques quotidiennes
+    function renderDailyStatisticsTable() {
+      const tbody = document.getElementById('daily-statistics-body');
+      if (!tbody) return;
+      
+      if (!allDailyStatistics || allDailyStatistics.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = allDailyStatistics.map(row => {
+        const dimension = row.dimension || '-';
+        const offre = row.offre || 'N/A';
+        const newSub = row.new_sub || 0;
+        const unsub = row.unsub || 0;
+        const simchurn = row.simchurn || 0;
+        const revSimchurn = row.rev_simchurn || 0;
+        const activeSub = row.active_sub || 0;
+        const nbFacturation = row.nb_facturation || 0;
+        const tauxFacturation = row.taux_facturation || 0;
+        const revenuTTC = row.revenu_ttc_tnd || row.revenu_ttc_local || 0;
+        const revenuUSD = row.revenu_ttc_usd || 0;
+        const revenuTND = row.revenu_ttc_tnd || row.revenu_ttc_local || 0;
+        
+        return `
+          <tr>
+            <td>${dimension}</td>
+            <td>${offre}</td>
+            <td>${newSub}</td>
+            <td>${unsub}</td>
+            <td>${simchurn}</td>
+            <td>${revSimchurn}</td>
+            <td>${activeSub.toLocaleString()}</td>
+            <td>${nbFacturation.toLocaleString()}</td>
+            <td>${tauxFacturation.toFixed(2)}%</td>
+            <td>${revenuTTC.toFixed(2)}</td>
+            <td>${revenuUSD.toFixed(2)}</td>
+            <td>${revenuTND.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    // Fonction pour trier le tableau des statistiques quotidiennes
+    function sortDailyStatistics(columnIndex) {
+      if (currentDailyStatsSortColumn === columnIndex) {
+        dailyStatsSortDirection = dailyStatsSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentDailyStatsSortColumn = columnIndex;
+        dailyStatsSortDirection = 'asc';
+      }
+      
+      allDailyStatistics.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(columnIndex) {
+          case 0: aVal = a.dimension; bVal = b.dimension; break;
+          case 1: aVal = a.offre; bVal = b.offre; break;
+          case 2: aVal = a.new_sub || 0; bVal = b.new_sub || 0; break;
+          case 3: aVal = a.unsub || 0; bVal = b.unsub || 0; break;
+          case 4: aVal = a.simchurn || 0; bVal = b.simchurn || 0; break;
+          case 5: aVal = a.rev_simchurn || 0; bVal = b.rev_simchurn || 0; break;
+          case 6: aVal = a.active_sub || 0; bVal = b.active_sub || 0; break;
+          case 7: aVal = a.nb_facturation || 0; bVal = b.nb_facturation || 0; break;
+          case 8: aVal = a.taux_facturation || 0; bVal = b.taux_facturation || 0; break;
+          case 9: aVal = a.revenu_ttc_local || 0; bVal = b.revenu_ttc_local || 0; break;
+          case 10: aVal = a.revenu_ttc_usd || 0; bVal = b.revenu_ttc_usd || 0; break;
+          case 11: aVal = a.revenu_ttc_tnd || 0; bVal = b.revenu_ttc_tnd || 0; break;
+          default: return 0;
+        }
+        
+        if (typeof aVal === 'string') {
+          return dailyStatsSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        } else {
+          return dailyStatsSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+      });
+      
+      renderDailyStatisticsTable();
+    }
+    
+    // Fonction pour filtrer le tableau des statistiques quotidiennes
+    function filterDailyStatistics() {
+      const searchInput = document.getElementById('daily-stats-search');
+      if (!searchInput) return;
+      
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      if (!searchTerm) {
+        renderDailyStatisticsTable();
+        return;
+      }
+      
+      const filtered = allDailyStatistics.filter(row => {
+        return (
+          (row.dimension && row.dimension.toLowerCase().includes(searchTerm)) ||
+          (row.offre && row.offre.toLowerCase().includes(searchTerm)) ||
+          String(row.new_sub || '').includes(searchTerm) ||
+          String(row.unsub || '').includes(searchTerm) ||
+          String(row.active_sub || '').includes(searchTerm)
+        );
+      });
+      
+      const tbody = document.getElementById('daily-statistics-body');
+      if (!tbody) return;
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map(row => {
+        const dimension = row.dimension || '-';
+        const offre = row.offre || 'N/A';
+        const newSub = row.new_sub || 0;
+        const unsub = row.unsub || 0;
+        const simchurn = row.simchurn || 0;
+        const revSimchurn = row.rev_simchurn || 0;
+        const activeSub = row.active_sub || 0;
+        const nbFacturation = row.nb_facturation || 0;
+        const tauxFacturation = row.taux_facturation || 0;
+        const revenuTTC = row.revenu_ttc_tnd || row.revenu_ttc_local || 0;
+        const revenuUSD = row.revenu_ttc_usd || 0;
+        const revenuTND = row.revenu_ttc_tnd || row.revenu_ttc_local || 0;
+        
+        return `
+          <tr>
+            <td>${dimension}</td>
+            <td>${offre}</td>
+            <td>${newSub}</td>
+            <td>${unsub}</td>
+            <td>${simchurn}</td>
+            <td>${revSimchurn}</td>
+            <td>${activeSub.toLocaleString()}</td>
+            <td>${nbFacturation.toLocaleString()}</td>
+            <td>${tauxFacturation.toFixed(2)}%</td>
+            <td>${revenuTTC.toFixed(2)}</td>
+            <td>${revenuUSD.toFixed(2)}</td>
+            <td>${revenuTND.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    // Fonction pour exporter en Excel (simplifiée - copie dans le presse-papier)
+    function exportDailyStatistics() {
+      if (!allDailyStatistics || allDailyStatistics.length === 0) {
+        alert('Aucune donnée à exporter');
+        return;
+      }
+      
+      // Créer le CSV
+      let csv = 'Dimension,Offre,New sub,Unsub,Simchurn,Rev Simchurn,Active Sub,NB facturation,Taux Facturation,Revenu TTC local,Revenu TTC USD,Revenu TTC TND\n';
+      
+      allDailyStatistics.forEach(row => {
+        csv += `${row.dimension || ''},${row.offre || 'N/A'},${row.new_sub || 0},${row.unsub || 0},${row.simchurn || 0},${row.rev_simchurn || 0},${row.active_sub || 0},${row.nb_facturation || 0},${row.taux_facturation || 0},${row.revenu_ttc_local || 0},${row.revenu_ttc_usd || 0},${row.revenu_ttc_tnd || 0}\n`;
+      });
+      
+      // Créer un blob et télécharger
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `statistiques_quotidiennes_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    // Fonction pour copier les données
+    function copyDailyStatistics() {
+      if (!allDailyStatistics || allDailyStatistics.length === 0) {
+        alert('Aucune donnée à copier');
+        return;
+      }
+      
+      // Créer le texte tabulé
+      let text = 'Dimension\tOffre\tNew sub\tUnsub\tSimchurn\tRev Simchurn\tActive Sub\tNB facturation\tTaux Facturation\tRevenu TTC local\tRevenu TTC USD\tRevenu TTC TND\n';
+      
+      allDailyStatistics.forEach(row => {
+        text += `${row.dimension || ''}\t${row.offre || 'N/A'}\t${row.new_sub || 0}\t${row.unsub || 0}\t${row.simchurn || 0}\t${row.rev_simchurn || 0}\t${row.active_sub || 0}\t${row.nb_facturation || 0}\t${row.taux_facturation || 0}\t${row.revenu_ttc_local || 0}\t${row.revenu_ttc_usd || 0}\t${row.revenu_ttc_tnd || 0}\n`;
+      });
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Données copiées dans le presse-papier !');
+      }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
+        alert('Erreur lors de la copie');
+      });
+    }
+    
+    // ===== FONCTIONS TIMWE =====
+    let allTimweStatistics = [];
+    let currentTimweStatsSortColumn = 0;
+    let timweStatsSortDirection = 'asc';
+    
+    function calculateTimweTotals(dailyStats) {
+      if (!dailyStats || dailyStats.length === 0) {
+        return {
+          newSubs: 0,
+          unsubs: 0,
+          simchurn: 0,
+          simchurnRevenue: 0,
+          activeSubsEndOfPeriod: 0,
+          revenueTnd: 0,
+          revenueUsd: 0
+        };
+      }
+      
+      const totals = {
+        newSubs: 0,
+        unsubs: 0,
+        simchurn: 0,
+        simchurnRevenue: 0,
+        activeSubsEndOfPeriod: 0,
+        revenueTnd: 0,
+        revenueUsd: 0
+      };
+      
+      dailyStats.forEach(row => {
+        totals.newSubs += Number(row.new_sub) || 0;
+        totals.unsubs += Number(row.unsub) || 0;
+        totals.simchurn += Number(row.simchurn) || 0;
+        totals.simchurnRevenue += Number(row.rev_simchurn) || 0;
+        totals.revenueTnd += Number(row.revenu_ttc_tnd || row.revenu_ttc_local) || 0;
+        totals.revenueUsd += Number(row.revenu_ttc_usd) || 0;
+      });
+      
+      // Active Subs = valeur du DERNIER jour de la période (pas la moyenne)
+      const lastDayStats = dailyStats[dailyStats.length - 1];
+      totals.activeSubsEndOfPeriod = lastDayStats ? (Number(lastDayStats.active_sub) || 0) : 0;
+      
+      return totals;
+    }
+    
+    function calculateTimweComparisonTotals(dailyStats) {
+      // Récupérer les dates de comparaison depuis les champs du formulaire
+      const compStartDate = document.getElementById('comparison-start-date')?.value;
+      const compEndDate = document.getElementById('comparison-end-date')?.value;
+      
+      if (!compStartDate || !compEndDate) {
+        console.log('🔍 [TIMWE COMPARISON] Pas de dates de comparaison définies');
+        return null; // Indiquer qu'il n'y a pas de comparaison
+      }
+      
+      // Vérifier si les dates de comparaison sont dans les daily_statistics actuelles
+      if (!dailyStats || dailyStats.length === 0) {
+        console.log('🔍 [TIMWE COMPARISON] Pas de daily_statistics');
+        return null;
+      }
+      
+      // Filtrer les stats pour la période de comparaison
+      const compStats = dailyStats.filter(row => {
+        const rowDate = row.dimension; // Format 'YYYY-MM-DD'
+        return rowDate >= compStartDate && rowDate <= compEndDate;
+      });
+      
+      console.log('🔍 [TIMWE COMPARISON] Stats filtrées:', {
+        total: dailyStats.length,
+        comparison: compStats.length,
+        compStartDate,
+        compEndDate,
+        firstDate: dailyStats[0]?.dimension,
+        lastDate: dailyStats[dailyStats.length - 1]?.dimension
+      });
+      
+      // Si pas de données de comparaison dans les stats actuelles, faire un appel API
+      if (compStats.length === 0) {
+        console.log('🔍 [TIMWE COMPARISON] Pas de données dans les stats actuelles, appel API nécessaire');
+        // Pour l'instant, retourner null pour ne pas afficher de comparaison
+        return null;
+      }
+      
+      // Calculer les totaux pour la période de comparaison
+      return calculateTimweTotals(compStats);
+    }
+    
+    function updateTimweStatisticsTable(statistics) {
+      const tbody = document.getElementById('timweStatsTableBody');
+      if (!tbody) return;
+      
+      if (!statistics || statistics.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
+      allTimweStatistics = statistics;
+      renderTimweStatisticsTable();
+    }
+    
+    function renderTimweStatisticsTable() {
+      const tbody = document.getElementById('timweStatsTableBody');
+      if (!tbody) return;
+      
+      if (!allTimweStatistics || allTimweStatistics.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = allTimweStatistics.map(row => {
+        const date = row.dimension || '-';
+        const offre = row.offre || 'N/A';
+        const newSub = row.new_sub || 0;
+        const unsub = row.unsub || 0;
+        const simchurn = row.simchurn || 0;
+        const revSimchurn = Number(row.rev_simchurn || 0).toFixed(2);
+        const activeSub = row.active_sub || 0;
+        const nbFacturation = row.nb_facturation || 0;
+        const tauxFacturation = Number(row.taux_facturation || 0).toFixed(2);
+        const revenuTnd = Number(row.revenu_ttc_tnd || row.revenu_ttc_local || 0).toFixed(2);
+        const revenuUsd = Number(row.revenu_ttc_usd || 0).toFixed(2);
+        
+        return `
+          <tr>
+            <td>${date}</td>
+            <td>${offre}</td>
+            <td>${newSub}</td>
+            <td>${unsub}</td>
+            <td>${simchurn}</td>
+            <td>${revSimchurn}</td>
+            <td>${activeSub.toLocaleString()}</td>
+            <td>${nbFacturation.toLocaleString()}</td>
+            <td>${tauxFacturation}%</td>
+            <td>${revenuTnd}</td>
+            <td>${revenuUsd}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    function sortTimweStatistics(columnIndex) {
+      if (currentTimweStatsSortColumn === columnIndex) {
+        timweStatsSortDirection = timweStatsSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentTimweStatsSortColumn = columnIndex;
+        timweStatsSortDirection = 'asc';
+      }
+      
+      allTimweStatistics.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(columnIndex) {
+          case 0: aVal = a.dimension; bVal = b.dimension; break;
+          case 1: aVal = a.offre; bVal = b.offre; break;
+          case 2: aVal = a.new_sub || 0; bVal = b.new_sub || 0; break;
+          case 3: aVal = a.unsub || 0; bVal = b.unsub || 0; break;
+          case 4: aVal = a.simchurn || 0; bVal = b.simchurn || 0; break;
+          case 5: aVal = a.rev_simchurn || 0; bVal = b.rev_simchurn || 0; break;
+          case 6: aVal = a.active_sub || 0; bVal = b.active_sub || 0; break;
+          case 7: aVal = a.nb_facturation || 0; bVal = b.nb_facturation || 0; break;
+          case 8: aVal = a.taux_facturation || 0; bVal = b.taux_facturation || 0; break;
+          case 9: aVal = a.revenu_ttc_tnd || a.revenu_ttc_local || 0; bVal = b.revenu_ttc_tnd || b.revenu_ttc_local || 0; break;
+          case 10: aVal = a.revenu_ttc_usd || 0; bVal = b.revenu_ttc_usd || 0; break;
+          default: return 0;
+        }
+        
+        if (typeof aVal === 'string') {
+          return timweStatsSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        } else {
+          return timweStatsSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+      });
+      
+      renderTimweStatisticsTable();
+    }
+    
+    function filterTimweStats() {
+      const searchInput = document.getElementById('timweStatsSearch');
+      if (!searchInput) return;
+      
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      if (!searchTerm) {
+        renderTimweStatisticsTable();
+        return;
+      }
+      
+      const filtered = allTimweStatistics.filter(row => {
+        return (
+          (row.dimension && row.dimension.toLowerCase().includes(searchTerm)) ||
+          (row.offre && row.offre.toLowerCase().includes(searchTerm)) ||
+          String(row.new_sub || '').includes(searchTerm) ||
+          String(row.unsub || '').includes(searchTerm) ||
+          String(row.active_sub || '').includes(searchTerm)
+        );
+      });
+      
+      const tbody = document.getElementById('timweStatsTableBody');
+      if (!tbody) return;
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map(row => {
+        const date = row.dimension || '-';
+        const offre = row.offre || 'N/A';
+        const newSub = row.new_sub || 0;
+        const unsub = row.unsub || 0;
+        const simchurn = row.simchurn || 0;
+        const revSimchurn = Number(row.rev_simchurn || 0).toFixed(2);
+        const activeSub = row.active_sub || 0;
+        const nbFacturation = row.nb_facturation || 0;
+        const tauxFacturation = Number(row.taux_facturation || 0).toFixed(2);
+        const revenuTnd = Number(row.revenu_ttc_tnd || row.revenu_ttc_local || 0).toFixed(2);
+        const revenuUsd = Number(row.revenu_ttc_usd || 0).toFixed(2);
+        
+        return `
+          <tr>
+            <td>${date}</td>
+            <td>${offre}</td>
+            <td>${newSub}</td>
+            <td>${unsub}</td>
+            <td>${simchurn}</td>
+            <td>${revSimchurn}</td>
+            <td>${activeSub.toLocaleString()}</td>
+            <td>${nbFacturation.toLocaleString()}</td>
+            <td>${tauxFacturation}%</td>
+            <td>${revenuTnd}</td>
+            <td>${revenuUsd}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    function exportTimweStatsToExcel() {
+      if (!allTimweStatistics || allTimweStatistics.length === 0) {
+        alert('Aucune donnée à exporter');
+        return;
+      }
+      
+      let csv = 'Date,Offre,New Sub,Unsub,Simchurn,Rev Simchurn,Active Sub,NB Facturation,Taux Facturation %,Revenu TND,Revenu USD\n';
+      
+      allTimweStatistics.forEach(row => {
+        csv += `${row.dimension || ''},${row.offre || 'N/A'},${row.new_sub || 0},${row.unsub || 0},${row.simchurn || 0},${row.rev_simchurn || 0},${row.active_sub || 0},${row.nb_facturation || 0},${row.taux_facturation || 0},${row.revenu_ttc_tnd || row.revenu_ttc_local || 0},${row.revenu_ttc_usd || 0}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `timwe_statistiques_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    function copyTimweStatsToClipboard() {
+      if (!allTimweStatistics || allTimweStatistics.length === 0) {
+        alert('Aucune donnée à copier');
+        return;
+      }
+      
+      let text = 'Date\tOffre\tNew Sub\tUnsub\tSimchurn\tRev Simchurn\tActive Sub\tNB Facturation\tTaux Facturation %\tRevenu TND\tRevenu USD\n';
+      
+      allTimweStatistics.forEach(row => {
+        text += `${row.dimension || ''}\t${row.offre || 'N/A'}\t${row.new_sub || 0}\t${row.unsub || 0}\t${row.simchurn || 0}\t${row.rev_simchurn || 0}\t${row.active_sub || 0}\t${row.nb_facturation || 0}\t${row.taux_facturation || 0}\t${row.revenu_ttc_tnd || row.revenu_ttc_local || 0}\t${row.revenu_ttc_usd || 0}\n`;
+      });
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Données copiées dans le presse-papier !');
+      }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
+        alert('Erreur lors de la copie');
+      });
     }
 
     // Update merchants table with enhanced data and pagination
@@ -6996,7 +7773,7 @@
       
       // Si pas de données, afficher le message
       if (!detailsData || detailsData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
         return;
       }
       
@@ -7035,7 +7812,7 @@
       const pageData = allSubscriptionDetails.slice(startIndex, endIndex);
       
       if (!pageData || pageData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
         return;
       }
       
@@ -7047,7 +7824,9 @@
         const phone = row.phone || row.client_telephone || '-';
         const operator = row.operator || row.country_payments_methods_name || '-';
         const plan = row.plan || '-';
+        const clientId = row.client_id || null;
         const planBadgeClass = 
+          plan === 'Trial' ? 'badge-primary' :
           plan === 'Journalier' ? 'badge-warning' :
           plan === 'Mensuel' ? 'badge-info' :
           plan === 'Annuel' ? 'badge-success' : 'badge-secondary';
@@ -7058,6 +7837,13 @@
         const formattedActivation = activationDate ? (typeof activationDate === 'string' ? activationDate.substring(0, 10) : activationDate) : '-';
         const formattedEnd = endDate ? (typeof endDate === 'string' ? endDate.substring(0, 10) : endDate) : '-';
         
+        // Bouton détails (seulement si client_id est disponible)
+        // Échapper les apostrophes dans le nom pour éviter les erreurs JavaScript
+        const escapedName = fullName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const detailsButton = clientId ? 
+          `<button onclick="showUserSubscriptionsDetails(${clientId}, '${escapedName}')" class="btn-details" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; font-weight: 500;" onmouseover="this.style.background='var(--brand-primary)'" onmouseout="this.style.background='var(--accent)'">Détails</button>` :
+          `<span style="color: var(--muted); font-size: 12px;">-</span>`;
+        
         return `
           <tr>
             <td>${fullName}</td>
@@ -7066,6 +7852,7 @@
             <td><span class="badge ${planBadgeClass}">${plan}</span></td>
             <td>${formattedActivation}</td>
             <td>${formattedEnd}</td>
+            <td>${detailsButton}</td>
           </tr>
         `;
       }).join('');
@@ -7113,6 +7900,131 @@
       subscriptionsPerPage = parseInt(perPage);
       currentSubscriptionPage = 1;
       renderSubscriptionsPage();
+    }
+
+    // Fonction pour afficher les détails des abonnements d'un utilisateur
+    async function showUserSubscriptionsDetails(clientId, clientName) {
+      // Supprimer la modale existante si elle existe
+      const existing = document.getElementById('user-subscriptions-modal');
+      if (existing) existing.remove();
+      
+      // Créer la modale avec indicateur de chargement
+      const modal = document.createElement('div');
+      modal.id = 'user-subscriptions-modal';
+      modal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10001; display: flex; align-items: center; justify-content: center;">
+          <div style="background: white; border-radius: 12px; padding: 30px; max-width: 900px; max-height: 80vh; overflow-y: auto; width: 90%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h3 style="margin: 0; color: var(--brand-primary); font-size: 20px;">📋 Abonnements de ${clientName}</h3>
+              <button onclick="document.getElementById('user-subscriptions-modal').remove()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--muted); padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">×</button>
+            </div>
+            <div id="user-subscriptions-content" style="min-height: 200px;">
+              <div style="text-align: center; padding: 40px; color: var(--muted);">
+                <div style="margin-bottom: 10px;">🔄 Chargement des abonnements...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      try {
+        // Appeler l'API
+        const response = await fetch(`/api/dashboard/subscriptions/${clientId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+          }
+        });
+        
+        const data = await response.json();
+        const contentDiv = document.getElementById('user-subscriptions-content');
+        
+        if (!data.success || !data.subscriptions || data.subscriptions.length === 0) {
+          contentDiv.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--muted);">
+              <div style="font-size: 48px; margin-bottom: 10px;">📭</div>
+              <div>Aucun abonnement trouvé pour cet utilisateur</div>
+            </div>
+          `;
+          return;
+        }
+        
+        // Afficher les abonnements dans un tableau
+        const subscriptions = data.subscriptions;
+        const totalSubscriptions = data.total_subscriptions || subscriptions.length;
+        
+        let tableHTML = `
+          <div style="margin-bottom: 15px; color: var(--muted); font-size: 14px;">
+            Total: <strong>${totalSubscriptions}</strong> abonnement(s)
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+              <tr style="background: var(--bg); border-bottom: 2px solid var(--border);">
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Opérateur</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Plan</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Type</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Date Activation</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Date Fin</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Statut</th>
+                <th style="padding: 12px; text-align: left; font-weight: 600; color: var(--brand-dark);">Prix</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        subscriptions.forEach(sub => {
+          const operator = sub.operator || '-';
+          const plan = sub.plan || '-';
+          const subscriptionType = sub.subscription_type || '-';
+          const subscriptionName = sub.subscription_name || '-';
+          const activationDate = sub.activation_date ? (typeof sub.activation_date === 'string' ? sub.activation_date.substring(0, 10) : sub.activation_date) : '-';
+          const endDate = sub.end_date ? (typeof sub.end_date === 'string' ? sub.end_date.substring(0, 10) : sub.end_date) : '-';
+          const status = sub.status || 'Inconnu';
+          const price = sub.price ? parseFloat(sub.price).toFixed(2) + ' TND' : '-';
+          
+          const statusBadge = status === 'Actif' ? 
+            '<span style="background: var(--success); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Actif</span>' :
+            '<span style="background: var(--muted); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Expiré</span>';
+          
+          const planBadgeClass = 
+            plan === 'Trial' ? 'var(--brand-primary)' :
+            plan === 'Journalier' ? 'var(--warning)' :
+            plan === 'Mensuel' ? 'var(--accent)' :
+            plan === 'Annuel' ? 'var(--success)' : 'var(--muted)';
+          
+          tableHTML += `
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 12px;">${operator}</td>
+              <td style="padding: 12px;"><span style="background: ${planBadgeClass}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${plan}</span></td>
+              <td style="padding: 12px;">${subscriptionName}</td>
+              <td style="padding: 12px;">${activationDate}</td>
+              <td style="padding: 12px;">${endDate}</td>
+              <td style="padding: 12px;">${statusBadge}</td>
+              <td style="padding: 12px;">${price}</td>
+            </tr>
+          `;
+        });
+        
+        tableHTML += `
+            </tbody>
+          </table>
+        `;
+        
+        contentDiv.innerHTML = tableHTML;
+        
+      } catch (error) {
+        console.error('Erreur lors de la récupération des abonnements:', error);
+        const contentDiv = document.getElementById('user-subscriptions-content');
+        contentDiv.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--danger);">
+            <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+            <div>Erreur lors du chargement des abonnements</div>
+            <div style="font-size: 12px; margin-top: 10px; color: var(--muted);">${error.message}</div>
+          </div>
+        `;
+      }
     }
     
     function renderMerchantsPage() {

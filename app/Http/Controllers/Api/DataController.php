@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\DashboardService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +14,12 @@ use Carbon\Carbon;
 
 class DataController extends Controller
 {
+    protected DashboardService $dashboardService;
+
+    public function __construct(DashboardService $dashboardService)
+    {
+        $this->dashboardService = $dashboardService;
+    }
     /**
      * Builder commun: history -> client_abonnement -> cpm -> promotion -> partner
      */
@@ -265,19 +272,15 @@ class DataController extends Controller
                 Log::info("Dates comparaison par défaut: comparison_start_date=$comparisonStartDate, comparison_end_date=$comparisonEndDate");
             }
 
-            // Générer la clé de cache
-            $cacheKey = $this->generateCacheKey($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator, $user->id);
-            
-            // Cache intelligent: 30-120s selon la longueur de période
-            $periodDays = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1;
-            $ttl = $periodDays > 120 ? 120 : ($periodDays > 30 ? 90 : 30);
-            $data = Cache::remember($cacheKey, $ttl, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator) {
-                return $this->fetchDashboardDataFromDatabase($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator);
-            });
-            
-            if (Cache::has($cacheKey)) {
-                Log::info("Cache HIT - Données servies depuis le cache");
-            }
+            // Utiliser le DashboardService optimisé avec cache Timwe intégré
+            Log::info("Utilisation du DashboardService optimisé");
+            $data = $this->dashboardService->getDashboardData(
+                $startDate,
+                $endDate,
+                $comparisonStartDate,
+                $comparisonEndDate,
+                $selectedOperator
+            );
             
             Log::info("Données récupérées avec succès, source: " . ($data['data_source'] ?? 'inconnu'));
             Log::info("Nombre de marchands: " . count($data['merchants'] ?? []));
@@ -375,10 +378,10 @@ class DataController extends Controller
             $activatedSubscriptionsComparison = $activatedSubscriptionsComparisonQuery->count();
             Log::info("Abonnements activés $selectedOperator (comparaison): $activatedSubscriptionsComparison");
 
-            // Actifs parmi les activations de la période: créés dans la période et non expirés à la fin de période
+            // Actifs: TOUS les abonnements actifs à la fin de période (peu importe la date de création)
             $activeSubscriptionsQuery = DB::table('client_abonnement')
                 ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
-                ->whereBetween('client_abonnement_creation', [$startDate, Carbon::parse($endDate)->endOfDay()])
+                ->where('client_abonnement_creation', '<=', Carbon::parse($endDate)->endOfDay())
                 ->where(function($q) use ($endDate) {
                     $q->whereNull('client_abonnement_expiration')
                       ->orWhere('client_abonnement_expiration', '>', Carbon::parse($endDate)->endOfDay());
@@ -388,7 +391,7 @@ class DataController extends Controller
                 
             $activeSubscriptionsComparisonQuery = DB::table('client_abonnement')
                 ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
-                ->whereBetween('client_abonnement_creation', [$comparisonStartDate, Carbon::parse($comparisonEndDate)->endOfDay()])
+                ->where('client_abonnement_creation', '<=', Carbon::parse($comparisonEndDate)->endOfDay())
                 ->where(function($q) use ($comparisonEndDate) {
                     $q->whereNull('client_abonnement_expiration')
                       ->orWhere('client_abonnement_expiration', '>', Carbon::parse($comparisonEndDate)->endOfDay());
@@ -2491,10 +2494,10 @@ class DataController extends Controller
                     })
                     ->count();
 
-                // Active Subscriptions (créés dans la période ET encore actifs) - MÊME LOGIQUE que mode normal
+                // Active Subscriptions: TOUS les abonnements actifs à la fin de période (peu importe la date de création)
                 $activeSubscriptions = DB::table('client_abonnement')
                     ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
-                    ->whereBetween('client_abonnement_creation', [$startBound, $endExclusive->subDay()->endOfDay()])
+                    ->where('client_abonnement_creation', '<=', $endExclusive->subDay()->endOfDay())
                     ->where(function($q) use ($endExclusive) {
                         $q->whereNull('client_abonnement_expiration')
                           ->orWhere('client_abonnement_expiration', '>', $endExclusive->subDay()->endOfDay());
@@ -2506,7 +2509,7 @@ class DataController extends Controller
 
                 $activeSubscriptionsComparison = DB::table('client_abonnement')
                     ->join('country_payments_methods', 'client_abonnement.country_payments_methods_id', '=', 'country_payments_methods.country_payments_methods_id')
-                    ->whereBetween('client_abonnement_creation', [$compStartBound, $compEndExclusive->subDay()->endOfDay()])
+                    ->where('client_abonnement_creation', '<=', $compEndExclusive->subDay()->endOfDay())
                     ->where(function($q) use ($compEndExclusive) {
                         $q->whereNull('client_abonnement_expiration')
                           ->orWhere('client_abonnement_expiration', '>', $compEndExclusive->subDay()->endOfDay());
