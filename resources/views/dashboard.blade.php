@@ -2039,6 +2039,9 @@
       @if(Auth::user()->canViewTimweSection())
       <button class="nav-tab" onclick="showTab('timwe')">📱 Timwe</button>
       @endif
+      @if(Auth::user()->canViewTimweSection())
+      <button class="nav-tab" onclick="showTab('ooredoo')">📱 Ooredoo/DGV</button>
+      @endif
       @if(Auth::user()->canViewEklektikSection())
       <button class="nav-tab" onclick="showTab('eklektik')">📞 Eklektik</button>
       @endif
@@ -2814,8 +2817,9 @@
           <div class="kpi-value" id="timwe-billing-rate">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Total Inscrits <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de clients uniques avec abonnements Timwe actifs à la fin de la période">ⓘ</span></div>
-          <div class="kpi-value" id="timwe-total-clients">Loading...</div>
+          <div class="kpi-title">Taux de Croissance Nette <span style="margin-left:4px; cursor: help; color: var(--muted);" title="((Nouveaux Abonnements - Désabonnements - Simchurn) / Active Subscriptions) × 100. Indique la croissance nette du portefeuille client.">ⓘ</span></div>
+          <div class="kpi-value" id="timwe-net-growth-rate">Loading...</div>
+          <div class="kpi-delta" id="timwe-net-growth-rate-delta">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
           <div class="kpi-title">Total Facturations <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions de facturation réussies (pricepointId=63980 ET mnoDeliveryCode=DELIVERED)">ⓘ</span></div>
@@ -2855,17 +2859,17 @@
       <div class="grid">
         <!-- Troisième ligne - 4 KPIs de revenus -->
         <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Revenu Total TND <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu total en TND (dinars tunisiens)">ⓘ</span></div>
+          <div class="kpi-title">Revenu TTC (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu total TTC basé sur la somme des totalCharged (en TND)">ⓘ</span></div>
           <div class="kpi-value" id="timwe-revenue-tnd">Loading...</div>
           <div class="kpi-delta" id="timwe-revenue-tnd-delta">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Revenu Total USD <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu total converti en USD">ⓘ</span></div>
+          <div class="kpi-title">CA BigDeal HT (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Chiffre d'affaires BigDeal Hors Taxes calculé selon le contrat">ⓘ</span></div>
           <div class="kpi-value" id="timwe-revenue-usd">Loading...</div>
           <div class="kpi-delta" id="timwe-revenue-usd-delta">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">ARPU (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par utilisateur (Revenu Total / Total Inscrits)">ⓘ</span></div>
+          <div class="kpi-title">ARPU (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par utilisateur normalisé sur 30 jours : (Revenu Total / Active Subs) × (30 / Nombre de jours)">ⓘ</span></div>
           <div class="kpi-value" id="timwe-arpu">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
@@ -2899,22 +2903,136 @@
             <table id="timweStatsTable">
               <thead style="position: sticky; top: 0; background: var(--card); z-index: 10;">
                 <tr>
-                  <th onclick="sortTimweStatistics(0)" style="cursor: pointer;">Date <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(1)" style="cursor: pointer;">Offre <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(2)" style="cursor: pointer;">New Sub <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(3)" style="cursor: pointer;">Unsub <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(4)" style="cursor: pointer;">Simchurn <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(5)" style="cursor: pointer;">Rev Simchurn <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(6)" style="cursor: pointer;">Active Sub <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(7)" style="cursor: pointer;">NB Facturation <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(8)" style="cursor: pointer;">Taux Fact % <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(9)" style="cursor: pointer;">Revenu TND <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortTimweStatistics(10)" style="cursor: pointer;">Revenu USD <span class="sort-icon">⇅</span></th>
+                  <th style="width: 30px; text-align: center;"></th>
+                  <th style="text-align: left;">Période</th>
+                  <th style="text-align: center;">New Sub</th>
+                  <th style="text-align: center;">Unsub</th>
+                  <th style="text-align: center;">Simchurn</th>
+                  <th style="text-align: center;">Active Sub</th>
+                  <th style="text-align: center;">NB Facturation</th>
+                  <th style="text-align: center;">Taux Fact %</th>
+                  <th style="text-align: center;">Revenu TTC (TND)</th>
+                  <th style="text-align: center;">CA BigDeal HT (TND)</th>
                 </tr>
               </thead>
               <tbody id="timweStatsTableBody">
                 <tr>
-                  <td colspan="11" style="text-align: center; padding: 40px;">
+                  <td colspan="10" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin"></i> Chargement des statistiques...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DÉSACTIVÉ POUR OPTIMISATION: Tableau des Transactions Timwe par Utilisateur -->
+      <!-- Ce tableau a été désactivé définitivement pour améliorer les performances du dashboard -->
+      <!--
+      <div class="grid" style="margin-top: 20px;">
+        <div class="card" style="grid-column: span 12;">
+          <div class="chart-title">
+            📋 Détails des Transactions Timwe par Utilisateur
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Liste des transactions Timwe (renouvellements et désabonnements) groupées par utilisateur">ⓘ</span>
+          </div>
+          <div style="padding: 40px; text-align: center; color: var(--muted);">
+            ⚠️ Tableau désactivé pour optimisation des performances
+          </div>
+        </div>
+      </div>
+      -->
+
+    </div>
+    @endif
+
+    <!-- Tab: Ooredoo/DGV Section -->
+    @if(Auth::user()->canViewTimweSection())
+    <div id="ooredoo" class="tab-content">
+
+      <!-- Statistiques Ooredoo KPIs - 3 lignes de KPIs -->
+      <div class="grid">
+        <!-- Première ligne - 4 KPIs principaux -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Taux de Facturation <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Clients facturés) / (Total clients Ooredoo) * 100. Transactions de type INVOICE avec statut SUCCESS.">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-billing-rate">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Total Inscrits <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de clients uniques avec abonnements Ooredoo/DGV actifs à la fin de la période">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-total-clients">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Total Facturations <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions de facturation réussies (type INVOICE)">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-total-billings">Loading...</div>
+          <div class="kpi-delta" id="ooredoo-total-billings-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d'abonnements actifs à la fin de la période">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-active-subs">Loading...</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Deuxième ligne - 4 KPIs d'abonnements -->
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Nouveaux Abonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nouveaux abonnements créés dans la période (OOREDOO_PAYMENT_SUCCESS)">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-new-subscriptions">Loading...</div>
+          <div class="kpi-delta" id="ooredoo-new-subscriptions-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Désabonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de désabonnements dans la période">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-unsubscriptions">Loading...</div>
+          <div class="kpi-delta" id="ooredoo-unsubscriptions-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenu Total TND <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu total en TND (dinars tunisiens)">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-revenue-tnd">Loading...</div>
+          <div class="kpi-delta" id="ooredoo-revenue-tnd-delta">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">ARPU (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par utilisateur (Revenu Total / Total Inscrits)">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-arpu">Loading...</div>
+        </div>
+      </div>
+
+      <!-- Tableau Statistiques Quotidiennes Ooredoo -->
+      <div class="grid">
+        <div class="card" style="grid-column: span 12;">
+          <div class="chart-title">
+            📊 Statistiques Quotidiennes Ooredoo/DGV
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Statistiques détaillées par jour pour Ooredoo/DGV">ⓘ</span>
+            <button onclick="exportOoredooStatsToExcel()" style="float: right; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 8px;">
+              📥 Excel
+            </button>
+            <button onclick="copyOoredooStatsToClipboard()" style="float: right; padding: 8px 16px; background: var(--secondary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+              📋 Copy
+            </button>
+          </div>
+          
+          <!-- Search bar -->
+          <div style="padding: 16px; border-bottom: 1px solid var(--border);">
+            <input type="text" id="ooredooStatsSearch" placeholder="🔍 Rechercher..." 
+                   onkeyup="filterOoredooStats()" 
+                   style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px;">
+          </div>
+          
+          <div class="table-container" style="max-height: 600px; overflow-y: auto;">
+            <table id="ooredooStatsTable">
+              <thead style="position: sticky; top: 0; background: var(--card); z-index: 10;">
+                <tr>
+                  <th onclick="sortOoredooStatistics(0)" style="cursor: pointer;">Date <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(1)" style="cursor: pointer;">Offre <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(2)" style="cursor: pointer;">New Sub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(3)" style="cursor: pointer;">Unsub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(4)" style="cursor: pointer;">Active Sub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(5)" style="cursor: pointer;">NB Facturation <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(6)" style="cursor: pointer;">Taux Fact % <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(7)" style="cursor: pointer;">Revenu TND <span class="sort-icon">⇅</span></th>
+                </tr>
+              </thead>
+              <tbody id="ooredooStatsTableBody">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 40px;">
                     <i class="fas fa-spinner fa-spin"></i> Chargement des statistiques...
                   </td>
                 </tr>
@@ -5175,6 +5293,51 @@
     });
     
     // Helper functions
+    
+    /**
+     * Calcule le changement en pourcentage entre deux valeurs
+     * @param {number} current - Valeur actuelle
+     * @param {number} previous - Valeur précédente
+     * @returns {number} - Pourcentage de changement
+     */
+    function calculateChange(current, previous) {
+      if (!previous || previous === 0) return 0;
+      return ((current - previous) / previous) * 100;
+    }
+    
+    /**
+     * Formate un nombre avec espaces pour milliers, virgule pour décimales
+     * @param {number} value - Nombre à formater
+     * @param {number} decimals - Nombre de décimales (défaut 3)
+     * @returns {string} - Nombre formaté (ex: "20 238,000")
+     */
+    function formatNumber(value, decimals = 3) {
+      if (value === null || value === undefined || isNaN(value)) return '0,000';
+      
+      const num = Number(value);
+      const fixed = num.toFixed(decimals);
+      
+      // Séparer partie entière et décimale
+      const [integerPart, decimalPart] = fixed.split('.');
+      
+      // Ajouter espaces pour les milliers
+      const withSpaces = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      
+      // Remplacer le point par une virgule pour les décimales
+      return decimalPart ? `${withSpaces},${decimalPart}` : withSpaces;
+    }
+    
+    /**
+     * Formate un pourcentage avec virgule au lieu de point
+     * @param {number} value - Valeur du pourcentage
+     * @param {number} decimals - Nombre de décimales (défaut 3)
+     * @returns {string} - Pourcentage formaté (ex: "9,290%")
+     */
+    function formatPercentage(value, decimals = 3) {
+      if (value === null || value === undefined || isNaN(value)) return '0,000%';
+      return formatNumber(value, decimals) + '%';
+    }
+    
     function getServiceIcon(serviceType) {
       const icons = {
         'SUBSCRIPTION': '📱',
@@ -6108,33 +6271,33 @@
       // Timwe Tab KPIs (super admin uniquement)
       if (kpis?.billingRateTimwe) {
         updateKPI('timwe-billing-rate', normalizeKPI(kpis?.billingRateTimwe), '%');
-        updateKPI('timwe-total-clients', normalizeKPI(kpis?.totalTimweClients));
         updateKPI('timwe-total-billings', normalizeKPI(kpis?.totalTimweBillings));
         
-        // Récupérer les statistiques quotidiennes depuis les données du dashboard
-        if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.daily_statistics) {
-          updateTimweStatisticsTable(dashboardData.subscriptions.daily_statistics);
+        // Récupérer les statistiques mensuelles groupées Timwe depuis les données du dashboard
+        if (dashboardData && dashboardData.subscriptions && dashboardData.subscriptions.timwe_monthly_stats) {
+          updateTimweStatisticsTable(dashboardData.subscriptions.timwe_monthly_stats);
           
-          // Calculer les KPIs agrégés avec comparaison
-          const dailyStats = dashboardData.subscriptions.daily_statistics;
-          const dailyStatsComparison = dashboardData.subscriptions.daily_statistics_comparison || [];
+          // DÉSACTIVÉ POUR OPTIMISATION: Tableau des transactions Timwe par utilisateur
+          // if (dashboardData.subscriptions.timwe_transactions_by_user) {
+          //   updateTimweTransactionsTable(dashboardData.subscriptions.timwe_transactions_by_user);
+          // } else {
+          //   updateTimweTransactionsTable([]);
+          // }
           
-          const totals = calculateTimweTotals(dailyStats);
-          const comparisonTotals = dailyStatsComparison.length > 0 
-            ? calculateTimweTotals(dailyStatsComparison) 
+          // Calculer les KPIs agrégés avec comparaison (depuis les données mensuelles)
+          const monthlyStats = dashboardData.subscriptions.timwe_monthly_stats || [];
+          const monthlyStatsComparison = dashboardData.subscriptions.timwe_monthly_stats_comparison || [];
+          
+          const totals = calculateTimweTotals(monthlyStats);
+          const comparisonTotals = monthlyStatsComparison.length > 0 
+            ? calculateTimweComparisonTotals(monthlyStatsComparison) 
             : null;
           
           console.log('🔍 [TIMWE] Statistiques:', {
-            current: dailyStats.length,
-            comparison: dailyStatsComparison.length,
-            hasSeparateComparison: !!dashboardData.subscriptions.daily_statistics_comparison
+            current: monthlyStats.length,
+            comparison: monthlyStatsComparison.length,
+            hasSeparateComparison: !!dashboardData.subscriptions.timwe_monthly_stats_comparison
           });
-          
-          // Helper pour calculer le delta en pourcentage
-          const calculateChange = (current, previous) => {
-            if (!previous || previous === 0) return 0;
-            return ((current - previous) / previous) * 100;
-          };
           
           // Helper pour créer un objet KPI avec ou sans comparaison
           const makeKPI = (current, previous) => {
@@ -6180,16 +6343,61 @@
           ), ' TND');
           
           updateKPI('timwe-revenue-usd', makeKPI(
-            totals.revenueUsd,
-            comparisonTotals?.revenueUsd
-          ), ' USD');
+            totals.caBigdealHt,
+            comparisonTotals?.caBigdealHt
+          ), ' TND');
           
-          const arpu = kpis?.totalTimweClients?.current > 0 ? (totals.revenueTnd / kpis.totalTimweClients.current).toFixed(2) : 0;
-          updateKPI('timwe-arpu', { current: arpu, previous: 0, change: 0 }, ' TND');
+          // Calculer le nombre de jours de la période pour normaliser l'ARPU
+          const startDate = document.getElementById('start-date')?.value;
+          const endDate = document.getElementById('end-date')?.value;
+          let periodDays = 30; // Défaut
+          if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            periodDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 30;
+          }
           
-          const avgBillingRevenue = kpis?.totalTimweBillings?.current > 0 ? (totals.revenueTnd / kpis.totalTimweBillings.current).toFixed(2) : 0;
-          updateKPI('timwe-avg-billing-revenue', { current: avgBillingRevenue, previous: 0, change: 0 }, ' TND');
+          // Taux de Croissance Nette = ((New Subs - Unsubs - Simchurn) / Active Subs) * 100
+          const netGrowth = totals.newSubs - totals.unsubs - totals.simchurn;
+          const netGrowthRate = totals.activeSubsEndOfPeriod > 0 
+            ? (netGrowth / totals.activeSubsEndOfPeriod) * 100 
+            : 0;
+          
+          const netGrowthRateComparison = comparisonTotals && comparisonTotals.activeSubsEndOfPeriod > 0
+            ? ((comparisonTotals.newSubs - comparisonTotals.unsubs - comparisonTotals.simchurn) / comparisonTotals.activeSubsEndOfPeriod) * 100
+            : null;
+          
+          // Formater le taux de croissance avec 2 décimales
+          const netGrowthFormatted = formatNumber(netGrowthRate, 2);
+          const netGrowthComparisonFormatted = netGrowthRateComparison !== null ? formatNumber(netGrowthRateComparison, 2) : 0;
+          
+          updateKPI('timwe-net-growth-rate', {
+            current: netGrowthFormatted,
+            previous: netGrowthComparisonFormatted,
+            change: netGrowthRateComparison !== null ? calculateChange(netGrowthRate, netGrowthRateComparison) : 0
+          }, '%');
+          
+          // ARPU mensuel normalisé (30 jours)
+          // Formule : (Revenu Total / Active Subs) * (30 / Nombre de jours)
+          const arpuValue = totals.activeSubsEndOfPeriod > 0 
+            ? (totals.revenueTnd / totals.activeSubsEndOfPeriod) * (30 / periodDays)
+            : 0;
+          const arpuFormatted = formatNumber(arpuValue, 3);
+          
+          updateKPI('timwe-arpu', { current: arpuFormatted, previous: 0, change: 0 }, ' TND');
+          
+          const avgBillingValue = kpis?.totalTimweBillings?.current > 0 
+            ? totals.revenueTnd / kpis.totalTimweBillings.current
+            : 0;
+          const avgBillingFormatted = formatNumber(avgBillingValue, 3);
+          updateKPI('timwe-avg-billing-revenue', { current: avgBillingFormatted, previous: 0, change: 0 }, ' TND');
         }
+      }
+
+      // Ooredoo/DGV KPIs
+      if (dashboardData && dashboardData.ooredoo_stats) {
+        updateOoredooKPIs(dashboardData);
+        updateOoredooStatisticsTable(dashboardData.ooredoo_stats.daily_statistics || []);
       }
       
       // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
@@ -6313,7 +6521,9 @@
         valueElement.innerHTML = ''; // Clear any existing content including loading states
         // Force un nouveau rendu pour éviter les résidus
         valueElement.className = valueElement.className; // Trigger reflow
-        valueElement.textContent = formatNumber(safe.current) + suffix;
+        // Utiliser formatNumber avec 0 décimales pour les entiers, sauf si c'est un pourcentage ou déjà formaté
+        const formattedValue = (typeof safe.current === 'string') ? safe.current : formatNumber(safe.current, 0);
+        valueElement.textContent = formattedValue + suffix;
       }
       
       if (deltaElement) {
@@ -6365,17 +6575,14 @@
     function updateKPIValue(id, value, suffix = '') {
       const element = document.getElementById(id);
       if (element && value !== undefined && value !== null) {
-        element.textContent = formatNumber(value) + suffix;
+        // Utiliser formatNumber avec 0 décimales pour les entiers
+        const formattedValue = (typeof value === 'string') ? value : formatNumber(value, 0);
+        element.textContent = formattedValue + suffix;
       }
     }
 
-    // Format numbers for display
-    function formatNumber(num) {
-      if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
-      }
-      return num.toLocaleString();
-    }
+    // SUPPRIMÉ - Utiliser la nouvelle fonction formatNumber() avec espaces et virgules définie plus haut
+    // Ancienne fonction qui arrondissait en "K" - remplacée par formatNumber(value, decimals)
 
     // Update charts
     function updateCharts(data) {
@@ -7444,8 +7651,8 @@
     let currentTimweStatsSortColumn = 0;
     let timweStatsSortDirection = 'asc';
     
-    function calculateTimweTotals(dailyStats) {
-      if (!dailyStats || dailyStats.length === 0) {
+    function calculateTimweTotals(monthlyStats) {
+      if (!monthlyStats || monthlyStats.length === 0) {
         return {
           newSubs: 0,
           unsubs: 0,
@@ -7453,7 +7660,7 @@
           simchurnRevenue: 0,
           activeSubsEndOfPeriod: 0,
           revenueTnd: 0,
-          revenueUsd: 0
+          caBigdealHt: 0
         };
       }
       
@@ -7464,77 +7671,50 @@
         simchurnRevenue: 0,
         activeSubsEndOfPeriod: 0,
         revenueTnd: 0,
-        revenueUsd: 0
+        caBigdealHt: 0
       };
       
-      dailyStats.forEach(row => {
-        totals.newSubs += Number(row.new_sub) || 0;
-        totals.unsubs += Number(row.unsub) || 0;
-        totals.simchurn += Number(row.simchurn) || 0;
-        totals.simchurnRevenue += Number(row.rev_simchurn) || 0;
-        totals.revenueTnd += Number(row.revenu_ttc_tnd || row.revenu_ttc_local) || 0;
-        totals.revenueUsd += Number(row.revenu_ttc_usd) || 0;
+      // Sommer les totaux mensuels
+      monthlyStats.forEach(month => {
+        totals.newSubs += Number(month.total_new_sub) || 0;
+        totals.unsubs += Number(month.total_unsub) || 0;
+        totals.simchurn += Number(month.total_simchurn) || 0;
+        totals.simchurnRevenue += Number(month.total_rev_simchurn) || 0;
+        totals.revenueTnd += Number(month.total_revenu_ttc_tnd) || 0;
+        totals.caBigdealHt += Number(month.ca_bigdeal_ht) || 0;
       });
       
-      // Active Subs = valeur du DERNIER jour de la période (pas la moyenne)
-      const lastDayStats = dailyStats[dailyStats.length - 1];
-      totals.activeSubsEndOfPeriod = lastDayStats ? (Number(lastDayStats.active_sub) || 0) : 0;
+      // Active Subs = valeur du DERNIER mois de la période
+      const lastMonth = monthlyStats[0]; // Le premier dans l'ordre décroissant
+      totals.activeSubsEndOfPeriod = lastMonth ? (Number(lastMonth.total_active_sub) || 0) : 0;
       
       return totals;
     }
     
-    function calculateTimweComparisonTotals(dailyStats) {
-      // Récupérer les dates de comparaison depuis les champs du formulaire
-      const compStartDate = document.getElementById('comparison-start-date')?.value;
-      const compEndDate = document.getElementById('comparison-end-date')?.value;
-      
-      if (!compStartDate || !compEndDate) {
-        console.log('🔍 [TIMWE COMPARISON] Pas de dates de comparaison définies');
-        return null; // Indiquer qu'il n'y a pas de comparaison
-      }
-      
-      // Vérifier si les dates de comparaison sont dans les daily_statistics actuelles
-      if (!dailyStats || dailyStats.length === 0) {
-        console.log('🔍 [TIMWE COMPARISON] Pas de daily_statistics');
+    function calculateTimweComparisonTotals(monthlyStatsComparison) {
+      // Utiliser directement les données mensuelles de comparaison du backend
+      if (!monthlyStatsComparison || monthlyStatsComparison.length === 0) {
+        console.log('🔍 [TIMWE COMPARISON] Pas de données de comparaison');
         return null;
       }
       
-      // Filtrer les stats pour la période de comparaison
-      const compStats = dailyStats.filter(row => {
-        const rowDate = row.dimension; // Format 'YYYY-MM-DD'
-        return rowDate >= compStartDate && rowDate <= compEndDate;
-      });
-      
-      console.log('🔍 [TIMWE COMPARISON] Stats filtrées:', {
-        total: dailyStats.length,
-        comparison: compStats.length,
-        compStartDate,
-        compEndDate,
-        firstDate: dailyStats[0]?.dimension,
-        lastDate: dailyStats[dailyStats.length - 1]?.dimension
-      });
-      
-      // Si pas de données de comparaison dans les stats actuelles, faire un appel API
-      if (compStats.length === 0) {
-        console.log('🔍 [TIMWE COMPARISON] Pas de données dans les stats actuelles, appel API nécessaire');
-        // Pour l'instant, retourner null pour ne pas afficher de comparaison
-        return null;
-      }
-      
-      // Calculer les totaux pour la période de comparaison
-      return calculateTimweTotals(compStats);
+      return calculateTimweTotals(monthlyStatsComparison);
     }
     
-    function updateTimweStatisticsTable(statistics) {
+    // Stockage des mois Timwe et leur état d'expansion
+    let allTimweMonthlyStats = [];
+    let expandedMonths = new Set();
+    
+    function updateTimweStatisticsTable(monthlyStats) {
       const tbody = document.getElementById('timweStatsTableBody');
       if (!tbody) return;
       
-      if (!statistics || statistics.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+      if (!monthlyStats || monthlyStats.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
         return;
       }
       
-      allTimweStatistics = statistics;
+      allTimweMonthlyStats = monthlyStats;
       renderTimweStatisticsTable();
     }
     
@@ -7542,40 +7722,65 @@
       const tbody = document.getElementById('timweStatsTableBody');
       if (!tbody) return;
       
-      if (!allTimweStatistics || allTimweStatistics.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+      if (!allTimweMonthlyStats || allTimweMonthlyStats.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
         return;
       }
       
-      tbody.innerHTML = allTimweStatistics.map(row => {
-        const date = row.dimension || '-';
-        const offre = row.offre || 'N/A';
-        const newSub = row.new_sub || 0;
-        const unsub = row.unsub || 0;
-        const simchurn = row.simchurn || 0;
-        const revSimchurn = Number(row.rev_simchurn || 0).toFixed(2);
-        const activeSub = row.active_sub || 0;
-        const nbFacturation = row.nb_facturation || 0;
-        const tauxFacturation = Number(row.taux_facturation || 0).toFixed(2);
-        const revenuTnd = Number(row.revenu_ttc_tnd || row.revenu_ttc_local || 0).toFixed(2);
-        const revenuUsd = Number(row.revenu_ttc_usd || 0).toFixed(2);
+      let html = '';
+      
+      allTimweMonthlyStats.forEach((month, idx) => {
+        const isExpanded = expandedMonths.has(month.month_key);
+        const expandIcon = isExpanded ? '▼' : '▶';
         
-        return `
-          <tr>
-            <td>${date}</td>
-            <td>${offre}</td>
-            <td>${newSub}</td>
-            <td>${unsub}</td>
-            <td>${simchurn}</td>
-            <td>${revSimchurn}</td>
-            <td>${activeSub.toLocaleString()}</td>
-            <td>${nbFacturation.toLocaleString()}</td>
-            <td>${tauxFacturation}%</td>
-            <td>${revenuTnd}</td>
-            <td>${revenuUsd}</td>
+        // Ligne du mois (cliquable)
+        html += `
+          <tr style="background: var(--card); border-bottom: 2px solid var(--border); cursor: pointer; font-weight: 600;" 
+              onclick="toggleTimweMonth('${month.month_key}')">
+            <td style="padding: 12px; text-align: center;">${expandIcon}</td>
+            <td style="padding: 12px;">${month.display_label}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_new_sub, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_unsub, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_simchurn, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_active_sub, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_nb_facturation, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatPercentage(month.total_taux_facturation, 3)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_revenu_ttc_tnd, 3)} TND</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.ca_bigdeal_ht, 3)} TND</td>
           </tr>
         `;
-      }).join('');
+        
+        // Lignes des détails quotidiens (affichées seulement si le mois est expandé)
+        if (isExpanded && month.daily_details && month.daily_details.length > 0) {
+          month.daily_details.forEach(day => {
+            html += `
+              <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px;"></td>
+                <td style="padding: 8px; padding-left: 30px; font-size: 13px;">${day.dimension}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.new_sub || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.unsub || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.simchurn || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.active_sub || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.nb_facturation || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatPercentage(day.taux_facturation || 0, 3)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px; color: var(--muted);">-</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px; color: var(--muted);">-</td>
+              </tr>
+            `;
+          });
+        }
+      });
+      
+      tbody.innerHTML = html;
+    }
+    
+    function toggleTimweMonth(monthKey) {
+      if (expandedMonths.has(monthKey)) {
+        expandedMonths.delete(monthKey);
+      } else {
+        expandedMonths.add(monthKey);
+      }
+      renderTimweStatisticsTable();
     }
     
     function sortTimweStatistics(columnIndex) {
@@ -7615,82 +7820,35 @@
     }
     
     function filterTimweStats() {
-      const searchInput = document.getElementById('timweStatsSearch');
-      if (!searchInput) return;
-      
-      const searchTerm = searchInput.value.toLowerCase();
-      
-      if (!searchTerm) {
-        renderTimweStatisticsTable();
-        return;
-      }
-      
-      const filtered = allTimweStatistics.filter(row => {
-        return (
-          (row.dimension && row.dimension.toLowerCase().includes(searchTerm)) ||
-          (row.offre && row.offre.toLowerCase().includes(searchTerm)) ||
-          String(row.new_sub || '').includes(searchTerm) ||
-          String(row.unsub || '').includes(searchTerm) ||
-          String(row.active_sub || '').includes(searchTerm)
-        );
-      });
-      
-      const tbody = document.getElementById('timweStatsTableBody');
-      if (!tbody) return;
-      
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = filtered.map(row => {
-        const date = row.dimension || '-';
-        const offre = row.offre || 'N/A';
-        const newSub = row.new_sub || 0;
-        const unsub = row.unsub || 0;
-        const simchurn = row.simchurn || 0;
-        const revSimchurn = Number(row.rev_simchurn || 0).toFixed(2);
-        const activeSub = row.active_sub || 0;
-        const nbFacturation = row.nb_facturation || 0;
-        const tauxFacturation = Number(row.taux_facturation || 0).toFixed(2);
-        const revenuTnd = Number(row.revenu_ttc_tnd || row.revenu_ttc_local || 0).toFixed(2);
-        const revenuUsd = Number(row.revenu_ttc_usd || 0).toFixed(2);
-        
-        return `
-          <tr>
-            <td>${date}</td>
-            <td>${offre}</td>
-            <td>${newSub}</td>
-            <td>${unsub}</td>
-            <td>${simchurn}</td>
-            <td>${revSimchurn}</td>
-            <td>${activeSub.toLocaleString()}</td>
-            <td>${nbFacturation.toLocaleString()}</td>
-            <td>${tauxFacturation}%</td>
-            <td>${revenuTnd}</td>
-            <td>${revenuUsd}</td>
-          </tr>
-        `;
-      }).join('');
+      // Fonction simplifiée : on filtre simplement par le nom du mois
+      renderTimweStatisticsTable();
     }
     
     function exportTimweStatsToExcel() {
-      if (!allTimweStatistics || allTimweStatistics.length === 0) {
+      if (!allTimweMonthlyStats || allTimweMonthlyStats.length === 0) {
         alert('Aucune donnée à exporter');
         return;
       }
       
-      let csv = 'Date,Offre,New Sub,Unsub,Simchurn,Rev Simchurn,Active Sub,NB Facturation,Taux Facturation %,Revenu TND,Revenu USD\n';
+      let csv = 'Période,New Sub,Unsub,Simchurn,Active Sub,NB Facturation,Taux Facturation %,Revenu TTC (TND),CA BigDeal HT (TND)\n';
       
-      allTimweStatistics.forEach(row => {
-        csv += `${row.dimension || ''},${row.offre || 'N/A'},${row.new_sub || 0},${row.unsub || 0},${row.simchurn || 0},${row.rev_simchurn || 0},${row.active_sub || 0},${row.nb_facturation || 0},${row.taux_facturation || 0},${row.revenu_ttc_tnd || row.revenu_ttc_local || 0},${row.revenu_ttc_usd || 0}\n`;
+      allTimweMonthlyStats.forEach(month => {
+        // Ligne du mois (avec formatage français)
+        csv += `${month.display_label},${formatNumber(month.total_new_sub, 0)},${formatNumber(month.total_unsub, 0)},${formatNumber(month.total_simchurn, 0)},${formatNumber(month.total_active_sub, 0)},${formatNumber(month.total_nb_facturation, 0)},${formatPercentage(month.total_taux_facturation, 3)},${formatNumber(month.total_revenu_ttc_tnd, 3)},${formatNumber(month.ca_bigdeal_ht, 3)}\n`;
+        
+        // Lignes des détails quotidiens
+        if (month.daily_details && month.daily_details.length > 0) {
+          month.daily_details.forEach(day => {
+            csv += `  ${day.dimension},${formatNumber(day.new_sub || 0, 0)},${formatNumber(day.unsub || 0, 0)},${formatNumber(day.simchurn || 0, 0)},${formatNumber(day.active_sub || 0, 0)},${formatNumber(day.nb_facturation || 0, 0)},${formatPercentage(day.taux_facturation || 0, 3)},-,-\n`;
+          });
+        }
       });
       
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `timwe_statistiques_${new Date().toISOString().split('T')[0]}.csv`);
+      link.setAttribute('download', `timwe_statistiques_mensuelles_${new Date().toISOString().split('T')[0]}.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -7698,15 +7856,955 @@
     }
     
     function copyTimweStatsToClipboard() {
-      if (!allTimweStatistics || allTimweStatistics.length === 0) {
+      if (!allTimweMonthlyStats || allTimweMonthlyStats.length === 0) {
         alert('Aucune donnée à copier');
         return;
       }
       
-      let text = 'Date\tOffre\tNew Sub\tUnsub\tSimchurn\tRev Simchurn\tActive Sub\tNB Facturation\tTaux Facturation %\tRevenu TND\tRevenu USD\n';
+      let text = 'Période\tNew Sub\tUnsub\tSimchurn\tActive Sub\tNB Facturation\tTaux Facturation %\tRevenu TTC (TND)\tCA BigDeal HT (TND)\n';
       
-      allTimweStatistics.forEach(row => {
-        text += `${row.dimension || ''}\t${row.offre || 'N/A'}\t${row.new_sub || 0}\t${row.unsub || 0}\t${row.simchurn || 0}\t${row.rev_simchurn || 0}\t${row.active_sub || 0}\t${row.nb_facturation || 0}\t${row.taux_facturation || 0}\t${row.revenu_ttc_tnd || row.revenu_ttc_local || 0}\t${row.revenu_ttc_usd || 0}\n`;
+      allTimweMonthlyStats.forEach(month => {
+        // Ligne du mois (avec formatage français)
+        text += `${month.display_label}\t${formatNumber(month.total_new_sub, 0)}\t${formatNumber(month.total_unsub, 0)}\t${formatNumber(month.total_simchurn, 0)}\t${formatNumber(month.total_active_sub, 0)}\t${formatNumber(month.total_nb_facturation, 0)}\t${formatPercentage(month.total_taux_facturation, 3)}\t${formatNumber(month.total_revenu_ttc_tnd, 3)}\t${formatNumber(month.ca_bigdeal_ht, 3)}\n`;
+        
+        // Lignes des détails quotidiens
+        if (month.daily_details && month.daily_details.length > 0) {
+          month.daily_details.forEach(day => {
+            text += `  ${day.dimension}\t${formatNumber(day.new_sub || 0, 0)}\t${formatNumber(day.unsub || 0, 0)}\t${formatNumber(day.simchurn || 0, 0)}\t${formatNumber(day.active_sub || 0, 0)}\t${formatNumber(day.nb_facturation || 0, 0)}\t${formatPercentage(day.taux_facturation || 0, 3)}\t-\t-\n`;
+          });
+        }
+      });
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Données copiées dans le presse-papier !');
+      }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
+        alert('Erreur lors de la copie');
+      });
+    }
+
+    // ========== TIMWE TRANSACTIONS BY USER FUNCTIONS ==========
+    // DÉSACTIVÉ POUR OPTIMISATION - TOUTES LES FONCTIONS CI-DESSOUS SONT COMMENTÉES
+    /*
+    let allTimweTransactions = [];
+    let currentTimweTransactionsPage = 1;
+    let timweTransactionsPerPage = 25;
+    let currentTimweTransactionsSortColumn = 1; // Default: sort by nb_transactions
+    let timweTransactionsSortDirection = 'desc';
+    let filteredTimweTransactions = [];
+
+    function updateTimweTransactionsTable(transactions) {
+      const tbody = document.getElementById('timweTransactionsTableBody');
+      if (!tbody) return;
+      
+      if (!transactions || transactions.length === 0) {
+        // Vérifier si c'est une longue période
+        const startDate = document.getElementById('start-date')?.value;
+        const endDate = document.getElementById('end-date')?.value;
+        let message = 'Aucune transaction disponible';
+        
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays > 90) {
+            message = '⚠️ Tableau désactivé pour les périodes > 90 jours (optimisation des performances). Veuillez sélectionner une période plus courte.';
+          }
+        }
+        
+        tbody.innerHTML = `<tr><td colspan="6" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">${message}</td></tr>`;
+        return;
+      }
+      
+      allTimweTransactions = transactions;
+      filteredTimweTransactions = transactions;
+      renderTimweTransactionsTable();
+    }
+
+    function renderTimweTransactionsTable() {
+      const tbody = document.getElementById('timweTransactionsTableBody');
+      if (!tbody) return;
+      
+      if (!filteredTimweTransactions || filteredTimweTransactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune transaction trouvée</td></tr>';
+        return;
+      }
+      
+      // Pagination
+      const start = (currentTimweTransactionsPage - 1) * timweTransactionsPerPage;
+      const end = start + timweTransactionsPerPage;
+      const pageData = filteredTimweTransactions.slice(start, end);
+      
+      tbody.innerHTML = pageData.map(row => {
+        const clientId = row.client_id || '-';
+        const nbTransactions = row.nb_transactions || 0;
+        const derniereTransactionId = row.derniere_transaction_id || '-';
+        const derniereDate = row.derniere_date ? new Date(row.derniere_date).toLocaleString('fr-FR') : '-';
+        const lastStatus = row.last_status || '-';
+        
+        // Badge de statut basé sur la facturation
+        let statusBadge = '';
+        if (lastStatus === 'RENOUVELÉ') {
+          statusBadge = '<span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 12px; font-size: 11px; font-weight: 600;">✅ RENOUVELÉ</span>';
+        } else if (lastStatus === 'NON RENOUVELÉ') {
+          statusBadge = '<span style="padding: 4px 12px; background: #fee2e2; color: #991b1b; border-radius: 12px; font-size: 11px; font-weight: 600;">❌ NON RENOUVELÉ</span>';
+        } else {
+          statusBadge = '<span style="padding: 4px 12px; background: #f3f4f6; color: #374151; border-radius: 12px; font-size: 11px; font-weight: 600;">' + lastStatus + '</span>';
+        }
+        
+        return `
+          <tr>
+            <td><strong>${clientId}</strong></td>
+            <td><span style="font-weight: 600; color: var(--primary);">${nbTransactions}</span></td>
+            <td>${derniereTransactionId}</td>
+            <td>${derniereDate}</td>
+            <td>${statusBadge}</td>
+            <td>
+              <button onclick="viewClientTimweTransactions(${clientId})" 
+                      style="padding: 4px 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                📊 Détails
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      updateTimweTransactionsPagination();
+    }
+
+    function updateTimweTransactionsPagination() {
+      const paginationDiv = document.getElementById('timweTransactionsPagination');
+      if (!paginationDiv) return;
+      
+      const totalPages = Math.ceil(filteredTimweTransactions.length / timweTransactionsPerPage);
+      
+      if (totalPages <= 1) {
+        paginationDiv.innerHTML = '';
+        return;
+      }
+      
+      let html = '';
+      
+      // Previous button
+      if (currentTimweTransactionsPage > 1) {
+        html += `<button onclick="changeTimweTransactionsPage(${currentTimweTransactionsPage - 1})" style="padding: 8px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer;">‹ Précédent</button>`;
+      }
+      
+      // Page numbers
+      for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+        const isActive = i === currentTimweTransactionsPage;
+        html += `<button onclick="changeTimweTransactionsPage(${i})" style="padding: 8px 12px; border: 1px solid var(--border); background: ${isActive ? 'var(--primary)' : 'white'}; color: ${isActive ? 'white' : 'black'}; border-radius: 4px; cursor: pointer;">${i}</button>`;
+      }
+      
+      if (totalPages > 5) {
+        html += '<span style="padding: 8px;">...</span>';
+        html += `<button onclick="changeTimweTransactionsPage(${totalPages})" style="padding: 8px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer;">${totalPages}</button>`;
+      }
+      
+      // Next button
+      if (currentTimweTransactionsPage < totalPages) {
+        html += `<button onclick="changeTimweTransactionsPage(${currentTimweTransactionsPage + 1})" style="padding: 8px 12px; border: 1px solid var(--border); background: white; border-radius: 4px; cursor: pointer;">Suivant ›</button>`;
+      }
+      
+      paginationDiv.innerHTML = html;
+    }
+
+    function changeTimweTransactionsPage(page) {
+      currentTimweTransactionsPage = page;
+      renderTimweTransactionsTable();
+    }
+
+    function changeTimweTransactionsPerPage(perPage) {
+      timweTransactionsPerPage = parseInt(perPage);
+      currentTimweTransactionsPage = 1;
+      renderTimweTransactionsTable();
+    }
+
+    function sortTimweTransactions(columnIndex) {
+      if (currentTimweTransactionsSortColumn === columnIndex) {
+        timweTransactionsSortDirection = timweTransactionsSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentTimweTransactionsSortColumn = columnIndex;
+        timweTransactionsSortDirection = 'desc'; // Default to desc for numbers
+      }
+      
+      filteredTimweTransactions.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(columnIndex) {
+          case 0: aVal = a.client_id || 0; bVal = b.client_id || 0; break;
+          case 1: aVal = a.nb_transactions || 0; bVal = b.nb_transactions || 0; break;
+          case 2: aVal = a.derniere_transaction_id || 0; bVal = b.derniere_transaction_id || 0; break;
+          case 3: aVal = a.derniere_date || ''; bVal = b.derniere_date || ''; break;
+          case 4: aVal = a.last_status || ''; bVal = b.last_status || ''; break;
+          default: return 0;
+        }
+        
+        if (typeof aVal === 'string') {
+          return timweTransactionsSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        } else {
+          return timweTransactionsSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+      });
+      
+      currentTimweTransactionsPage = 1;
+      renderTimweTransactionsTable();
+    }
+
+    function filterTimweTransactions() {
+      const searchInput = document.getElementById('timweTransactionsSearch');
+      if (!searchInput) return;
+      
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      if (!searchTerm) {
+        filteredTimweTransactions = allTimweTransactions;
+      } else {
+        filteredTimweTransactions = allTimweTransactions.filter(row => {
+          return (
+            String(row.client_id || '').toLowerCase().includes(searchTerm) ||
+            String(row.derniere_transaction_id || '').toLowerCase().includes(searchTerm) ||
+            String(row.last_status || '').toLowerCase().includes(searchTerm) ||
+            String(row.derniere_date || '').toLowerCase().includes(searchTerm)
+          );
+        });
+      }
+      
+      currentTimweTransactionsPage = 1;
+      renderTimweTransactionsTable();
+    }
+
+    function exportTimweTransactionsToExcel() {
+      if (!allTimweTransactions || allTimweTransactions.length === 0) {
+        alert('Aucune donnée à exporter');
+        return;
+      }
+      
+      let csv = 'Client ID,Nb Transactions,Dernière Transaction,Dernière Date,Statut\n';
+      
+      allTimweTransactions.forEach(row => {
+        csv += `${row.client_id || ''},${row.nb_transactions || 0},${row.derniere_transaction_id || ''},${row.derniere_date || ''},${row.last_status || ''}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `timwe_transactions_par_utilisateur_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function copyTimweTransactionsToClipboard() {
+      if (!allTimweTransactions || allTimweTransactions.length === 0) {
+        alert('Aucune donnée à copier');
+        return;
+      }
+      
+      let text = 'Client ID\tNb Transactions\tDernière Transaction\tDernière Date\tStatut\n';
+      
+      allTimweTransactions.forEach(row => {
+        text += `${row.client_id || ''}\t${row.nb_transactions || 0}\t${row.derniere_transaction_id || ''}\t${row.derniere_date || ''}\t${row.last_status || ''}\n`;
+      });
+      
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Données copiées dans le presse-papier !');
+      }).catch(err => {
+        console.error('Erreur lors de la copie:', err);
+        alert('Erreur lors de la copie');
+      });
+    }
+
+    // Variables globales pour le modal
+    let currentClientTransactions = [];
+    let currentModalClientId = null;
+    let filteredModalTransactions = [];
+    let modalSortColumn = 3; // Default: sort by date
+    let modalSortDirection = 'desc';
+
+    async function viewClientTimweTransactions(clientId) {
+      currentModalClientId = clientId;
+      
+      // Afficher le modal
+      const modal = document.getElementById('clientTransactionsModal');
+      modal.style.display = 'block';
+      
+      // Mettre à jour le client ID
+      document.getElementById('modalClientId').textContent = clientId;
+      
+      // Réinitialiser la table
+      document.getElementById('modalTransactionsTableBody').innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; padding: 40px;">
+            <i class="fas fa-spinner fa-spin"></i> Chargement des transactions...
+          </td>
+        </tr>
+      `;
+      
+      try {
+        // Récupérer les dates de la période sélectionnée
+        const startDate = document.getElementById('start-date')?.value || '';
+        const endDate = document.getElementById('end-date')?.value || '';
+        
+        // Appeler l'API pour récupérer les transactions du client
+        const response = await fetch(`/api/timwe-client-transactions/${clientId}?start_date=${startDate}&end_date=${endDate}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Erreur API:', errorText);
+          throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          currentClientTransactions = data.transactions || [];
+          filteredModalTransactions = currentClientTransactions;
+          
+          // Mettre à jour les stats
+          updateModalClientStats(data.stats);
+          
+          // Afficher les transactions
+          renderModalTransactions();
+        } else {
+          throw new Error(data.message || 'Erreur inconnue');
+        }
+        
+      } catch (error) {
+        console.error('Erreur:', error);
+        document.getElementById('modalTransactionsTableBody').innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; padding: 40px; color: #ef4444;">
+              <i class="fas fa-exclamation-triangle"></i> Erreur lors du chargement des transactions: ${error.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function updateModalClientStats(stats) {
+      const statsDiv = document.getElementById('modalClientStats');
+      
+      const totalTransactions = stats.total_transactions || 0;
+      const renewals = stats.renewals || 0;
+      const unsubscriptions = stats.unsubscriptions || 0;
+      const facture = stats.facture || 0;
+      const tentativeNB = stats.tentative_nb || 0;
+      const tentative = stats.tentative || 0;
+      const firstTransaction = stats.first_transaction_date ? new Date(stats.first_transaction_date).toLocaleDateString('fr-FR') : '-';
+      const lastTransaction = stats.last_transaction_date ? new Date(stats.last_transaction_date).toLocaleDateString('fr-FR') : '-';
+      
+      statsDiv.innerHTML = `
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #667eea;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">Total Transactions</div>
+          <div style="font-size: 24px; font-weight: 600; color: #111827;">${totalTransactions}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #10b981;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">✅ Facturé</div>
+          <div style="font-size: 24px; font-weight: 600; color: #059669;">${facture}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #f59e0b;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">⚠️ Tentative NB</div>
+          <div style="font-size: 24px; font-weight: 600; color: #d97706;">${tentativeNB}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #6b7280;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">🔄 Tentative</div>
+          <div style="font-size: 24px; font-weight: 600; color: #4b5563;">${tentative}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">🔄 Renouvellements</div>
+          <div style="font-size: 18px; font-weight: 600; color: #2563eb;">${renewals}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ef4444;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">❌ Désabonnements</div>
+          <div style="font-size: 18px; font-weight: 600; color: #dc2626;">${unsubscriptions}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #8b5cf6;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">📅 Première</div>
+          <div style="font-size: 13px; font-weight: 600; color: #7c3aed;">${firstTransaction}</div>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 6px; border-left: 4px solid #ec4899;">
+          <div style="color: #6b7280; font-size: 12px; margin-bottom: 5px;">📅 Dernière</div>
+          <div style="font-size: 13px; font-weight: 600; color: #db2777;">${lastTransaction}</div>
+        </div>
+      `;
+    }
+
+    function renderModalTransactions() {
+      const tbody = document.getElementById('modalTransactionsTableBody');
+      
+      if (!filteredModalTransactions || filteredModalTransactions.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 40px; color: #6b7280;">
+              <i class="fas fa-inbox"></i> Aucune transaction trouvée
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      tbody.innerHTML = filteredModalTransactions.map(tx => {
+        const transactionId = tx.transaction_history_id || '-';
+        const reference = tx.reference || '-';
+        const status = tx.status || '-';
+        const date = tx.created_at ? new Date(tx.created_at).toLocaleString('fr-FR') : '-';
+        
+        // Badge de statut original
+        let statusBadge = '';
+        if (status.includes('RENEWED')) {
+          statusBadge = '<span style="padding: 4px 12px; background: #dbeafe; color: #1e40af; border-radius: 12px; font-size: 11px; font-weight: 600;">🔄 RENOUVELÉ</span>';
+        } else if (status.includes('UNSUBSCRIPTION')) {
+          statusBadge = '<span style="padding: 4px 12px; background: #fee2e2; color: #991b1b; border-radius: 12px; font-size: 11px; font-weight: 600;">❌ DÉSABONNÉ</span>';
+        } else {
+          statusBadge = '<span style="padding: 4px 12px; background: #f3f4f6; color: #374151; border-radius: 12px; font-size: 11px; font-weight: 600;">' + status + '</span>';
+        }
+        
+        // Badge de statut de facturation
+        let billingStatusBadge = '';
+        const billingStatus = tx.billing_status || 'tentative';
+        const billingLabel = tx.billing_status_label || 'Tentative';
+        
+        if (billingStatus === 'facture') {
+          billingStatusBadge = '<span style="padding: 4px 12px; background: #d1fae5; color: #065f46; border-radius: 12px; font-size: 11px; font-weight: 600;">✅ FACTURÉ</span>';
+        } else if (billingStatus === 'tentative_nb') {
+          billingStatusBadge = '<span style="padding: 4px 12px; background: #fef3c7; color: #92400e; border-radius: 12px; font-size: 11px; font-weight: 600;">⚠️ TENTATIVE NB</span>';
+        } else {
+          billingStatusBadge = '<span style="padding: 4px 12px; background: #e5e7eb; color: #374151; border-radius: 12px; font-size: 11px; font-weight: 600;">🔄 TENTATIVE</span>';
+        }
+        
+        // Delivery Code
+        const deliveryCode = tx.mno_delivery_code || '-';
+        let deliveryCodeBadge = '';
+        if (deliveryCode === 'DELIVERED') {
+          deliveryCodeBadge = '<span style="padding: 4px 8px; background: #d1fae5; color: #065f46; border-radius: 8px; font-size: 10px; font-weight: 600;">DELIVERED</span>';
+        } else if (deliveryCode === 'NO_BALANCE') {
+          deliveryCodeBadge = '<span style="padding: 4px 8px; background: #fef3c7; color: #92400e; border-radius: 8px; font-size: 10px; font-weight: 600;">NO_BALANCE</span>';
+        } else if (deliveryCode === '-') {
+          deliveryCodeBadge = '<span style="padding: 4px 8px; background: #f3f4f6; color: #6b7280; border-radius: 8px; font-size: 10px;">-</span>';
+        } else {
+          deliveryCodeBadge = '<span style="padding: 4px 8px; background: #e0e7ff; color: #3730a3; border-radius: 8px; font-size: 10px; font-weight: 600;">' + deliveryCode + '</span>';
+        }
+        
+        // Montant
+        const amount = tx.total_charged || 0;
+        const amountDisplay = amount > 0 
+          ? '<span style="color: #059669; font-weight: 600;">' + amount.toFixed(3) + ' TND</span>'
+          : '<span style="color: #6b7280;">0.000 TND</span>';
+        
+        return `
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+              <strong style="color: #111827;">#${transactionId}</strong>
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+              <code style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${reference}</code>
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+              ${statusBadge}
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+              ${billingStatusBadge}
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+              ${deliveryCodeBadge}
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">
+              ${amountDisplay}
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; color: #6b7280;">
+              <i class="fas fa-clock" style="margin-right: 5px;"></i>${date}
+            </td>
+            <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+              <button onclick="viewTransactionDetails(${transactionId}, '${encodeURIComponent(JSON.stringify(tx.result_details || {}))}' )" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                <i class="fas fa-eye"></i> Voir
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterModalTransactions() {
+      const searchTerm = document.getElementById('modalTransactionsSearch')?.value.toLowerCase() || '';
+      const statusFilter = document.getElementById('modalStatusFilter')?.value || '';
+      const billingFilter = document.getElementById('modalBillingFilter')?.value || '';
+      
+      filteredModalTransactions = currentClientTransactions.filter(tx => {
+        const matchesSearch = !searchTerm || 
+          (tx.reference && tx.reference.toLowerCase().includes(searchTerm)) ||
+          (tx.status && tx.status.toLowerCase().includes(searchTerm)) ||
+          (tx.transaction_history_id && String(tx.transaction_history_id).includes(searchTerm)) ||
+          (tx.mno_delivery_code && tx.mno_delivery_code.toLowerCase().includes(searchTerm));
+        
+        const matchesStatus = !statusFilter || 
+          (statusFilter === 'RENEWED' && tx.status.includes('RENEWED')) ||
+          (statusFilter === 'UNSUBSCRIPTION' && tx.status.includes('UNSUBSCRIPTION'));
+        
+        const matchesBilling = !billingFilter || tx.billing_status === billingFilter;
+        
+        return matchesSearch && matchesStatus && matchesBilling;
+      });
+      
+      renderModalTransactions();
+    }
+
+    function sortModalTransactions(columnIndex) {
+      if (modalSortColumn === columnIndex) {
+        modalSortDirection = modalSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        modalSortColumn = columnIndex;
+        modalSortDirection = 'asc';
+      }
+      
+      filteredModalTransactions.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(columnIndex) {
+          case 0: aVal = a.transaction_history_id || 0; bVal = b.transaction_history_id || 0; break;
+          case 1: aVal = a.reference || ''; bVal = b.reference || ''; break;
+          case 2: aVal = a.status || ''; bVal = b.status || ''; break;
+          case 3: aVal = a.billing_status || ''; bVal = b.billing_status || ''; break;
+          case 4: aVal = a.mno_delivery_code || ''; bVal = b.mno_delivery_code || ''; break;
+          case 5: aVal = a.total_charged || 0; bVal = b.total_charged || 0; break;
+          case 6: aVal = a.created_at || ''; bVal = b.created_at || ''; break;
+          default: return 0;
+        }
+        
+        if (typeof aVal === 'string') {
+          return modalSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        } else {
+          return modalSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+      });
+      
+      renderModalTransactions();
+    }
+
+    function exportClientTransactions() {
+      if (!currentClientTransactions || currentClientTransactions.length === 0) {
+        alert('Aucune transaction à exporter');
+        return;
+      }
+      
+      let csv = 'Transaction ID,Référence,Statut Original,Statut Facturation,Delivery Code,Montant (TND),Date\n';
+      
+      currentClientTransactions.forEach(tx => {
+        const transactionId = tx.transaction_history_id || '';
+        const reference = tx.reference || '';
+        const status = tx.status || '';
+        const billingStatus = tx.billing_status_label || '';
+        const deliveryCode = tx.mno_delivery_code || '';
+        const amount = tx.total_charged || 0;
+        const date = tx.created_at || '';
+        
+        csv += `${transactionId},"${reference}","${status}","${billingStatus}","${deliveryCode}",${amount},"${date}"\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `timwe_client_${currentModalClientId}_transactions_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function closeClientTransactionsModal() {
+      document.getElementById('clientTransactionsModal').style.display = 'none';
+      currentClientTransactions = [];
+      currentModalClientId = null;
+      filteredModalTransactions = [];
+    }
+
+    function viewTransactionDetails(transactionId, resultDetailsEncoded) {
+      try {
+        const resultDetails = JSON.parse(decodeURIComponent(resultDetailsEncoded));
+        
+        // Formater le JSON pour affichage
+        const jsonFormatted = JSON.stringify(resultDetails, null, 2);
+        
+        // Créer le contenu HTML
+        let htmlContent = '<div style="padding: 20px;">';
+        htmlContent += '<h3 style="margin-top: 0; color: #111827;">Détails de la Transaction #' + transactionId + '</h3>';
+        
+        if (resultDetails && Object.keys(resultDetails).length > 0) {
+          htmlContent += '<div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-top: 15px;">';
+          htmlContent += '<h4 style="margin: 0 0 10px 0; color: #374151;">Détails Result (JSON)</h4>';
+          htmlContent += '<pre style="background: #1f2937; color: #f9fafb; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.6;">' + jsonFormatted + '</pre>';
+          htmlContent += '</div>';
+          
+          // Afficher les champs importants
+          if (resultDetails.mnoDeliveryCode || resultDetails.totalCharged !== undefined) {
+            htmlContent += '<div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+            
+            if (resultDetails.mnoDeliveryCode) {
+              htmlContent += '<div style="background: white; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">';
+              htmlContent += '<div style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Delivery Code</div>';
+              htmlContent += '<div style="font-size: 18px; font-weight: 600; color: #111827;">' + resultDetails.mnoDeliveryCode + '</div>';
+              htmlContent += '</div>';
+            }
+            
+            if (resultDetails.totalCharged !== undefined) {
+              htmlContent += '<div style="background: white; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px;">';
+              htmlContent += '<div style="font-size: 12px; color: #6b7280; margin-bottom: 5px;">Montant Chargé</div>';
+              htmlContent += '<div style="font-size: 18px; font-weight: 600; color: ' + (resultDetails.totalCharged > 0 ? '#059669' : '#6b7280') + ';">' + resultDetails.totalCharged + ' TND</div>';
+              htmlContent += '</div>';
+            }
+            
+            htmlContent += '</div>';
+          }
+        } else {
+          htmlContent += '<div style="padding: 40px; text-align: center; color: #6b7280; background: #f9fafb; border-radius: 8px; margin-top: 15px;">';
+          htmlContent += '<i class="fas fa-info-circle" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i><br>';
+          htmlContent += 'Aucun détail result disponible pour cette transaction';
+          htmlContent += '</div>';
+        }
+        
+        htmlContent += '</div>';
+        
+        // Utiliser SweetAlert si disponible, sinon alert simple
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            html: htmlContent,
+            width: '800px',
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Fermer',
+            confirmButtonColor: '#667eea'
+          });
+        } else {
+          // Fallback: créer un modal simple
+          const modalHtml = `
+            <div id="detailsModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10001; display: flex; align-items: center; justify-content: center;">
+              <div style="background: white; max-width: 800px; max-height: 80vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                ${htmlContent}
+                <div style="padding: 0 20px 20px;">
+                  <button onclick="document.getElementById('detailsModal').remove()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+        
+      } catch (error) {
+        console.error('Erreur lors du parsing des détails:', error);
+        alert('Erreur lors de l\'affichage des détails de la transaction');
+      }
+    }
+
+    // Fermer le modal en cliquant en dehors
+    document.addEventListener('click', function(event) {
+      const modal = document.getElementById('clientTransactionsModal');
+      if (event.target === modal) {
+        closeClientTransactionsModal();
+      }
+    });
+    */
+    // FIN DÉSACTIVATION - Toutes les fonctions Timwe Transactions sont commentées ci-dessus
+
+    // ========== OOREDOO/DGV FUNCTIONS ==========
+    let allOoredooStatistics = [];
+    let currentOoredooStatsSortColumn = 0;
+    let ooredooStatsSortDirection = 'asc';
+
+    function calculateOoredooTotals(dailyStats) {
+      if (!dailyStats || dailyStats.length === 0) {
+        return {
+          newSubs: 0,
+          unsubs: 0,
+          activeSubsEndOfPeriod: 0,
+          totalBillings: 0,
+          revenueTnd: 0
+        };
+      }
+      
+      const totals = {
+        newSubs: 0,
+        unsubs: 0,
+        activeSubsEndOfPeriod: 0,
+        totalBillings: 0,
+        revenueTnd: 0
+      };
+      
+      dailyStats.forEach(row => {
+        totals.newSubs += Number(row.new_subscriptions) || 0;
+        totals.unsubs += Number(row.unsubscriptions) || 0;
+        totals.totalBillings += Number(row.total_billings) || 0;
+        totals.revenueTnd += Number(row.revenue_tnd) || 0;
+      });
+      
+      // Active Subs = valeur du DERNIER jour de la période
+      const lastDayStats = dailyStats[dailyStats.length - 1];
+      totals.activeSubsEndOfPeriod = lastDayStats ? (Number(lastDayStats.active_subscriptions) || 0) : 0;
+      
+      return totals;
+    }
+
+    function updateOoredooKPIs(data) {
+      if (!data || !data.ooredoo_stats) {
+        console.log('❌ Pas de données Ooredoo');
+        return;
+      }
+
+      const dailyStats = data.ooredoo_stats.daily_statistics || [];
+      const dailyStatsComparison = data.ooredoo_stats.daily_statistics_comparison || [];
+
+      const totals = calculateOoredooTotals(dailyStats);
+      const comparisonTotals = dailyStatsComparison.length > 0
+        ? calculateOoredooTotals(dailyStatsComparison)
+        : null;
+
+      const totalClients = totals.activeSubsEndOfPeriod;
+      const billingRate = totalClients > 0 ? (totals.totalBillings / totalClients * 100) : 0;
+      const arpu = totalClients > 0 ? (totals.revenueTnd / totalClients) : 0;
+
+      // Taux de Facturation
+      updateKPI('ooredoo-billing-rate', {
+        current: billingRate.toFixed(2) + '%',
+        previous: 0,
+        change: 0
+      });
+
+      // Total Inscrits
+      updateKPI('ooredoo-total-clients', {
+        current: totalClients.toLocaleString(),
+        previous: 0,
+        change: 0
+      });
+
+      // Total Facturations
+      updateKPI('ooredoo-total-billings', {
+        current: totals.totalBillings.toLocaleString(),
+        previous: comparisonTotals ? comparisonTotals.totalBillings : 0,
+        change: comparisonTotals ? calculateChange(totals.totalBillings, comparisonTotals.totalBillings) : 0
+      });
+
+      // Active Subscriptions
+      updateKPI('ooredoo-active-subs', {
+        current: totals.activeSubsEndOfPeriod.toLocaleString(),
+        previous: 0,
+        change: 0
+      });
+
+      // Nouveaux Abonnements
+      updateKPI('ooredoo-new-subscriptions', {
+        current: totals.newSubs.toLocaleString(),
+        previous: comparisonTotals ? comparisonTotals.newSubs : 0,
+        change: comparisonTotals ? calculateChange(totals.newSubs, comparisonTotals.newSubs) : 0
+      });
+
+      // Désabonnements
+      updateKPI('ooredoo-unsubscriptions', {
+        current: totals.unsubs.toLocaleString(),
+        previous: comparisonTotals ? comparisonTotals.unsubs : 0,
+        change: comparisonTotals ? calculateChange(totals.unsubs, comparisonTotals.unsubs) : 0
+      });
+
+      // Revenu Total TND
+      updateKPI('ooredoo-revenue-tnd', {
+        current: totals.revenueTnd.toFixed(2) + ' TND',
+        previous: comparisonTotals ? comparisonTotals.revenueTnd : 0,
+        change: comparisonTotals ? calculateChange(totals.revenueTnd, comparisonTotals.revenueTnd) : 0
+      });
+
+      // ARPU
+      updateKPI('ooredoo-arpu', {
+        current: arpu.toFixed(2) + ' TND',
+        previous: 0,
+        change: 0
+      });
+    }
+
+    function updateOoredooStatisticsTable(statistics) {
+      const tbody = document.getElementById('ooredooStatsTableBody');
+      if (!tbody) return;
+      
+      if (!statistics || statistics.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
+      allOoredooStatistics = statistics;
+      renderOoredooStatisticsTable();
+    }
+
+    function renderOoredooStatisticsTable() {
+      const tbody = document.getElementById('ooredooStatsTableBody');
+      if (!tbody) return;
+      
+      if (!allOoredooStatistics || allOoredooStatistics.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = allOoredooStatistics.map(row => {
+        const date = row.stat_date || '-';
+        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
+        const newSub = row.new_subscriptions || 0;
+        const unsub = row.unsubscriptions || 0;
+        const activeSub = row.active_subscriptions || 0;
+        const nbFacturation = row.total_billings || 0;
+        const tauxFacturation = Number(row.billing_rate || 0).toFixed(2);
+        const revenuTnd = Number(row.revenue_tnd || 0).toFixed(2);
+        
+        return `
+          <tr>
+            <td>${date}</td>
+            <td>${offre}</td>
+            <td>${newSub}</td>
+            <td>${unsub}</td>
+            <td>${activeSub.toLocaleString()}</td>
+            <td>${nbFacturation.toLocaleString()}</td>
+            <td>${tauxFacturation}%</td>
+            <td>${revenuTnd}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function sortOoredooStatistics(columnIndex) {
+      if (currentOoredooStatsSortColumn === columnIndex) {
+        ooredooStatsSortDirection = ooredooStatsSortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentOoredooStatsSortColumn = columnIndex;
+        ooredooStatsSortDirection = 'asc';
+      }
+      
+      allOoredooStatistics.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch(columnIndex) {
+          case 0: aVal = a.stat_date; bVal = b.stat_date; break;
+          case 1: 
+            aVal = a.offers_breakdown && a.offers_breakdown.length > 0 ? a.offers_breakdown[0].offre_name : '';
+            bVal = b.offers_breakdown && b.offers_breakdown.length > 0 ? b.offers_breakdown[0].offre_name : '';
+            break;
+          case 2: aVal = a.new_subscriptions || 0; bVal = b.new_subscriptions || 0; break;
+          case 3: aVal = a.unsubscriptions || 0; bVal = b.unsubscriptions || 0; break;
+          case 4: aVal = a.active_subscriptions || 0; bVal = b.active_subscriptions || 0; break;
+          case 5: aVal = a.total_billings || 0; bVal = b.total_billings || 0; break;
+          case 6: aVal = a.billing_rate || 0; bVal = b.billing_rate || 0; break;
+          case 7: aVal = a.revenue_tnd || 0; bVal = b.revenue_tnd || 0; break;
+          default: return 0;
+        }
+        
+        if (typeof aVal === 'string') {
+          return ooredooStatsSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+        } else {
+          return ooredooStatsSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        }
+      });
+      
+      renderOoredooStatisticsTable();
+    }
+
+    function filterOoredooStats() {
+      const searchInput = document.getElementById('ooredooStatsSearch');
+      if (!searchInput) return;
+      
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      if (!searchTerm) {
+        renderOoredooStatisticsTable();
+        return;
+      }
+      
+      const filtered = allOoredooStatistics.filter(row => {
+        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : '';
+        return (
+          (row.stat_date && row.stat_date.toLowerCase().includes(searchTerm)) ||
+          (offre && offre.toLowerCase().includes(searchTerm)) ||
+          String(row.new_subscriptions || '').includes(searchTerm) ||
+          String(row.unsubscriptions || '').includes(searchTerm) ||
+          String(row.active_subscriptions || '').includes(searchTerm)
+        );
+      });
+      
+      const tbody = document.getElementById('ooredooStatsTableBody');
+      if (!tbody) return;
+      
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = filtered.map(row => {
+        const date = row.stat_date || '-';
+        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
+        const newSub = row.new_subscriptions || 0;
+        const unsub = row.unsubscriptions || 0;
+        const activeSub = row.active_subscriptions || 0;
+        const nbFacturation = row.total_billings || 0;
+        const tauxFacturation = Number(row.billing_rate || 0).toFixed(2);
+        const revenuTnd = Number(row.revenue_tnd || 0).toFixed(2);
+        
+        return `
+          <tr>
+            <td>${date}</td>
+            <td>${offre}</td>
+            <td>${newSub}</td>
+            <td>${unsub}</td>
+            <td>${activeSub.toLocaleString()}</td>
+            <td>${nbFacturation.toLocaleString()}</td>
+            <td>${tauxFacturation}%</td>
+            <td>${revenuTnd}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function exportOoredooStatsToExcel() {
+      if (!allOoredooStatistics || allOoredooStatistics.length === 0) {
+        alert('Aucune donnée à exporter');
+        return;
+      }
+      
+      let csv = 'Date,Offre,New Sub,Unsub,Active Sub,NB Facturation,Taux Facturation %,Revenu TND\n';
+      
+      allOoredooStatistics.forEach(row => {
+        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
+        csv += `${row.stat_date || ''},${offre},${row.new_subscriptions || 0},${row.unsubscriptions || 0},${row.active_subscriptions || 0},${row.total_billings || 0},${row.billing_rate || 0},${row.revenue_tnd || 0}\n`;
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `ooredoo_statistiques_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function copyOoredooStatsToClipboard() {
+      if (!allOoredooStatistics || allOoredooStatistics.length === 0) {
+        alert('Aucune donnée à copier');
+        return;
+      }
+      
+      let text = 'Date\tOffre\tNew Sub\tUnsub\tActive Sub\tNB Facturation\tTaux Facturation %\tRevenu TND\n';
+      
+      allOoredooStatistics.forEach(row => {
+        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
+        text += `${row.stat_date || ''}\t${offre}\t${row.new_subscriptions || 0}\t${row.unsubscriptions || 0}\t${row.active_subscriptions || 0}\t${row.total_billings || 0}\t${row.billing_rate || 0}\t${row.revenue_tnd || 0}\n`;
       });
       
       navigator.clipboard.writeText(text).then(() => {
@@ -8334,6 +9432,34 @@
       list.innerHTML = items.map(item => `<li>${item}</li>`).join('');
     }
   </script>
+
+  <!-- DÉSACTIVÉ POUR OPTIMISATION: Modal pour afficher les détails des transactions d'un client -->
+  <!-- Ce modal a été désactivé définitivement pour améliorer les performances du dashboard -->
+  <!--
+  <div id="clientTransactionsModal" style="display: none;">Modal désactivé</div>
+  -->
+
+  <style>
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    #clientTransactionsModal table tbody tr:hover {
+      background-color: #f9fafb;
+    }
+    
+    #clientTransactionsModal table tbody tr {
+      transition: background-color 0.2s;
+    }
+  </style>
+
 </body>
 </html>
 

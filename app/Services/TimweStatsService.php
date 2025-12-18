@@ -138,6 +138,7 @@ class TimweStatsService
             $billingRate = $totalClients > 0 ? round(($billings / $totalClients) * 100, 2) : 0;
 
             // 9. Revenus (calculés depuis transactions_history avec pricepointId = 63980 et totalCharged)
+            // totalCharged est en millimes, donc on divise par 1000 pour obtenir des TND
             $revenueTnd = 0;
             foreach ($transactions as $transaction) {
                 if ($transaction->result) {
@@ -145,7 +146,8 @@ class TimweStatsService
                     if (isset($result['pricepointId']) && $result['pricepointId'] == $billingPpid) {
                         if (isset($result['mnoDeliveryCode']) && $result['mnoDeliveryCode'] === 'DELIVERED') {
                             if (isset($result['totalCharged'])) {
-                                $revenueTnd += floatval($result['totalCharged']);
+                                // Convertir millimes en TND (diviser par 1000)
+                                $revenueTnd += floatval($result['totalCharged']) / 1000;
                             }
                         }
                     }

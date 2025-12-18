@@ -132,13 +132,22 @@ class DashboardService
         // 4. Données d'abonnements
         $subscriptions = $this->getSubscriptionsData($startBound, $endExclusive, $selectedOperator, $compStartBound, $compEndExclusive);
         
+        // 5. Données Ooredoo/DGV
+        $ooredooStats = [
+            'daily_statistics' => $this->getOoredooDailyStatistics($startBound, $endExclusive),
+            'daily_statistics_comparison' => $this->getOoredooDailyStatistics($compStartBound, $compEndExclusive)
+        ];
+        
         $executionTime = round((microtime(true) - $startTime) * 1000, 2);
         
-        // Log pour déboguer les KPIs Timwe et Analyses Avancées
+        // Log pour déboguer les KPIs Timwe/Ooredoo et Analyses Avancées
         Log::info("getStandardDashboardData - KPIs retournés", [
             'billingRateTimwe' => $kpis['billingRateTimwe'] ?? 'missing',
             'totalTimweClients' => $kpis['totalTimweClients'] ?? 'missing',
             'totalTimweBillings' => $kpis['totalTimweBillings'] ?? 'missing',
+            'billingRateOoredoo' => $kpis['billingRateOoredoo'] ?? 'missing',
+            'totalOoredooClients' => $kpis['totalOoredooClients'] ?? 'missing',
+            'totalOoreodooBillings' => $kpis['totalOoreodooBillings'] ?? 'missing',
             'has_activations_by_channel' => isset($subscriptions['activations_by_channel']),
             'has_plan_distribution' => isset($subscriptions['plan_distribution']),
             'has_renewal_rate' => isset($subscriptions['renewal_rate']),
@@ -156,6 +165,7 @@ class DashboardService
             "categoryDistribution" => $merchants['categories'],
             "transactions" => $transactions,
             "subscriptions" => $subscriptions,
+            "ooredoo_stats" => $ooredooStats,
             "insights" => $this->generateInsights($kpis, $merchants['data']),
             "last_updated" => now()->toISOString(),
             "data_source" => "optimized_database",
@@ -299,6 +309,17 @@ class DashboardService
         $totalTimweBillings = $billingRateTimweData['total_billings'];
         $totalTimweBillingsComparison = $billingRateTimweComparisonData['total_billings'];
         
+        // Calculer le taux de facturation Ooredoo/DGV
+        $billingRateOoredooData = $this->calculateOoredooBillingRate($startBound, $endExclusive, $selectedOperator);
+        $billingRateOoredooComparisonData = $this->calculateOoredooBillingRate($compStartBound, $compEndExclusive, $selectedOperator);
+        
+        $billingRateOoredoo = $billingRateOoredooData['rate'];
+        $billingRateOoredooComparison = $billingRateOoredooComparisonData['rate'];
+        $totalOoredooClients = $billingRateOoredooData['total_clients'];
+        $totalOoredooClientsComparison = $billingRateOoredooComparisonData['total_clients'];
+        $totalOoreodooBillings = $billingRateOoredooData['total_billings'];
+        $totalOoreodooBillingsComparison = $billingRateOoredooComparisonData['total_billings'];
+        
         return [
             "activatedSubscriptions" => [
                 "current" => $subMetrics->activated_current,
@@ -397,6 +418,21 @@ class DashboardService
                 "current" => $totalTimweBillings,
                 "previous" => $totalTimweBillingsComparison,
                 "change" => $this->calculatePercentageChange($totalTimweBillings, $totalTimweBillingsComparison)
+            ],
+            "billingRateOoredoo" => [
+                "current" => $billingRateOoredoo,
+                "previous" => $billingRateOoredooComparison,
+                "change" => $this->calculatePercentageChange($billingRateOoredoo, $billingRateOoredooComparison)
+            ],
+            "totalOoredooClients" => [
+                "current" => $totalOoredooClients,
+                "previous" => $totalOoredooClientsComparison,
+                "change" => $this->calculatePercentageChange($totalOoredooClients, $totalOoredooClientsComparison)
+            ],
+            "totalOoreodooBillings" => [
+                "current" => $totalOoreodooBillings,
+                "previous" => $totalOoreodooBillingsComparison,
+                "change" => $this->calculatePercentageChange($totalOoreodooBillings, $totalOoreodooBillingsComparison)
             ]
         ];
     }
@@ -1190,6 +1226,18 @@ class DashboardService
             }
         }
         
+        // DÉSACTIVÉ POUR OPTIMISATION : Timwe Transactions by User
+        // Ce tableau est désactivé définitivement pour améliorer les performances
+        $timweTransactionsByUser = [];
+        // $periodDays = $startBound->diffInDays($endExclusive);
+        // if ($periodDays <= 90) {
+        //     $timweTransactionsByUser = $this->getTimweTransactionsByUser($startBound, $endExclusive);
+        // }
+        
+        // Grouper les statistiques Timwe par mois avec détails quotidiens
+        $timweMonthlyStats = $this->groupTimweStatsByMonth($dailyStatistics);
+        $timweMonthlyStatsComparison = $this->groupTimweStatsByMonth($dailyStatisticsComparison);
+        
         return [
             "daily_activations" => $dailyActivations,
             "retention_trend" => $retentionTrend,
@@ -1197,6 +1245,9 @@ class DashboardService
             "details" => $subscriptionDetails,
             "daily_statistics" => $dailyStatistics,
             "daily_statistics_comparison" => $dailyStatisticsComparison,
+            "timwe_monthly_stats" => $timweMonthlyStats,
+            "timwe_monthly_stats_comparison" => $timweMonthlyStatsComparison,
+            "timwe_transactions_by_user" => $timweTransactionsByUser,
             "activations_by_channel" => $activationsByChannel,
             "plan_distribution" => $planDistribution,
             "cohorts" => $cohorts,
@@ -1927,6 +1978,137 @@ class DashboardService
     }
     
     /**
+     * Calculer le taux de facturation et les KPIs Ooredoo/DGV
+     */
+    private function calculateOoredooBillingRate(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
+    {
+        try {
+            // Essayer d'utiliser la table de cache d'abord
+            $endDate = $endExclusive->copy()->subDay();
+            $stats = \App\Models\OoredooDailyStat::getStatsForPeriod($startBound, $endDate);
+
+            if ($stats->isNotEmpty()) {
+                // Utiliser les données de la table de cache
+                $lastDayStat = $stats->last();
+                
+                return [
+                    'rate' => $lastDayStat->billing_rate,
+                    'total_clients' => $lastDayStat->total_clients,
+                    'billed_clients' => 0,
+                    'total_billings' => $stats->sum('total_billings')
+                ];
+            }
+
+            // Si pas de données dans le cache, vérifier la période
+            $periodDays = $startBound->diffInDays($endExclusive);
+            
+            // Pour les périodes > 90 jours, ne pas calculer (trop long)
+            if ($periodDays > 90) {
+                return [
+                    'rate' => 0.0,
+                    'total_clients' => 0,
+                    'billed_clients' => 0,
+                    'total_billings' => 0
+                ];
+            }
+
+            // Récupérer les IDs d'opérateurs Ooredoo
+            $ooredooOperatorIds = DB::table('country_payments_methods')
+                ->whereRaw("TRIM(country_payments_methods_name) LIKE ?", ['%Ooredoo%'])
+                ->pluck('country_payments_methods_id')
+                ->toArray();
+            
+            if (empty($ooredooOperatorIds)) {
+                return [
+                    'rate' => 0.0,
+                    'total_clients' => 0,
+                    'billed_clients' => 0,
+                    'total_billings' => 0
+                ];
+            }
+            
+            // Total clients Ooredoo actifs à la fin de la période
+            $totalClients = DB::table('client_abonnement as ca')
+                ->whereIn('ca.country_payments_methods_id', $ooredooOperatorIds)
+                ->where('ca.client_abonnement_creation', '<=', $endExclusive)
+                ->where(function($q) use ($endExclusive) {
+                    $q->whereNull('ca.client_abonnement_expiration')
+                      ->orWhere('ca.client_abonnement_expiration', '>', $endExclusive);
+                })
+                ->distinct('ca.client_id')
+                ->count('ca.client_id');
+            
+            if ($totalClients == 0) {
+                return [
+                    'rate' => 0.0,
+                    'total_clients' => 0,
+                    'billed_clients' => 0,
+                    'total_billings' => 0
+                ];
+            }
+            
+            // Total facturations Ooredoo dans la période (type=INVOICE)
+            $totalBillings = DB::table('transactions_history')
+                ->whereIn('status', ['OOREDOO_PAYMENT_OFFLINE_INIT', 'OOREDOO_PAYMENT_OFFLINE'])
+                ->whereBetween('created_at', [$startBound, $endExclusive])
+                ->whereRaw("JSON_EXTRACT(result, '$.type') = 'INVOICE'")
+                ->whereRaw("JSON_EXTRACT(result, '$.status') = 'SUCCESS'")
+                ->count();
+            
+            $billingRate = $totalClients > 0 ? ($totalBillings / $totalClients) * 100 : 0;
+            
+            return [
+                'rate' => round($billingRate, 2),
+                'total_clients' => $totalClients,
+                'billed_clients' => 0,
+                'total_billings' => $totalBillings
+            ];
+            
+        } catch (\Exception $e) {
+            Log::error("calculateOoredooBillingRate - Erreur: " . $e->getMessage());
+            return [
+                'rate' => 0.0,
+                'total_clients' => 0,
+                'billed_clients' => 0,
+                'total_billings' => 0
+            ];
+        }
+    }
+
+    /**
+     * Récupère les statistiques quotidiennes Ooredoo/DGV pour affichage dans le tableau
+     */
+    private function getOoredooDailyStatistics(Carbon $startBound, Carbon $endExclusive): array
+    {
+        try {
+            $endDate = $endExclusive->copy()->subDay();
+            $periodDays = $startBound->diffInDays($endDate) + 1;
+            
+            // Pour les TRÈS longues périodes (> 90 jours), limiter à 90 jours max pour éviter timeout
+            if ($periodDays > 90) {
+                Log::info("getOoredooDailyStatistics - Période longue détectée, limitation à 90 jours", [
+                    'period_days' => $periodDays,
+                    'original_start' => $startBound->format('Y-m-d'),
+                    'original_end' => $endDate->format('Y-m-d')
+                ]);
+                $startBound = $endDate->copy()->subDays(89); // 90 jours max
+            }
+            
+            $stats = \App\Models\OoredooDailyStat::getStatsForPeriod($startBound, $endDate);
+
+            if ($stats->isEmpty()) {
+                return [];
+            }
+
+            return $stats->toArray();
+            
+        } catch (\Exception $e) {
+            Log::error("getOoredooDailyStatistics - Erreur: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
      * Récupère les statistiques quotidiennes (similaire au tableau Eklektik) - VERSION OPTIMISÉE
      * 
      * Retourne un tableau avec les colonnes :
@@ -1948,15 +2130,26 @@ class DashboardService
         try {
             // Essayer d'utiliser la table de cache d'abord
             $endDate = $endExclusive->copy()->subDay();
-            $stats = TimweDailyStat::getStatsForPeriod($startBound, $endDate);
-
-            // Si le cache est incomplet ET la période est courte, calculer les jours manquants
             $periodDays = $startBound->diffInDays($endDate) + 1;
+            
+            // Pour les TRÈS longues périodes (> 90 jours), limiter à 90 jours max pour éviter timeout
+            if ($periodDays > 90) {
+                Log::info("getDailyStatistics - Période longue détectée, limitation à 90 jours", [
+                    'period_days' => $periodDays,
+                    'original_start' => $startBound->format('Y-m-d'),
+                    'original_end' => $endDate->format('Y-m-d')
+                ]);
+                $startBound = $endDate->copy()->subDays(89); // 90 jours max
+                $periodDays = 90; // Recalculer periodDays après limitation
+            }
+            
+            $stats = TimweDailyStat::getStatsForPeriod($startBound, $endDate);
             $missingDays = $periodDays - $stats->count();
             
             // Seulement calculer les jours manquants si :
             // 1. Il y a moins de 7 jours manquants
             // 2. La période totale est < 30 jours
+            // 3. Pas en mode optimisé (pas déjà forcé à 90 jours)
             if ($missingDays > 0 && $missingDays <= 7 && $periodDays <= 30) {
                 // Calculer les jours manquants silencieusement
                 $existingDates = $stats->pluck('stat_date')->map(function($date) {
@@ -2749,6 +2942,217 @@ class DashboardService
             Log::error("Erreur calcul taux de réactivation: " . $e->getMessage());
             return 0;
         }
+    }
+    
+    /**
+     * DÉSACTIVÉ POUR OPTIMISATION
+     * Récupère les transactions Timwe groupées par utilisateur
+     * (Renouvellements et désabonnements uniquement)
+     * 
+     * Cette fonction n'est plus utilisée pour améliorer les performances du dashboard
+     */
+    private function getTimweTransactionsByUser(Carbon $startBound, Carbon $endExclusive): array
+    {
+        try {
+            // Récupérer les transactions regroupées par client (exclure FROM_TIMWE_RENEWED_NOTIF)
+            $transactions = DB::select("
+                SELECT 
+                    client_id,
+                    COUNT(*) as nb_transactions,
+                    MAX(transaction_history_id) as derniere_transaction_id,
+                    MAX(created_at) as derniere_date,
+                    (SELECT status FROM transactions_history th2 
+                     WHERE th2.client_id = th.client_id 
+                     AND (
+                         th2.reference LIKE '%TIMWE-OPTIN%' 
+                         OR th2.reference LIKE '%FROM_TIMWE_RENEWED%'
+                     )
+                     AND (
+                         (th2.status LIKE '%TIMWE_RENEWED_NOTIF%' AND th2.status NOT LIKE '%FROM_TIMWE_RENEWED_NOTIF%')
+                         OR th2.status LIKE '%UNSUBSCRIPTION%'
+                     )
+                     ORDER BY th2.transaction_history_id DESC 
+                     LIMIT 1
+                    ) as last_status_raw,
+                    (SELECT IFNULL(
+                        MAX(CASE 
+                            WHEN JSON_VALID(result) AND JSON_EXTRACT(result, '$.totalCharged') > 0 
+                            THEN JSON_EXTRACT(result, '$.totalCharged')
+                            ELSE NULL
+                        END), 
+                        0
+                    )
+                     FROM transactions_history th3
+                     WHERE th3.client_id = th.client_id
+                     AND (
+                         th3.reference LIKE '%TIMWE-OPTIN%' 
+                         OR th3.reference LIKE '%FROM_TIMWE_RENEWED%'
+                     )
+                    ) as has_billing
+                FROM transactions_history th
+                WHERE (
+                    reference LIKE '%TIMWE-OPTIN%' 
+                    OR reference LIKE '%FROM_TIMWE_RENEWED%'
+                )
+                AND (
+                    (status LIKE '%TIMWE_RENEWED_NOTIF%' AND status NOT LIKE '%FROM_TIMWE_RENEWED_NOTIF%')
+                    OR status LIKE '%UNSUBSCRIPTION%'
+                )
+                AND created_at >= ?
+                AND created_at < ?
+                GROUP BY client_id
+                ORDER BY nb_transactions DESC
+                LIMIT 500
+            ", [$startBound, $endExclusive]);
+            
+            $result = array_map(function($row) {
+                // Déterminer le statut basé sur la facturation
+                $hasBilling = $row->has_billing !== null && floatval($row->has_billing) > 0;
+                $displayStatus = $hasBilling ? 'RENOUVELÉ' : 'NON RENOUVELÉ';
+                
+                // Log pour debug (premier client seulement)
+                static $first = true;
+                if ($first) {
+                    Log::info("getTimweTransactionsByUser - Premier client", [
+                        'client_id' => $row->client_id,
+                        'has_billing' => $row->has_billing,
+                        'has_billing_value' => floatval($row->has_billing ?? 0),
+                        'hasBilling_bool' => $hasBilling,
+                        'displayStatus' => $displayStatus
+                    ]);
+                    $first = false;
+                }
+                
+                return [
+                    'client_id' => $row->client_id,
+                    'nb_transactions' => $row->nb_transactions,
+                    'derniere_transaction_id' => $row->derniere_transaction_id,
+                    'derniere_date' => $row->derniere_date,
+                    'last_status' => $displayStatus,
+                    'has_billing' => $hasBilling
+                ];
+            }, $transactions);
+            
+            return $result;
+            
+        } catch (\Exception $e) {
+            Log::error("Erreur récupération transactions Timwe par utilisateur: " . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * Groupe les statistiques quotidiennes Timwe par mois
+     * Retourne un tableau avec :
+     * - month (ex: "janvier 2025 (12)")  
+     * - month_key (ex: "2025-01" pour le tri)
+     * - daily_details (array des jours du mois)
+     * - totaux mensuels calculés selon le contrat
+     */
+    private function groupTimweStatsByMonth(array $dailyStats): array
+    {
+        if (empty($dailyStats)) {
+            return [];
+        }
+        
+        $grouped = [];
+        $totalStats = count($dailyStats);
+        $includeDetails = $totalStats < 500; // Ne garder les détails que si < 500 lignes
+        
+        Log::info("groupTimweStatsByMonth - Début", [
+            'total_stats' => $totalStats,
+            'include_details' => $includeDetails
+        ]);
+        
+        foreach ($dailyStats as $stat) {
+            $date = Carbon::parse($stat['dimension']);
+            $monthKey = $date->format('Y-m'); // Ex: "2025-12"
+            $monthLabel = $date->locale('fr')->isoFormat('MMMM YYYY'); // Ex: "décembre 2025"
+            
+            if (!isset($grouped[$monthKey])) {
+                $grouped[$monthKey] = [
+                    'month_key' => $monthKey,
+                    'month_label' => $monthLabel,
+                    'year' => $date->year,
+                    'month_num' => $date->month,
+                    'daily_details' => [],
+                    // Totaux mensuels
+                    'total_new_sub' => 0,
+                    'total_unsub' => 0,
+                    'total_simchurn' => 0,
+                    'total_rev_simchurn' => 0,
+                    'total_active_sub' => 0, // On prendra le dernier jour du mois
+                    'total_nb_facturation' => 0,
+                    'total_taux_facturation' => 0,
+                    'sum_taux_facturation' => 0, // Pour calculer la moyenne
+                    'total_revenu_ttc_tnd' => 0,
+                    'ca_bigdeal_ht' => 0,
+                    'days_count' => 0
+                ];
+            }
+            
+            // Ajouter les détails du jour seulement si pas trop de données
+            if ($includeDetails) {
+                $grouped[$monthKey]['daily_details'][] = $stat;
+            }
+            
+            // Cumuler les totaux
+            $grouped[$monthKey]['total_new_sub'] += floatval($stat['new_sub'] ?? 0);
+            $grouped[$monthKey]['total_unsub'] += floatval($stat['unsub'] ?? 0);
+            $grouped[$monthKey]['total_simchurn'] += floatval($stat['simchurn'] ?? 0);
+            $grouped[$monthKey]['total_rev_simchurn'] += floatval($stat['rev_simchurn'] ?? 0);
+            $grouped[$monthKey]['total_nb_facturation'] += floatval($stat['nb_facturation'] ?? 0);
+            $grouped[$monthKey]['sum_taux_facturation'] += floatval($stat['taux_facturation'] ?? 0);
+            
+            // Sommer le revenu TTC qui est déjà dans les stats quotidiennes (en TND)
+            $grouped[$monthKey]['total_revenu_ttc_tnd'] += floatval($stat['revenu_ttc_tnd'] ?? 0);
+            
+            $grouped[$monthKey]['days_count']++;
+            
+            // Pour active_sub, on prend le dernier jour du mois
+            $grouped[$monthKey]['total_active_sub'] = floatval($stat['active_sub'] ?? 0);
+        }
+        
+        // Calculer les métriques finales pour chaque mois selon le contrat
+        foreach ($grouped as $monthKey => &$month) {
+            // 1. Taux de facturation = MOYENNE des taux quotidiens
+            if ($month['days_count'] > 0) {
+                $month['total_taux_facturation'] = $month['sum_taux_facturation'] / $month['days_count'];
+            }
+            
+            // 3. Calculer le CA BigDeal HT selon les règles du contrat
+            $nbFacturation = $month['total_nb_facturation'];
+            
+            if ($nbFacturation < 100000) {
+                // Moins de 100K : 1.2 DT HT par facturation
+                $month['ca_bigdeal_ht'] = $nbFacturation * 1.2;
+            } elseif ($nbFacturation >= 100000 && $nbFacturation < 250000) {
+                // Entre 100K et 250K : 1.0 DT HT par facturation
+                $month['ca_bigdeal_ht'] = $nbFacturation * 1.0;
+            } else {
+                // 250K et plus : plafonné à 250K DT HT
+                $month['ca_bigdeal_ht'] = 250000;
+            }
+            
+            // Formater le label avec le nombre de jours
+            $month['display_label'] = $month['month_label'] . ' (' . $month['days_count'] . ')';
+            
+            // Nettoyer les champs temporaires
+            unset($month['sum_taux_facturation']);
+        }
+        
+        // Retourner en ordre chronologique décroissant
+        krsort($grouped);
+        
+        $result = array_values($grouped);
+        
+        Log::info("groupTimweStatsByMonth - Fin", [
+            'months_count' => count($result),
+            'first_month' => $result[0]['month_key'] ?? null,
+            'last_month' => $result[count($result)-1]['month_key'] ?? null
+        ]);
+        
+        return $result;
     }
 }
 

@@ -487,10 +487,6 @@ class EklektikController extends Controller
         return $timeline;
     }
 
-            ]
-        ]);
-    }
-
     /**
      * Obtenir les IDs d'offres
      */
