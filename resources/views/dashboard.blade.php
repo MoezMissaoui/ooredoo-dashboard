@@ -2822,7 +2822,7 @@
           <div class="kpi-delta" id="timwe-net-growth-rate-delta">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Total Facturations <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions de facturation réussies (pricepointId=63980 ET mnoDeliveryCode=DELIVERED)">ⓘ</span></div>
+          <div class="kpi-title">Nombre Facturation <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions de facturation réussies (pricepointId=63980 ET mnoDeliveryCode=DELIVERED)">ⓘ</span></div>
           <div class="kpi-value" id="timwe-total-billings">Loading...</div>
           <div class="kpi-delta" id="timwe-total-billings-delta">Loading...</div>
         </div>
@@ -2950,16 +2950,13 @@
     @if(Auth::user()->canViewTimweSection())
     <div id="ooredoo" class="tab-content">
 
-      <!-- Statistiques Ooredoo KPIs - 3 lignes de KPIs -->
+      <!-- Statistiques Ooredoo KPIs - 2 lignes de KPIs -->
       <div class="grid">
         <!-- Première ligne - 4 KPIs principaux -->
         <div class="card kpi-card" style="grid-column: span 3;">
           <div class="kpi-title">Taux de Facturation <span style="margin-left:4px; cursor: help; color: var(--muted);" title="(Clients facturés) / (Total clients Ooredoo) * 100. Transactions de type INVOICE avec statut SUCCESS.">ⓘ</span></div>
           <div class="kpi-value" id="ooredoo-billing-rate">Loading...</div>
-        </div>
-        <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">Total Inscrits <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de clients uniques avec abonnements Ooredoo/DGV actifs à la fin de la période">ⓘ</span></div>
-          <div class="kpi-value" id="ooredoo-total-clients">Loading...</div>
+          <div class="kpi-delta" id="ooredoo-billing-rate-delta">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
           <div class="kpi-title">Total Facturations <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre total de transactions de facturation réussies (type INVOICE)">ⓘ</span></div>
@@ -2970,15 +2967,15 @@
           <div class="kpi-title">Active Subscriptions <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre d'abonnements actifs à la fin de la période">ⓘ</span></div>
           <div class="kpi-value" id="ooredoo-active-subs">Loading...</div>
         </div>
-      </div>
-
-      <div class="grid">
-        <!-- Deuxième ligne - 4 KPIs d'abonnements -->
         <div class="card kpi-card" style="grid-column: span 3;">
           <div class="kpi-title">Nouveaux Abonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nouveaux abonnements créés dans la période (OOREDOO_PAYMENT_SUCCESS)">ⓘ</span></div>
           <div class="kpi-value" id="ooredoo-new-subscriptions">Loading...</div>
           <div class="kpi-delta" id="ooredoo-new-subscriptions-delta">Loading...</div>
         </div>
+      </div>
+
+      <div class="grid">
+        <!-- Deuxième ligne - 4 KPIs d'abonnements -->
         <div class="card kpi-card" style="grid-column: span 3;">
           <div class="kpi-title">Désabonnements <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Nombre de désabonnements dans la période">ⓘ</span></div>
           <div class="kpi-value" id="ooredoo-unsubscriptions">Loading...</div>
@@ -2990,17 +2987,21 @@
           <div class="kpi-delta" id="ooredoo-revenue-tnd-delta">Loading...</div>
         </div>
         <div class="card kpi-card" style="grid-column: span 3;">
-          <div class="kpi-title">ARPU (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par utilisateur (Revenu Total / Total Inscrits)">ⓘ</span></div>
+          <div class="kpi-title">ARPU (TND) <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par utilisateur normalisé sur 30 jours : (Revenu Total / Active Subs) × (30 / Nombre de jours)">ⓘ</span></div>
           <div class="kpi-value" id="ooredoo-arpu">Loading...</div>
+        </div>
+        <div class="card kpi-card" style="grid-column: span 3;">
+          <div class="kpi-title">Revenu Moyen/Facturation <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Revenu moyen par transaction de facturation (Revenu Total / Total Facturations)">ⓘ</span></div>
+          <div class="kpi-value" id="ooredoo-avg-billing-revenue">Loading...</div>
         </div>
       </div>
 
-      <!-- Tableau Statistiques Quotidiennes Ooredoo -->
+      <!-- Tableau Statistiques Mensuelles Ooredoo -->
       <div class="grid">
         <div class="card" style="grid-column: span 12;">
           <div class="chart-title">
-            📊 Statistiques Quotidiennes Ooredoo/DGV
-            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Statistiques détaillées par jour pour Ooredoo/DGV">ⓘ</span>
+            📊 Statistiques Mensuelles Ooredoo/DGV
+            <span style="margin-left:4px; cursor: help; color: var(--muted);" title="Statistiques groupées par mois pour Ooredoo/DGV. Cliquez sur un mois pour voir les détails quotidiens.">ⓘ</span>
             <button onclick="exportOoredooStatsToExcel()" style="float: right; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 8px;">
               📥 Excel
             </button>
@@ -3020,14 +3021,14 @@
             <table id="ooredooStatsTable">
               <thead style="position: sticky; top: 0; background: var(--card); z-index: 10;">
                 <tr>
-                  <th onclick="sortOoredooStatistics(0)" style="cursor: pointer;">Date <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(1)" style="cursor: pointer;">Offre <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(2)" style="cursor: pointer;">New Sub <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(3)" style="cursor: pointer;">Unsub <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(4)" style="cursor: pointer;">Active Sub <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(5)" style="cursor: pointer;">NB Facturation <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(6)" style="cursor: pointer;">Taux Fact % <span class="sort-icon">⇅</span></th>
-                  <th onclick="sortOoredooStatistics(7)" style="cursor: pointer;">Revenu TND <span class="sort-icon">⇅</span></th>
+                  <th style="cursor: pointer; width: 30px;"></th>
+                  <th onclick="sortOoredooStatistics(0)" style="cursor: pointer;">Période <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(1)" style="cursor: pointer;">New Sub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(2)" style="cursor: pointer;">Unsub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(3)" style="cursor: pointer;">Active Sub <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(4)" style="cursor: pointer;">NB Facturation <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(5)" style="cursor: pointer;">Taux Fact % <span class="sort-icon">⇅</span></th>
+                  <th onclick="sortOoredooStatistics(6)" style="cursor: pointer;">Revenu TND <span class="sort-icon">⇅</span></th>
                 </tr>
               </thead>
               <tbody id="ooredooStatsTableBody">
@@ -6332,20 +6333,23 @@
             comparisonTotals?.simchurn
           ));
           
-          updateKPI('timwe-simchurn-revenue', makeKPI(
-            totals.simchurnRevenue,
-            comparisonTotals?.simchurnRevenue
-          ), ' TND');
+          updateKPI('timwe-simchurn-revenue', {
+            current: formatNumber(totals.simchurnRevenue, 3),
+            previous: comparisonTotals ? formatNumber(comparisonTotals.simchurnRevenue, 3) : 0,
+            change: comparisonTotals ? calculateChange(totals.simchurnRevenue, comparisonTotals.simchurnRevenue) : 0
+          }, ' TND');
           
-          updateKPI('timwe-revenue-tnd', makeKPI(
-            totals.revenueTnd,
-            comparisonTotals?.revenueTnd
-          ), ' TND');
+          updateKPI('timwe-revenue-tnd', {
+            current: formatNumber(totals.revenueTnd, 3),
+            previous: comparisonTotals ? formatNumber(comparisonTotals.revenueTnd, 3) : 0,
+            change: comparisonTotals ? calculateChange(totals.revenueTnd, comparisonTotals.revenueTnd) : 0
+          }, ' TND');
           
-          updateKPI('timwe-revenue-usd', makeKPI(
-            totals.caBigdealHt,
-            comparisonTotals?.caBigdealHt
-          ), ' TND');
+          updateKPI('timwe-revenue-usd', {
+            current: formatNumber(totals.caBigdealHt, 3),
+            previous: comparisonTotals ? formatNumber(comparisonTotals.caBigdealHt, 3) : 0,
+            change: comparisonTotals ? calculateChange(totals.caBigdealHt, comparisonTotals.caBigdealHt) : 0
+          }, ' TND');
           
           // Calculer le nombre de jours de la période pour normaliser l'ARPU
           const startDate = document.getElementById('start-date')?.value;
@@ -6397,7 +6401,6 @@
       // Ooredoo/DGV KPIs
       if (dashboardData && dashboardData.ooredoo_stats) {
         updateOoredooKPIs(dashboardData);
-        updateOoredooStatisticsTable(dashboardData.ooredoo_stats.daily_statistics || []);
       }
       
       // Nouveaux KPIs Avancés - Activations par Canal (avec comparaison)
@@ -6502,8 +6505,10 @@
     // Update individual KPI
     function updateKPI(elementId, data, suffix = '') {
       const valueElement = document.getElementById(elementId);
-      // Pour les KPIs Timwe, utiliser '-delta' au lieu de 'Delta'
-      const deltaId = elementId.startsWith('timwe-') ? elementId + '-delta' : elementId + 'Delta';
+      // Pour les KPIs Timwe et Ooredoo, utiliser '-delta' au lieu de 'Delta'
+      const deltaId = (elementId.startsWith('timwe-') || elementId.startsWith('ooredoo-')) 
+        ? elementId + '-delta' 
+        : elementId + 'Delta';
       const deltaElement = document.getElementById(deltaId);
       
       // Normalisation: éviter les erreurs si data est undefined/null
@@ -6511,8 +6516,8 @@
         ? data
         : { current: 0, previous: 0, change: 0 };
 
-      // DEBUG: tracer tous les KPI subscription ET timwe problématiques
-      if (elementId.startsWith('sub-') || elementId.startsWith('timwe-')) {
+      // DEBUG: tracer tous les KPI subscription ET timwe ET ooredoo problématiques
+      if (elementId.startsWith('sub-') || elementId.startsWith('timwe-') || elementId.startsWith('ooredoo-')) {
         console.log('[KPI DEBUG]', elementId, JSON.parse(JSON.stringify(safe)));
       }
       
@@ -8520,17 +8525,18 @@
     // FIN DÉSACTIVATION - Toutes les fonctions Timwe Transactions sont commentées ci-dessus
 
     // ========== OOREDOO/DGV FUNCTIONS ==========
-    let allOoredooStatistics = [];
+    let allOoredooMonthlyStats = [];
+    let expandedOoredooMonths = new Set();
     let currentOoredooStatsSortColumn = 0;
     let ooredooStatsSortDirection = 'asc';
 
-    function calculateOoredooTotals(dailyStats) {
-      if (!dailyStats || dailyStats.length === 0) {
+    function calculateOoredooTotals(monthlyStats) {
+      if (!monthlyStats || monthlyStats.length === 0) {
         return {
           newSubs: 0,
           unsubs: 0,
+          billings: 0,
           activeSubsEndOfPeriod: 0,
-          totalBillings: 0,
           revenueTnd: 0
         };
       }
@@ -8538,110 +8544,147 @@
       const totals = {
         newSubs: 0,
         unsubs: 0,
+        billings: 0,
         activeSubsEndOfPeriod: 0,
-        totalBillings: 0,
         revenueTnd: 0
       };
       
-      dailyStats.forEach(row => {
-        totals.newSubs += Number(row.new_subscriptions) || 0;
-        totals.unsubs += Number(row.unsubscriptions) || 0;
-        totals.totalBillings += Number(row.total_billings) || 0;
-        totals.revenueTnd += Number(row.revenue_tnd) || 0;
+      // Sommer les totaux mensuels
+      monthlyStats.forEach(month => {
+        totals.newSubs += Number(month.total_new_sub) || 0;
+        totals.unsubs += Number(month.total_unsub) || 0;
+        totals.billings += Number(month.total_nb_facturation) || 0;
+        totals.revenueTnd += Number(month.total_revenu_tnd) || 0;
       });
       
-      // Active Subs = valeur du DERNIER jour de la période
-      const lastDayStats = dailyStats[dailyStats.length - 1];
-      totals.activeSubsEndOfPeriod = lastDayStats ? (Number(lastDayStats.active_subscriptions) || 0) : 0;
+      // Active Subs = valeur du DERNIER mois de la période
+      const lastMonth = monthlyStats[0]; // Le premier dans l'ordre décroissant
+      totals.activeSubsEndOfPeriod = lastMonth ? (Number(lastMonth.total_active_sub) || 0) : 0;
       
       return totals;
     }
 
     function updateOoredooKPIs(data) {
+      console.log('🔍 [OOREDOO] Mise à jour des KPIs:', data);
+      console.log('🔍 [OOREDOO] ooredoo_stats:', data?.ooredoo_stats);
+      console.log('🔍 [OOREDOO] monthly_stats:', data?.ooredoo_stats?.ooredoo_monthly_stats);
+      console.log('🔍 [OOREDOO] monthly_stats_comparison:', data?.ooredoo_stats?.ooredoo_monthly_stats_comparison);
+      
       if (!data || !data.ooredoo_stats) {
-        console.log('❌ Pas de données Ooredoo');
+        console.warn('⚠️ [OOREDOO] Données manquantes');
         return;
       }
-
-      const dailyStats = data.ooredoo_stats.daily_statistics || [];
-      const dailyStatsComparison = data.ooredoo_stats.daily_statistics_comparison || [];
-
-      const totals = calculateOoredooTotals(dailyStats);
-      const comparisonTotals = dailyStatsComparison.length > 0
-        ? calculateOoredooTotals(dailyStatsComparison)
-        : null;
-
-      const totalClients = totals.activeSubsEndOfPeriod;
-      const billingRate = totalClients > 0 ? (totals.totalBillings / totalClients * 100) : 0;
-      const arpu = totalClients > 0 ? (totals.revenueTnd / totalClients) : 0;
-
-      // Taux de Facturation
-      updateKPI('ooredoo-billing-rate', {
-        current: billingRate.toFixed(2) + '%',
-        previous: 0,
-        change: 0
-      });
-
-      // Total Inscrits
-      updateKPI('ooredoo-total-clients', {
-        current: totalClients.toLocaleString(),
-        previous: 0,
-        change: 0
-      });
-
-      // Total Facturations
-      updateKPI('ooredoo-total-billings', {
-        current: totals.totalBillings.toLocaleString(),
-        previous: comparisonTotals ? comparisonTotals.totalBillings : 0,
-        change: comparisonTotals ? calculateChange(totals.totalBillings, comparisonTotals.totalBillings) : 0
-      });
-
-      // Active Subscriptions
-      updateKPI('ooredoo-active-subs', {
-        current: totals.activeSubsEndOfPeriod.toLocaleString(),
-        previous: 0,
-        change: 0
-      });
-
-      // Nouveaux Abonnements
-      updateKPI('ooredoo-new-subscriptions', {
-        current: totals.newSubs.toLocaleString(),
-        previous: comparisonTotals ? comparisonTotals.newSubs : 0,
-        change: comparisonTotals ? calculateChange(totals.newSubs, comparisonTotals.newSubs) : 0
-      });
-
-      // Désabonnements
-      updateKPI('ooredoo-unsubscriptions', {
-        current: totals.unsubs.toLocaleString(),
-        previous: comparisonTotals ? comparisonTotals.unsubs : 0,
-        change: comparisonTotals ? calculateChange(totals.unsubs, comparisonTotals.unsubs) : 0
-      });
-
-      // Revenu Total TND
-      updateKPI('ooredoo-revenue-tnd', {
-        current: totals.revenueTnd.toFixed(2) + ' TND',
-        previous: comparisonTotals ? comparisonTotals.revenueTnd : 0,
-        change: comparisonTotals ? calculateChange(totals.revenueTnd, comparisonTotals.revenueTnd) : 0
-      });
-
-      // ARPU
-      updateKPI('ooredoo-arpu', {
-        current: arpu.toFixed(2) + ' TND',
-        previous: 0,
-        change: 0
-      });
+      
+      // Récupérer les statistiques mensuelles groupées Ooredoo
+      if (data.ooredoo_stats.ooredoo_monthly_stats) {
+        updateOoredooStatisticsTable(data.ooredoo_stats.ooredoo_monthly_stats);
+        
+        // Calculer les KPIs agrégés avec comparaison
+        const monthlyStats = data.ooredoo_stats.ooredoo_monthly_stats || [];
+        const monthlyStatsComparison = data.ooredoo_stats.ooredoo_monthly_stats_comparison || [];
+        
+        const totals = calculateOoredooTotals(monthlyStats);
+        const comparisonTotals = monthlyStatsComparison.length > 0 
+          ? calculateOoredooTotals(monthlyStatsComparison) 
+          : null;
+        
+        console.log('🔍 [OOREDOO] Statistiques:', {
+          current_months: monthlyStats.length,
+          comparison_months: monthlyStatsComparison.length,
+          totals: totals,
+          comparisonTotals: comparisonTotals
+        });
+        
+        // Helper pour créer un objet KPI avec ou sans comparaison
+        const makeKPI = (current, previous, decimals = 0) => {
+          const currentNum = Number(current) || 0;
+          const previousNum = Number(previous) || 0;
+          
+          if (previous === null || previous === undefined || previousNum === 0) {
+            return { 
+              current: formatNumber(currentNum, decimals), 
+              previous: 0, 
+              change: 0 
+            };
+          }
+          return {
+            current: formatNumber(currentNum, decimals),
+            previous: formatNumber(previousNum, decimals),
+            change: calculateChange(currentNum, previousNum)
+          };
+        };
+        
+        // Taux de Facturation
+        const billingRateCurrent = totals.activeSubsEndOfPeriod > 0 
+          ? (totals.billings / totals.activeSubsEndOfPeriod * 100) 
+          : 0;
+        const billingRatePrevious = comparisonTotals && comparisonTotals.activeSubsEndOfPeriod > 0
+          ? (comparisonTotals.billings / comparisonTotals.activeSubsEndOfPeriod * 100)
+          : null;
+        updateKPI('ooredoo-billing-rate', makeKPI(billingRateCurrent, billingRatePrevious, 2), '%');
+        
+        // Total Facturations
+        updateKPI('ooredoo-total-billings', makeKPI(totals.billings, comparisonTotals?.billings, 0));
+        
+        // Active Subs: pas de delta (valeur à la fin de période)
+        updateKPI('ooredoo-active-subs', {
+          current: formatNumber(totals.activeSubsEndOfPeriod, 0),
+          previous: 0,
+          change: 0
+        });
+        
+        // Nouveaux Abonnements
+        updateKPI('ooredoo-new-subscriptions', makeKPI(totals.newSubs, comparisonTotals?.newSubs, 0));
+        
+        // Désabonnements
+        updateKPI('ooredoo-unsubscriptions', makeKPI(totals.unsubs, comparisonTotals?.unsubs, 0));
+        
+        // Revenu Total TND
+        updateKPI('ooredoo-revenue-tnd', makeKPI(totals.revenueTnd, comparisonTotals?.revenueTnd, 3), ' TND');
+        
+        // ARPU: pas de delta (calcul global)
+        // Calculer le nombre de jours de la période pour normaliser l'ARPU
+        const startDate = document.getElementById('start-date')?.value;
+        const endDate = document.getElementById('end-date')?.value;
+        let periodDays = 30; // Défaut
+        if (startDate && endDate) {
+          const start = new Date(startDate);
+          const end = new Date(endDate);
+          periodDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) || 30;
+        }
+        const arpuValue = totals.activeSubsEndOfPeriod > 0 
+          ? (totals.revenueTnd / totals.activeSubsEndOfPeriod) * (30 / periodDays)
+          : 0;
+        updateKPI('ooredoo-arpu', {
+          current: formatNumber(arpuValue, 3),
+          previous: 0,
+          change: 0
+        }, ' TND');
+        
+        // Revenu Moyen/Facturation: pas de delta (calcul global)
+        const avgBillingValue = totals.billings > 0 
+          ? totals.revenueTnd / totals.billings
+          : 0;
+        updateKPI('ooredoo-avg-billing-revenue', {
+          current: formatNumber(avgBillingValue, 3),
+          previous: 0,
+          change: 0
+        }, ' TND');
+      } else {
+        console.warn('⚠️ [OOREDOO] Pas de ooredoo_monthly_stats dans les données');
+      }
     }
 
-    function updateOoredooStatisticsTable(statistics) {
+    function updateOoredooStatisticsTable(monthlyStats) {
       const tbody = document.getElementById('ooredooStatsTableBody');
       if (!tbody) return;
       
-      if (!statistics || statistics.length === 0) {
+      if (!monthlyStats || monthlyStats.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
         return;
       }
       
-      allOoredooStatistics = statistics;
+      allOoredooMonthlyStats = monthlyStats;
       renderOoredooStatisticsTable();
     }
 
@@ -8649,138 +8692,83 @@
       const tbody = document.getElementById('ooredooStatsTableBody');
       if (!tbody) return;
       
-      if (!allOoredooStatistics || allOoredooStatistics.length === 0) {
+      if (!allOoredooMonthlyStats || allOoredooMonthlyStats.length === 0) {
         tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucune donnée disponible</td></tr>';
         return;
       }
       
-      tbody.innerHTML = allOoredooStatistics.map(row => {
-        const date = row.stat_date || '-';
-        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
-        const newSub = row.new_subscriptions || 0;
-        const unsub = row.unsubscriptions || 0;
-        const activeSub = row.active_subscriptions || 0;
-        const nbFacturation = row.total_billings || 0;
-        const tauxFacturation = Number(row.billing_rate || 0).toFixed(2);
-        const revenuTnd = Number(row.revenue_tnd || 0).toFixed(2);
+      let html = '';
+      
+      allOoredooMonthlyStats.forEach((month, idx) => {
+        const isExpanded = expandedOoredooMonths.has(month.month_key);
+        const expandIcon = isExpanded ? '▼' : '▶';
         
-        return `
-          <tr>
-            <td>${date}</td>
-            <td>${offre}</td>
-            <td>${newSub}</td>
-            <td>${unsub}</td>
-            <td>${activeSub.toLocaleString()}</td>
-            <td>${nbFacturation.toLocaleString()}</td>
-            <td>${tauxFacturation}%</td>
-            <td>${revenuTnd}</td>
+        // Ligne du mois (cliquable)
+        html += `
+          <tr style="background: var(--card); border-bottom: 2px solid var(--border); cursor: pointer; font-weight: 600;" 
+              onclick="toggleOoredooMonth('${month.month_key}')">
+            <td style="padding: 12px; text-align: center;">${expandIcon}</td>
+            <td style="padding: 12px;">${month.display_label}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_new_sub, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_unsub, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_active_sub, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_nb_facturation, 0)}</td>
+            <td style="padding: 12px; text-align: center;">${formatPercentage(month.total_taux_facturation, 3)}</td>
+            <td style="padding: 12px; text-align: center;">${formatNumber(month.total_revenu_tnd, 3)} TND</td>
           </tr>
         `;
-      }).join('');
-    }
-
-    function sortOoredooStatistics(columnIndex) {
-      if (currentOoredooStatsSortColumn === columnIndex) {
-        ooredooStatsSortDirection = ooredooStatsSortDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        currentOoredooStatsSortColumn = columnIndex;
-        ooredooStatsSortDirection = 'asc';
-      }
-      
-      allOoredooStatistics.sort((a, b) => {
-        let aVal, bVal;
         
-        switch(columnIndex) {
-          case 0: aVal = a.stat_date; bVal = b.stat_date; break;
-          case 1: 
-            aVal = a.offers_breakdown && a.offers_breakdown.length > 0 ? a.offers_breakdown[0].offre_name : '';
-            bVal = b.offers_breakdown && b.offers_breakdown.length > 0 ? b.offers_breakdown[0].offre_name : '';
-            break;
-          case 2: aVal = a.new_subscriptions || 0; bVal = b.new_subscriptions || 0; break;
-          case 3: aVal = a.unsubscriptions || 0; bVal = b.unsubscriptions || 0; break;
-          case 4: aVal = a.active_subscriptions || 0; bVal = b.active_subscriptions || 0; break;
-          case 5: aVal = a.total_billings || 0; bVal = b.total_billings || 0; break;
-          case 6: aVal = a.billing_rate || 0; bVal = b.billing_rate || 0; break;
-          case 7: aVal = a.revenue_tnd || 0; bVal = b.revenue_tnd || 0; break;
-          default: return 0;
-        }
-        
-        if (typeof aVal === 'string') {
-          return ooredooStatsSortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-        } else {
-          return ooredooStatsSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        // Lignes des détails quotidiens (affichées seulement si le mois est expandé)
+        if (isExpanded && month.daily_details && month.daily_details.length > 0) {
+          month.daily_details.forEach(day => {
+            html += `
+              <tr style="background: rgba(0,0,0,0.02); border-bottom: 1px solid var(--border);">
+                <td style="padding: 8px;"></td>
+                <td style="padding: 8px; padding-left: 30px; font-size: 13px;">${day.stat_date}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.new_subscriptions || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.unsubscriptions || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.active_subscriptions || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.total_billings || 0, 0)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatPercentage(day.billing_rate || 0, 3)}</td>
+                <td style="padding: 8px; text-align: center; font-size: 13px;">${formatNumber(day.revenue_tnd || 0, 3)} TND</td>
+              </tr>
+            `;
+          });
         }
       });
       
+      tbody.innerHTML = html;
+    }
+    
+    function toggleOoredooMonth(monthKey) {
+      if (expandedOoredooMonths.has(monthKey)) {
+        expandedOoredooMonths.delete(monthKey);
+      } else {
+        expandedOoredooMonths.add(monthKey);
+      }
       renderOoredooStatisticsTable();
     }
 
+    function sortOoredooStatistics(columnIndex) {
+      // TODO: Implement sorting for monthly stats if needed
+      console.log('Sort Ooredoo column:', columnIndex);
+    }
+
     function filterOoredooStats() {
-      const searchInput = document.getElementById('ooredooStatsSearch');
-      if (!searchInput) return;
-      
-      const searchTerm = searchInput.value.toLowerCase();
-      
-      if (!searchTerm) {
-        renderOoredooStatisticsTable();
-        return;
-      }
-      
-      const filtered = allOoredooStatistics.filter(row => {
-        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : '';
-        return (
-          (row.stat_date && row.stat_date.toLowerCase().includes(searchTerm)) ||
-          (offre && offre.toLowerCase().includes(searchTerm)) ||
-          String(row.new_subscriptions || '').includes(searchTerm) ||
-          String(row.unsubscriptions || '').includes(searchTerm) ||
-          String(row.active_subscriptions || '').includes(searchTerm)
-        );
-      });
-      
-      const tbody = document.getElementById('ooredooStatsTableBody');
-      if (!tbody) return;
-      
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="no-data" style="text-align: center; padding: 40px; color: var(--muted);">Aucun résultat trouvé</td></tr>';
-        return;
-      }
-      
-      tbody.innerHTML = filtered.map(row => {
-        const date = row.stat_date || '-';
-        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
-        const newSub = row.new_subscriptions || 0;
-        const unsub = row.unsubscriptions || 0;
-        const activeSub = row.active_subscriptions || 0;
-        const nbFacturation = row.total_billings || 0;
-        const tauxFacturation = Number(row.billing_rate || 0).toFixed(2);
-        const revenuTnd = Number(row.revenue_tnd || 0).toFixed(2);
-        
-        return `
-          <tr>
-            <td>${date}</td>
-            <td>${offre}</td>
-            <td>${newSub}</td>
-            <td>${unsub}</td>
-            <td>${activeSub.toLocaleString()}</td>
-            <td>${nbFacturation.toLocaleString()}</td>
-            <td>${tauxFacturation}%</td>
-            <td>${revenuTnd}</td>
-          </tr>
-        `;
-      }).join('');
+      // TODO: Implement filtering for monthly stats if needed
+      console.log('Filter Ooredoo stats');
     }
 
     function exportOoredooStatsToExcel() {
-      if (!allOoredooStatistics || allOoredooStatistics.length === 0) {
+      if (!allOoredooMonthlyStats || allOoredooMonthlyStats.length === 0) {
         alert('Aucune donnée à exporter');
         return;
       }
       
-      let csv = 'Date,Offre,New Sub,Unsub,Active Sub,NB Facturation,Taux Facturation %,Revenu TND\n';
+      let csv = 'Période,New Sub,Unsub,Active Sub,NB Facturation,Taux Facturation %,Revenu TND\n';
       
-      allOoredooStatistics.forEach(row => {
-        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
-        csv += `${row.stat_date || ''},${offre},${row.new_subscriptions || 0},${row.unsubscriptions || 0},${row.active_subscriptions || 0},${row.total_billings || 0},${row.billing_rate || 0},${row.revenue_tnd || 0}\n`;
+      allOoredooMonthlyStats.forEach(month => {
+        csv += `${month.display_label},${month.total_new_sub || 0},${month.total_unsub || 0},${month.total_active_sub || 0},${month.total_nb_facturation || 0},${month.total_taux_facturation || 0},${month.total_revenu_tnd || 0}\n`;
       });
       
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -8795,16 +8783,15 @@
     }
 
     function copyOoredooStatsToClipboard() {
-      if (!allOoredooStatistics || allOoredooStatistics.length === 0) {
+      if (!allOoredooMonthlyStats || allOoredooMonthlyStats.length === 0) {
         alert('Aucune donnée à copier');
         return;
       }
       
-      let text = 'Date\tOffre\tNew Sub\tUnsub\tActive Sub\tNB Facturation\tTaux Facturation %\tRevenu TND\n';
+      let text = 'Période\tNew Sub\tUnsub\tActive Sub\tNB Facturation\tTaux Facturation %\tRevenu TND\n';
       
-      allOoredooStatistics.forEach(row => {
-        const offre = row.offers_breakdown && row.offers_breakdown.length > 0 ? row.offers_breakdown[0].offre_name : 'Club Privilèges';
-        text += `${row.stat_date || ''}\t${offre}\t${row.new_subscriptions || 0}\t${row.unsubscriptions || 0}\t${row.active_subscriptions || 0}\t${row.total_billings || 0}\t${row.billing_rate || 0}\t${row.revenue_tnd || 0}\n`;
+      allOoredooMonthlyStats.forEach(month => {
+        text += `${month.display_label}\t${month.total_new_sub || 0}\t${month.total_unsub || 0}\t${month.total_active_sub || 0}\t${month.total_nb_facturation || 0}\t${month.total_taux_facturation || 0}\t${month.total_revenu_tnd || 0}\n`;
       });
       
       navigator.clipboard.writeText(text).then(() => {

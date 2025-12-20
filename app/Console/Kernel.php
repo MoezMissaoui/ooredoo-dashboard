@@ -42,7 +42,7 @@ class Kernel extends ConsoleKernel
                 ->appendOutputTo(storage_path('logs/timwe-stats.log'));
             
             // Calcul des statistiques Ooredoo/DGV quotidiennes - Chaque jour à 2h45 du matin
-            $schedule->command('ooredoo:calculate-daily')
+            $schedule->command('ooredoo:update-daily-stats')
                 ->dailyAt('02:45')
                 ->withoutOverlapping()
                 ->runInBackground()

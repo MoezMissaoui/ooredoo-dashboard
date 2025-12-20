@@ -138,6 +138,10 @@ class DashboardService
             'daily_statistics_comparison' => $this->getOoredooDailyStatistics($compStartBound, $compEndExclusive)
         ];
         
+        // Grouper les statistiques Ooredoo par mois avec détails quotidiens
+        $ooredooStats['ooredoo_monthly_stats'] = $this->groupOoredooStatsByMonth($ooredooStats['daily_statistics']);
+        $ooredooStats['ooredoo_monthly_stats_comparison'] = $this->groupOoredooStatsByMonth($ooredooStats['daily_statistics_comparison']);
+        
         $executionTime = round((microtime(true) - $startTime) * 1000, 2);
         
         // Log pour déboguer les KPIs Timwe/Ooredoo et Analyses Avancées
@@ -963,41 +967,67 @@ class DashboardService
         $query = DB::table('history as h')
             ->join('client_abonnement as ca', 'h.client_abonnement_id', '=', 'ca.client_abonnement_id')
             ->join('country_payments_methods as cpm', 'ca.country_payments_methods_id', '=', 'cpm.country_payments_methods_id')
+            ->leftJoin('abonnement_tarifs as at', 'ca.tarif_id', '=', 'at.abonnement_tarifs_id')
             ->select(
                 DB::raw("CASE 
-                    -- Pour Timwe : 3 jours = Trial, ~30 jours = Mensuel
-                    WHEN LOWER(TRIM(cpm.country_payments_methods_name)) LIKE '%timwe%' THEN
+                    -- PRIORITÉ 0 : Opérateurs spéciaux (toujours en premier, peu importe duration/frequence)
+                    WHEN LOWER(TRIM(cpm.country_payments_methods_name)) LIKE '%carte%cadeau%' THEN 'Annuel'
+                    WHEN LOWER(TRIM(cpm.country_payments_methods_name)) LIKE '%timwe%' THEN 'Mensuel'
+                    -- PRIORITÉ 1A : Si duration > 0, utiliser duration
+                    WHEN at.abonnement_tarifs_duration = 1 THEN 'Journalier'
+                    WHEN at.abonnement_tarifs_duration = 3 THEN 'Trial'
+                    WHEN at.abonnement_tarifs_duration BETWEEN 28 AND 31 THEN 'Mensuel'
+                    WHEN at.abonnement_tarifs_duration >= 365 THEN 'Annuel'
+                    -- PRIORITÉ 1B : Si duration = 0, utiliser frequence
+                    WHEN at.abonnement_tarifs_duration = 0 THEN
                         CASE 
-                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 3 THEN 'Trial'
-                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
-                            ELSE 'Mensuel'
+                            WHEN at.abonnement_tarifs_frequence = 1 THEN 'Journalier'
+                            WHEN at.abonnement_tarifs_frequence = 7 THEN 'Hebdomadaire'
+                            WHEN at.abonnement_tarifs_frequence BETWEEN 28 AND 31 THEN 'Mensuel'
+                            WHEN at.abonnement_tarifs_frequence >= 365 THEN 'Annuel'
+                            ELSE 'Autre'
                         END
-                    -- Autres opérateurs : logique par durée
-                    WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
-                    WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
-                    WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 330 THEN 'Annuel'
+                    -- PRIORITÉ 2 : Utiliser les dates si disponibles
+                    WHEN ca.client_abonnement_expiration IS NOT NULL THEN
+                        CASE 
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 3 THEN 'Trial'
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 28 AND 31 THEN 'Mensuel'
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 365 THEN 'Annuel'
+                            ELSE 'Autre'
+                        END
                     ELSE 'Autre'
                 END as plan"),
                 DB::raw('COUNT(*) as count')
             )
             ->where('h.time', '>=', $startBound)
-            ->where('h.time', '<', $endExclusive)
-            ->whereNotNull('ca.client_abonnement_expiration');
+            ->where('h.time', '<', $endExclusive);
         
         $this->applyOperatorFilter($query, $selectedOperator);
         
         return $query->groupBy(DB::raw("CASE 
-                    -- Pour Timwe : 3 jours = Trial, ~30 jours = Mensuel
-                    WHEN LOWER(TRIM(cpm.country_payments_methods_name)) LIKE '%timwe%' THEN
+                    WHEN LOWER(TRIM(cpm.country_payments_methods_name)) LIKE '%carte%cadeau%' THEN 'Annuel'
+                    WHEN LOWER(TRIM(cpm.country_payments_methods_name)) LIKE '%timwe%' THEN 'Mensuel'
+                    WHEN at.abonnement_tarifs_duration = 1 THEN 'Journalier'
+                    WHEN at.abonnement_tarifs_duration = 3 THEN 'Trial'
+                    WHEN at.abonnement_tarifs_duration BETWEEN 28 AND 31 THEN 'Mensuel'
+                    WHEN at.abonnement_tarifs_duration >= 365 THEN 'Annuel'
+                    WHEN at.abonnement_tarifs_duration = 0 THEN
                         CASE 
-                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 3 THEN 'Trial'
-                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
-                            ELSE 'Mensuel'
+                            WHEN at.abonnement_tarifs_frequence = 1 THEN 'Journalier'
+                            WHEN at.abonnement_tarifs_frequence = 7 THEN 'Hebdomadaire'
+                            WHEN at.abonnement_tarifs_frequence BETWEEN 28 AND 31 THEN 'Mensuel'
+                            WHEN at.abonnement_tarifs_frequence >= 365 THEN 'Annuel'
+                            ELSE 'Autre'
                         END
-                    -- Autres opérateurs : logique par durée
-                    WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
-                    WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 20 AND 40 THEN 'Mensuel'
-                    WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 330 THEN 'Annuel'
+                    WHEN ca.client_abonnement_expiration IS NOT NULL THEN
+                        CASE 
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 1 THEN 'Journalier'
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) = 3 THEN 'Trial'
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) BETWEEN 28 AND 31 THEN 'Mensuel'
+                            WHEN DATEDIFF(ca.client_abonnement_expiration, ca.client_abonnement_creation) >= 365 THEN 'Annuel'
+                            ELSE 'Autre'
+                        END
                     ELSE 'Autre'
                 END"))
             ->get()
@@ -1237,6 +1267,10 @@ class DashboardService
         // Grouper les statistiques Timwe par mois avec détails quotidiens
         $timweMonthlyStats = $this->groupTimweStatsByMonth($dailyStatistics);
         $timweMonthlyStatsComparison = $this->groupTimweStatsByMonth($dailyStatisticsComparison);
+        
+        // Grouper les statistiques Ooredoo par mois avec détails quotidiens
+        $ooredooMonthlyStats = $this->groupOoredooStatsByMonth($ooredooStats['daily_statistics'] ?? []);
+        $ooredooMonthlyStatsComparison = $this->groupOoredooStatsByMonth($ooredooStats['daily_statistics_comparison'] ?? []);
         
         return [
             "daily_activations" => $dailyActivations,
@@ -3147,6 +3181,92 @@ class DashboardService
         $result = array_values($grouped);
         
         Log::info("groupTimweStatsByMonth - Fin", [
+            'months_count' => count($result),
+            'first_month' => $result[0]['month_key'] ?? null,
+            'last_month' => $result[count($result)-1]['month_key'] ?? null
+        ]);
+        
+        return $result;
+    }
+    
+    /**
+     * Groupe les statistiques quotidiennes Ooredoo par mois
+     * Retourne un tableau avec les totaux mensuels et détails quotidiens
+     */
+    private function groupOoredooStatsByMonth(array $dailyStats): array
+    {
+        if (empty($dailyStats)) {
+            return [];
+        }
+        
+        $grouped = [];
+        $totalStats = count($dailyStats);
+        $includeDetails = $totalStats < 500; // Ne garder les détails que si < 500 lignes
+        
+        Log::info("groupOoredooStatsByMonth - Début", [
+            'total_stats' => $totalStats,
+            'include_details' => $includeDetails
+        ]);
+        
+        foreach ($dailyStats as $stat) {
+            $date = Carbon::parse($stat['stat_date']);
+            $monthKey = $date->format('Y-m'); // Ex: "2025-12"
+            $monthLabel = $date->locale('fr')->isoFormat('MMMM YYYY'); // Ex: "décembre 2025"
+            
+            if (!isset($grouped[$monthKey])) {
+                $grouped[$monthKey] = [
+                    'month_key' => $monthKey,
+                    'month_label' => $monthLabel,
+                    'year' => $date->year,
+                    'month_num' => $date->month,
+                    'daily_details' => [],
+                    // Totaux mensuels
+                    'total_new_sub' => 0,
+                    'total_unsub' => 0,
+                    'total_active_sub' => 0, // On prendra le dernier jour du mois
+                    'total_nb_facturation' => 0,
+                    'total_taux_facturation' => 0,
+                    'sum_taux_facturation' => 0, // Pour calculer la moyenne
+                    'total_revenu_tnd' => 0,
+                    'days_count' => 0
+                ];
+            }
+            
+            // Ajouter les détails du jour seulement si pas trop de données
+            if ($includeDetails) {
+                $grouped[$monthKey]['daily_details'][] = $stat;
+            }
+            
+            // Cumuler les totaux
+            $grouped[$monthKey]['total_new_sub'] += floatval($stat['new_subscriptions'] ?? 0);
+            $grouped[$monthKey]['total_unsub'] += floatval($stat['unsubscriptions'] ?? 0);
+            $grouped[$monthKey]['total_nb_facturation'] += floatval($stat['total_billings'] ?? 0);
+            $grouped[$monthKey]['total_revenu_tnd'] += floatval($stat['revenue_tnd'] ?? 0);
+            $grouped[$monthKey]['sum_taux_facturation'] += floatval($stat['billing_rate'] ?? 0);
+            $grouped[$monthKey]['total_active_sub'] = floatval($stat['active_subscriptions'] ?? 0); // Dernier du mois
+            $grouped[$monthKey]['days_count']++;
+        }
+        
+        // Calculer les métriques finales pour chaque mois
+        foreach ($grouped as $monthKey => &$month) {
+            // Taux de facturation = MOYENNE des taux quotidiens
+            if ($month['days_count'] > 0) {
+                $month['total_taux_facturation'] = $month['sum_taux_facturation'] / $month['days_count'];
+            }
+            
+            // Formater le label avec le nombre de jours
+            $month['display_label'] = $month['month_label'] . ' (' . $month['days_count'] . ')';
+            
+            // Nettoyer les champs temporaires
+            unset($month['sum_taux_facturation']);
+        }
+        
+        // Retourner en ordre chronologique décroissant
+        krsort($grouped);
+        
+        $result = array_values($grouped);
+        
+        Log::info("groupOoredooStatsByMonth - Fin", [
             'months_count' => count($result),
             'first_month' => $result[0]['month_key'] ?? null,
             'last_month' => $result[count($result)-1]['month_key'] ?? null

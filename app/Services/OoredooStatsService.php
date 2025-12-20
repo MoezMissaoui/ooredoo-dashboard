@@ -17,6 +17,13 @@ class OoredooStatsService
         try {
             Log::info("OoredooStatsService - Calcul pour {$date->format('Y-m-d')}");
 
+            // Vérifier si cette date a déjà des données officielles DGV
+            $existing = OoredooDailyStat::where('stat_date', $date->format('Y-m-d'))->first();
+            if ($existing && $existing->data_source === 'officiel_dgv') {
+                Log::info("OoredooStatsService - Date {$date->format('Y-m-d')} utilise déjà les données officielles DGV, skip");
+                return;
+            }
+
             $startOfDay = $date->copy()->startOfDay();
             $endOfDay = $date->copy()->endOfDay();
 
@@ -56,6 +63,7 @@ class OoredooStatsService
                     'revenue_tnd' => $revenue,
                     'total_clients' => $totalClients,
                     'offers_breakdown' => $offersBreakdown,
+                    'data_source' => 'calculé',
                 ]
             );
 
@@ -128,8 +136,8 @@ class OoredooStatsService
     /**
      * Total clients actifs uniques (reconstruit depuis les transactions)
      * Approche SQL pure pour éviter les dépassements de mémoire
-     * Format ancien : $.msisdn
-     * Format nouveau : $.user.msisdn
+     * Format 2021-2024 : $.msisdn
+     * Format Sept 2025+ : $.data.user.msisdn
      */
     private function getTotalActiveClients(Carbon $endOfDay): int
     {
@@ -137,6 +145,7 @@ class OoredooStatsService
         $successCount = DB::select("
             SELECT COUNT(DISTINCT COALESCE(
                 JSON_EXTRACT(result, '$.msisdn'),
+                JSON_EXTRACT(result, '$.data.user.msisdn'),
                 JSON_EXTRACT(result, '$.user.msisdn')
             )) as count
             FROM transactions_history
@@ -149,6 +158,7 @@ class OoredooStatsService
         $unsubCount = DB::select("
             SELECT COUNT(DISTINCT COALESCE(
                 JSON_EXTRACT(result, '$.msisdn'),
+                JSON_EXTRACT(result, '$.data.user.msisdn'),
                 JSON_EXTRACT(result, '$.user.msisdn')
             )) as count
             FROM transactions_history
@@ -164,24 +174,34 @@ class OoredooStatsService
 
     /**
      * Facturations
-     * Avant 01/09/2025 : OOREDOO_PAYMENT_OFFLINE (result=null, compter par statut)
+     * Avant Mai 2022 : Pas de facturations (PAYMENT_OFFLINE n'existait pas encore)
+     * Mai 2022 - Août 2025 : OOREDOO_PAYMENT_OFFLINE (result=null, compter par statut)
      * Après 01/09/2025 : OOREDOO_PAYMENT_OFFLINE_INIT avec type="INVOICE"
      */
     private function getBillings(Carbon $start, Carbon $end): int
     {
         $cutoffDate = Carbon::parse('2025-09-01');
+        $offlineStartDate = Carbon::parse('2022-05-19'); // Date de début de PAYMENT_OFFLINE
+        
+        // Avant Mai 2022 : Pas de facturations
+        if ($end < $offlineStartDate) {
+            return 0;
+        }
+        
+        // Ajuster le début si la période commence avant Mai 2022
+        $adjustedStart = $start < $offlineStartDate ? $offlineStartDate : $start;
         
         if ($end < $cutoffDate) {
-            // Période avant 01/09/2025 : utiliser OOREDOO_PAYMENT_OFFLINE uniquement
+            // Période Mai 2022 - Août 2025 : utiliser OOREDOO_PAYMENT_OFFLINE uniquement
             return DB::table('transactions_history')
                 ->where('status', 'OOREDOO_PAYMENT_OFFLINE')
-                ->whereBetween('created_at', [$start, $end])
+                ->whereBetween('created_at', [$adjustedStart, $end])
                 ->count();
-        } elseif ($start >= $cutoffDate) {
+        } elseif ($adjustedStart >= $cutoffDate) {
             // Période après 01/09/2025 : utiliser OOREDOO_PAYMENT_OFFLINE_INIT avec type=INVOICE
             return DB::table('transactions_history')
                 ->where('status', 'OOREDOO_PAYMENT_OFFLINE_INIT')
-                ->whereBetween('created_at', [$start, $end])
+                ->whereBetween('created_at', [$adjustedStart, $end])
                 ->whereRaw("JSON_EXTRACT(result, '$.type') = 'INVOICE'")
                 ->whereRaw("JSON_EXTRACT(result, '$.status') = 'SUCCESS'")
                 ->count();
@@ -189,7 +209,7 @@ class OoredooStatsService
             // Période à cheval sur la date de coupure : compter les deux
             $before = DB::table('transactions_history')
                 ->where('status', 'OOREDOO_PAYMENT_OFFLINE')
-                ->whereBetween('created_at', [$start, $cutoffDate->copy()->subSecond()])
+                ->whereBetween('created_at', [$adjustedStart, $cutoffDate->copy()->subSecond()])
                 ->count();
                 
             $after = DB::table('transactions_history')
@@ -205,23 +225,51 @@ class OoredooStatsService
 
     /**
      * Revenus totaux
-     * Avant 01/09/2025 : Pas de données de revenus (result=null)
+     * Avant Mai 2022 : Pas de revenus (PAYMENT_OFFLINE n'existait pas encore)
+     * Mai 2022 - Août 2025 : Calculer depuis PAYMENT_OFFLINE + client_abonnement + prix des offres
      * Après 01/09/2025 : Extraire invoice.price depuis OOREDOO_PAYMENT_OFFLINE_INIT
      */
     private function getRevenue(Carbon $start, Carbon $end): float
     {
         $cutoffDate = Carbon::parse('2025-09-01');
+        $offlineStartDate = Carbon::parse('2022-05-19'); // Date de début de PAYMENT_OFFLINE
         
-        // Les revenus ne sont disponibles qu'à partir du 01/09/2025
-        if ($end < $cutoffDate) {
-            return 0.0;
+        // Après 01/09/2025 : utiliser invoice.price depuis result
+        if ($start >= $cutoffDate) {
+            return $this->getRevenueFromInvoices($start, $end);
         }
-        
-        $startDate = $start >= $cutoffDate ? $start : $cutoffDate;
-        
+        // Avant Mai 2022 : Pas de revenus (PAYMENT_OFFLINE n'existait pas)
+        elseif ($end < $offlineStartDate) {
+            Log::info("OoredooStatsService - Période avant PAYMENT_OFFLINE, revenu = 0", [
+                'start' => $start->format('Y-m-d'),
+                'end' => $end->format('Y-m-d')
+            ]);
+            return 0;
+        }
+        // Mai 2022 - Août 2025 : calculer depuis les abonnements et leurs offres
+        elseif ($end < $cutoffDate) {
+            // Si la période commence avant Mai 2022, ajuster le début
+            $adjustedStart = $start < $offlineStartDate ? $offlineStartDate : $start;
+            return $this->getRevenueFromSubscriptions($adjustedStart, $end);
+        }
+        // Période à cheval sur 01/09/2025 : combiner les deux méthodes
+        else {
+            // Si la période commence avant Mai 2022, ajuster le début
+            $adjustedStart = $start < $offlineStartDate ? $offlineStartDate : $start;
+            $revenueBefore = $this->getRevenueFromSubscriptions($adjustedStart, $cutoffDate->copy()->subSecond());
+            $revenueAfter = $this->getRevenueFromInvoices($cutoffDate, $end);
+            return $revenueBefore + $revenueAfter;
+        }
+    }
+
+    /**
+     * Revenus depuis les invoices (après 01/09/2025)
+     */
+    private function getRevenueFromInvoices(Carbon $start, Carbon $end): float
+    {
         $transactions = DB::table('transactions_history')
             ->where('status', 'OOREDOO_PAYMENT_OFFLINE_INIT')
-            ->whereBetween('created_at', [$startDate, $end])
+            ->whereBetween('created_at', [$start, $end])
             ->whereRaw("JSON_EXTRACT(result, '$.type') = 'INVOICE'")
             ->whereRaw("JSON_EXTRACT(result, '$.status') = 'SUCCESS'")
             ->pluck('result');
@@ -236,6 +284,46 @@ class OoredooStatsService
 
         return $totalRevenue;
     }
+
+    /**
+     * Revenus depuis les abonnements + prix des offres (avant 01/09/2025)
+     * Utilise le tarif_id de transactions_history pour récupérer le prix réel
+     */
+    private function getRevenueFromSubscriptions(Carbon $start, Carbon $end): float
+    {
+        // Récupérer les paiements OFFLINE avec leur tarif_id
+        $payments = DB::table('transactions_history as th')
+            ->leftJoin('abonnement_tarifs as at', 'th.tarif_id', '=', 'at.abonnement_tarifs_id')
+            ->where('th.status', 'OOREDOO_PAYMENT_OFFLINE')
+            ->whereBetween('th.created_at', [$start, $end])
+            ->select(
+                'th.tarif_id',
+                'at.abonnement_tarifs_prix',
+                DB::raw('COUNT(*) as count')
+            )
+            ->groupBy('th.tarif_id', 'at.abonnement_tarifs_prix')
+            ->get();
+        
+        $totalRevenue = 0;
+        $defaultPrice = 0.3; // Prix par défaut si tarif_id est null ou prix non trouvé
+        
+        foreach ($payments as $payment) {
+            // Utiliser le prix du tarif, ou le prix par défaut si null
+            $price = $payment->abonnement_tarifs_prix ?? $defaultPrice;
+            $totalRevenue += $price * $payment->count;
+        }
+        
+        Log::info("OoredooStatsService - Revenus calculés depuis tarifs", [
+            'start' => $start->format('Y-m-d'),
+            'end' => $end->format('Y-m-d'),
+            'payments_groups' => $payments->count(),
+            'total_payments' => $payments->sum('count'),
+            'total_revenue' => $totalRevenue
+        ]);
+        
+        return $totalRevenue;
+    }
+
 
     /**
      * Répartition par offre
