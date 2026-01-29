@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\DashboardService;
-use App\Services\CacheService;
+use App\Services\DashboardCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -14,9 +14,9 @@ use Carbon\Carbon;
 class DataControllerOptimized extends Controller
 {
     private DashboardService $dashboardService;
-    private CacheService $cacheService;
+    private DashboardCacheService $cacheService;
     
-    public function __construct(DashboardService $dashboardService, CacheService $cacheService)
+    public function __construct(DashboardService $dashboardService, DashboardCacheService $cacheService)
     {
         $this->dashboardService = $dashboardService;
         $this->cacheService = $cacheService;
@@ -24,6 +24,7 @@ class DataControllerOptimized extends Controller
     
     /**
      * Get complete dashboard data - VERSION OPTIMISÉE
+     * Si ?light=true, retourne seulement les KPIs essentiels (rapide)
      */
     public function getDashboardData(Request $request): JsonResponse
     {
@@ -32,9 +33,10 @@ class DataControllerOptimized extends Controller
         ini_set('memory_limit', '512M'); // 512MB
         
         $startTime = microtime(true);
+        $lightMode = $request->boolean('light', false);
         
         try {
-            Log::info("=== DÉBUT API getDashboardData OPTIMISÉE ===");
+            Log::info("=== DÉBUT API getDashboardData OPTIMISÉE ===" . ($lightMode ? " (LIGHT MODE)" : ""));
             
             // Validation et normalisation des paramètres
             $params = $this->validateAndNormalizeParams($request);
@@ -46,21 +48,33 @@ class DataControllerOptimized extends Controller
             Log::info("Paramètres validés", $params);
             Log::info("Utilisateur: {$user->email} (Rôle: {$user->role->name})");
             
-            // Récupération des données via le service optimisé
-            $data = $this->dashboardService->getDashboardData(
-                $params['start_date'],
-                $params['end_date'],
-                $params['comparison_start_date'],
-                $params['comparison_end_date'],
-                $params['operator']
-            );
+            // Mode léger : retourner seulement les KPIs essentiels
+            if ($lightMode) {
+                $data = $this->dashboardService->getLightDashboardData(
+                    $params['start_date'],
+                    $params['end_date'],
+                    $params['comparison_start_date'],
+                    $params['comparison_end_date'],
+                    $params['operator']
+                );
+            } else {
+                // Récupération complète des données via le service optimisé
+                $data = $this->dashboardService->getDashboardData(
+                    $params['start_date'],
+                    $params['end_date'],
+                    $params['comparison_start_date'],
+                    $params['comparison_end_date'],
+                    $params['operator']
+                );
+            }
             
             // Ajout des métadonnées de performance
             $totalTime = round((microtime(true) - $startTime) * 1000, 2);
             $data['api_execution_time_ms'] = $totalTime;
             $data['optimized_version'] = true;
+            $data['light_mode'] = $lightMode;
             
-            Log::info("Données récupérées avec succès en {$totalTime}ms");
+            Log::info("Données récupérées avec succès en {$totalTime}ms" . ($lightMode ? " (LIGHT)" : ""));
             Log::info("Source: " . ($data['data_source'] ?? 'inconnu'));
             
             return response()->json($data);
@@ -86,6 +100,108 @@ class DataControllerOptimized extends Controller
                 "data_source" => "error",
                     "timestamp" => now()->toISOString()
                 ], 500);
+        }
+    }
+    
+    /**
+     * Endpoint séparé pour les détails d'abonnements (section lourde)
+     */
+    public function getSubscriptionsDetails(Request $request): JsonResponse
+    {
+        set_time_limit(60);
+        ini_set('memory_limit', '256M');
+        
+        try {
+            $params = $this->validateAndNormalizeParams($request);
+            $user = auth()->user();
+            $params['operator'] = $this->validateOperatorAccess($user, $params['operator']);
+            
+            $startBound = Carbon::parse($params['start_date'])->startOfDay();
+            $endExclusive = Carbon::parse($params['end_date'])->addDay()->startOfDay();
+            
+            $details = $this->dashboardService->getSubscriptionDetailsPublic(
+                $startBound,
+                $endExclusive,
+                $params['operator']
+            );
+            
+            return response()->json([
+                'success' => true,
+                'data' => $details,
+                'execution_time_ms' => round((microtime(true) - (microtime(true))) * 1000, 2)
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Erreur getSubscriptionsDetails: " . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Endpoint séparé pour les cohorts (section lourde)
+     */
+    public function getCohorts(Request $request): JsonResponse
+    {
+        set_time_limit(60);
+        ini_set('memory_limit', '256M');
+        
+        try {
+            $params = $this->validateAndNormalizeParams($request);
+            $user = auth()->user();
+            $params['operator'] = $this->validateOperatorAccess($user, $params['operator']);
+            
+            $startBound = Carbon::parse($params['start_date'])->startOfDay();
+            $endExclusive = Carbon::parse($params['end_date'])->addDay()->startOfDay();
+            
+            $cohorts = $this->dashboardService->calculateCohortsPublic(
+                $startBound,
+                $endExclusive,
+                $params['operator']
+            );
+            
+            return response()->json([
+                'success' => true,
+                'data' => $cohorts,
+                'execution_time_ms' => round((microtime(true) - (microtime(true))) * 1000, 2)
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Erreur getCohorts: " . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Endpoint séparé pour les transactions (section lourde)
+     */
+    public function getTransactions(Request $request): JsonResponse
+    {
+        set_time_limit(60);
+        ini_set('memory_limit', '256M');
+        
+        try {
+            $params = $this->validateAndNormalizeParams($request);
+            $user = auth()->user();
+            $params['operator'] = $this->validateOperatorAccess($user, $params['operator']);
+            
+            $startBound = Carbon::parse($params['start_date'])->startOfDay();
+            $endExclusive = Carbon::parse($params['end_date'])->addDay()->startOfDay();
+            
+            $transactions = $this->dashboardService->getTransactionsDataPublic(
+                $startBound,
+                $endExclusive,
+                $params['operator']
+            );
+            
+            return response()->json([
+                'success' => true,
+                'data' => $transactions,
+                'execution_time_ms' => round((microtime(true) - (microtime(true))) * 1000, 2)
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Erreur getTransactions: " . $e->getMessage());
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
     

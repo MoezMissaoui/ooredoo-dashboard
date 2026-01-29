@@ -80,6 +80,9 @@ Route::middleware('auth')->group(function () {
         // API routes pour données dashboard
         Route::get('/api/operators', [DataController::class, 'getUserOperators'])->name('api.user.operators');
         Route::get('/api/dashboard/data', [DataControllerOptimized::class, 'getDashboardData'])->name('api.dashboard.data');
+        Route::get('/api/dashboard/subscriptions-details', [DataControllerOptimized::class, 'getSubscriptionsDetails'])->name('api.dashboard.subscriptions.details');
+        Route::get('/api/dashboard/cohorts', [DataControllerOptimized::class, 'getCohorts'])->name('api.dashboard.cohorts');
+        Route::get('/api/dashboard/transactions-separate', [DataControllerOptimized::class, 'getTransactions'])->name('api.dashboard.transactions.separate');
         Route::get('/api/dashboard/subscriptions/{clientId}', [DataControllerOptimized::class, 'getUserSubscriptions'])->name('api.dashboard.user.subscriptions');
         Route::get('/api/dashboard/operators', [DataController::class, 'getAvailableOperators'])->name('api.dashboard.operators');
         Route::get('/api/dashboard/partners', [DataController::class, 'getPartnersList'])->name('api.dashboard.partners');

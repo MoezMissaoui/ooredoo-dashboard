@@ -111,25 +111,49 @@ class TimweStatsService
                 ->distinct('ca.client_id')
                 ->count('ca.client_id');
 
-            // 7. Facturations (transactions avec pricepointId = 63980 ET mnoDeliveryCode = DELIVERED)
+            // 7. Facturations (transactions avec pricepointId = 63980, mnoDeliveryCode = DELIVERED ET totalCharged > 0)
+            // CORRECTION: Utiliser la même logique que generate_timwe_daily_unique_numbers.php
+            // Joindre directement avec 'client' (pas 'client_abonnement') et compter les numéros uniques par téléphone
             $transactions = DB::table('transactions_history as th')
-                ->join('client_abonnement as ca', 'th.client_id', '=', 'ca.client_id')
-                ->whereIn('ca.country_payments_methods_id', $timweOperatorIds)
+                ->join('client as c', 'th.client_id', '=', 'c.client_id')
                 ->whereBetween('th.created_at', [$startOfDay, $endOfDay])
                 ->where(function($q) {
                     $q->where('th.status', 'LIKE', '%TIMWE_RENEWED_NOTIF%')
                       ->orWhere('th.status', 'LIKE', '%TIMWE_CHARGE_DELIVERED%');
                 })
+                ->select('th.client_id', 'th.result', 'c.client_telephone')
                 ->get();
             
+            // Compter les numéros uniques facturés (comme dans les CSV)
+            // Utiliser le téléphone comme clé unique, ou client_id si téléphone vide
+            $billedPhones = [];
             $billings = 0;
             foreach ($transactions as $transaction) {
-                if ($transaction->result) {
+                if ($transaction->result && $transaction->client_id) {
                     $result = json_decode($transaction->result, true);
-                    if (isset($result['pricepointId']) && $result['pricepointId'] == $billingPpid) {
-                        if (isset($result['mnoDeliveryCode']) && $result['mnoDeliveryCode'] === 'DELIVERED') {
-                            $billings++;
-                        }
+                    if (!is_array($result)) {
+                        continue;
+                    }
+                    
+                    $ppid = $result['pricepointId'] ?? null;
+                    $delivery = $result['mnoDeliveryCode'] ?? null;
+                    $totalCharged = isset($result['totalCharged']) ? (int)$result['totalCharged'] : 0;
+                    
+                    // Même logique que le script : pricepointId = billingPpid, mnoDeliveryCode = DELIVERED, totalCharged > 0
+                    if ((string)$ppid !== (string)$billingPpid || $delivery !== 'DELIVERED' || $totalCharged <= 0) {
+                        continue;
+                    }
+                    
+                    // Utiliser le téléphone comme clé unique (comme dans le script)
+                    $phone = trim((string)($transaction->client_telephone ?? ''));
+                    if ($phone === '') {
+                        $phone = 'client_id:' . $transaction->client_id;
+                    }
+                    
+                    // Compter uniquement les numéros uniques (comme dans les CSV)
+                    if (!isset($billedPhones[$phone])) {
+                        $billedPhones[$phone] = true;
+                        $billings++;
                     }
                 }
             }
@@ -137,20 +161,29 @@ class TimweStatsService
             // 8. Taux de facturation
             $billingRate = $totalClients > 0 ? round(($billings / $totalClients) * 100, 2) : 0;
 
-            // 9. Revenus (calculés depuis transactions_history avec pricepointId = 63980 et totalCharged)
+            // 9. Revenus (calculés depuis transactions_history avec pricepointId = 63980, mnoDeliveryCode = DELIVERED et totalCharged > 0)
             // totalCharged est en millimes, donc on divise par 1000 pour obtenir des TND
+            // CORRECTION: Utiliser la même logique que pour les facturations (même filtres)
+            // Pour les revenus, on somme TOUS les totalCharged même si c'est le même client plusieurs fois
             $revenueTnd = 0;
             foreach ($transactions as $transaction) {
                 if ($transaction->result) {
                     $result = json_decode($transaction->result, true);
-                    if (isset($result['pricepointId']) && $result['pricepointId'] == $billingPpid) {
-                        if (isset($result['mnoDeliveryCode']) && $result['mnoDeliveryCode'] === 'DELIVERED') {
-                            if (isset($result['totalCharged'])) {
-                                // Convertir millimes en TND (diviser par 1000)
-                                $revenueTnd += floatval($result['totalCharged']) / 1000;
-                            }
-                        }
+                    if (!is_array($result)) {
+                        continue;
                     }
+                    
+                    $ppid = $result['pricepointId'] ?? null;
+                    $delivery = $result['mnoDeliveryCode'] ?? null;
+                    $totalCharged = isset($result['totalCharged']) ? (int)$result['totalCharged'] : 0;
+                    
+                    // Même logique que le script : pricepointId = billingPpid, mnoDeliveryCode = DELIVERED, totalCharged > 0
+                    if ((string)$ppid !== (string)$billingPpid || $delivery !== 'DELIVERED' || $totalCharged <= 0) {
+                        continue;
+                    }
+                    
+                    // Convertir millimes en TND (diviser par 1000)
+                    $revenueTnd += floatval($totalCharged) / 1000;
                 }
             }
             

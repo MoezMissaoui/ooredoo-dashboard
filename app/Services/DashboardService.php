@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use App\Services\DashboardCacheService;
 
 class DashboardService
 {
@@ -91,14 +92,19 @@ class DashboardService
     {
         $startTime = microtime(true);
         
-        // Calcul de la période et TTL adaptatif
+        // Calcul de la période
         $periodDays = Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate));
-        $cacheTTL = $this->getCacheTTL($periodDays);
-        $cacheKey = $this->generateCacheKey($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator);
         
-        Log::info("DashboardService: Période de {$periodDays} jours, TTL cache: {$cacheTTL}s, Opérateur: {$selectedOperator}");
+        // Utiliser le nouveau service de cache Redis
+        $cacheService = app(DashboardCacheService::class);
+        $cacheKey = $cacheService->generateKey($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator, auth()->id());
         
-        return Cache::remember($cacheKey, $cacheTTL, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator, $periodDays, $startTime) {
+        // Déterminer le type de données selon la période
+        $dataType = $periodDays > 90 ? 'heavy' : 'standard';
+        
+        Log::info("DashboardService: Période de {$periodDays} jours, Opérateur: {$selectedOperator}, Type: {$dataType}");
+        
+        return $cacheService->remember($cacheKey, $periodDays, function () use ($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator, $periodDays, $startTime) {
             
             if ($periodDays > 90) {
                 Log::info("Mode optimisé activé pour période longue");
@@ -106,7 +112,66 @@ class DashboardService
             }
             
             return $this->getStandardDashboardData($startDate, $endDate, $comparisonStartDate, $comparisonEndDate, $selectedOperator, $startTime);
-        });
+        }, $dataType);
+    }
+    
+    /**
+     * Version légère : retourne seulement les KPIs essentiels (rapide)
+     */
+    public function getLightDashboardData(string $startDate, string $endDate, string $comparisonStartDate, string $comparisonEndDate, string $selectedOperator): array
+    {
+        $startTime = microtime(true);
+        
+        // Normalisation des dates
+        $startBound = Carbon::parse($startDate)->startOfDay();
+        $endExclusive = Carbon::parse($endDate)->addDay()->startOfDay();
+        $compStartBound = Carbon::parse($comparisonStartDate)->startOfDay();
+        $compEndExclusive = Carbon::parse($comparisonEndDate)->addDay()->startOfDay();
+        
+        // Seulement les KPIs essentiels (rapide)
+        $kpis = $this->getKPIsOptimized($startBound, $endExclusive, $compStartBound, $compEndExclusive, $selectedOperator);
+        
+        // Marchands (rapide aussi)
+        $merchants = $this->getMerchantsOptimized($startBound, $endExclusive, $compStartBound, $compEndExclusive, $selectedOperator);
+        
+        $executionTime = round((microtime(true) - $startTime) * 1000, 2);
+        
+        return [
+            "periods" => [
+                "primary" => Carbon::parse($startDate)->format("M j, Y") . " - " . Carbon::parse($endDate)->format("M j, Y"),
+                "comparison" => Carbon::parse($comparisonStartDate)->format("M j, Y") . " - " . Carbon::parse($comparisonEndDate)->format("M j, Y")
+            ],
+            "kpis" => $kpis,
+            "merchants" => $merchants['data'],
+            "categoryDistribution" => $merchants['categories'],
+            "insights" => $this->generateInsights($kpis, $merchants['data']),
+            "last_updated" => now()->toISOString(),
+            "data_source" => "light_mode",
+            "execution_time_ms" => $executionTime,
+            "light_mode" => true,
+            // Sections lourdes à charger séparément
+            "subscriptions" => null,
+            "transactions" => null,
+            "ooredoo_stats" => null
+        ];
+    }
+    
+    /**
+     * Méthodes publiques pour les endpoints séparés
+     */
+    public function getSubscriptionDetailsPublic(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
+    {
+        return $this->getSubscriptionDetails($startBound, $endExclusive, $selectedOperator);
+    }
+    
+    public function calculateCohortsPublic(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
+    {
+        return $this->calculateCohorts($startBound->toDateString(), $endExclusive->copy()->subDay()->toDateString(), $selectedOperator);
+    }
+    
+    public function getTransactionsDataPublic(Carbon $startBound, Carbon $endExclusive, string $selectedOperator): array
+    {
+        return $this->getTransactionsData($startBound, $endExclusive, $selectedOperator);
     }
     
     /**
@@ -1485,17 +1550,19 @@ class DashboardService
             
             $this->applyOperatorFilter($query, $selectedOperator);
             
-            // Compter le total avant de limiter
-            $totalCount = $query->count();
+            // OPTIMISATION: Ne pas compter le total si on limite les résultats (gain de temps)
+            // Le count() sur 80k+ lignes est très lent et inutile si on limite à 140
+            // Compter seulement si vraiment nécessaire (pour l'UI pagination)
+            $totalCount = null; // Désactivé pour améliorer les performances
             
-            Log::info("getSubscriptionDetails - Total abonnements trouvés", [
-                'totalCount' => $totalCount,
+            // Limiter les résultats directement (beaucoup plus rapide)
+            $results = $query->orderByDesc('ca.client_abonnement_creation')->limit($limit)->get();
+            
+            Log::info("getSubscriptionDetails - Abonnements récupérés", [
+                'returnedCount' => $results->count(),
                 'operator' => $selectedOperator,
                 'period' => $startBound->toDateString() . ' - ' . $endExclusive->copy()->subDay()->toDateString()
             ]);
-            
-            // Limiter les résultats
-            $results = $query->orderByDesc('ca.client_abonnement_creation')->limit($limit)->get();
             
             // PPID constants pour Timwe
             $billingPpid = env('TIMWE_BILLING_PPID', '63980');
@@ -1557,7 +1624,7 @@ class DashboardService
             return [
                 'data' => $dataArray,
                 'meta' => [
-                    'total_count' => $totalCount,
+                    'total_count' => $totalCount ?? $results->count(), // Utiliser le count des résultats si totalCount n'est pas disponible
                     'displayed_count' => $results->count(),
                     'limit' => $limit,
                     'execution_time_ms' => 0,
@@ -1622,43 +1689,6 @@ class DashboardService
     }
     
     /**
-     * Extrait le totalCharged depuis le champ result JSON
-     * 
-     * @param string|null $result JSON string du champ result
-     * @return float Le montant totalCharged ou 0 si non trouvé
-     */
-    private function extractTotalCharged($result): float
-    {
-        if (empty($result)) {
-            return 0.0;
-        }
-        
-        try {
-            $data = is_string($result) ? json_decode($result, true) : $result;
-            if (!$data || !is_array($data)) {
-                return 0.0;
-            }
-            
-            // Chercher totalCharged directement
-            if (isset($data['totalCharged']) && is_numeric($data['totalCharged'])) {
-                return floatval($data['totalCharged']);
-            }
-            
-            // Chercher dans des variantes
-            $variants = ['total_charged', 'totalCharged', 'totalChargedAmount', 'chargedAmount'];
-            foreach ($variants as $variant) {
-                if (isset($data[$variant]) && is_numeric($data[$variant])) {
-                    return floatval($data[$variant]);
-                }
-            }
-            
-            return 0.0;
-        } catch (\Exception $e) {
-            return 0.0;
-        }
-    }
-    
-    /**
      * Vérifie si une transaction a été livrée avec succès (mnoDeliveryCode = DELIVERED)
      * 
      * @param string|null $result JSON string du champ result
@@ -1709,6 +1739,47 @@ class DashboardService
             
         } catch (\Exception $e) {
             return false;
+        }
+    }
+    
+    /**
+     * Extrait le totalCharged du champ result JSON
+     * 
+     * @param string|null $result JSON string du champ result
+     * @return float Le totalCharged en millimes (0 si non trouvé)
+     */
+    private function extractTotalCharged($result): float
+    {
+        if (empty($result)) {
+            return 0.0;
+        }
+        
+        try {
+            $data = is_string($result) ? json_decode($result, true) : $result;
+            if (!$data || !is_array($data)) {
+                return 0.0;
+            }
+            
+            // Chercher totalCharged dans différentes structures possibles
+            $fields = ['totalCharged', 'total_charged', 'totalChargedAmount', 'charged_amount'];
+            
+            foreach ($fields as $field) {
+                if (isset($data[$field])) {
+                    return floatval($data[$field]);
+                }
+            }
+            
+            // Chercher dans des structures imbriquées
+            if (isset($data['response']['totalCharged'])) {
+                return floatval($data['response']['totalCharged']);
+            }
+            if (isset($data['data']['totalCharged'])) {
+                return floatval($data['data']['totalCharged']);
+            }
+            
+            return 0.0;
+        } catch (\Exception $e) {
+            return 0.0;
         }
     }
     
@@ -1837,15 +1908,18 @@ class DashboardService
                 ->select('th.client_id', 'th.result', 'th.transaction_history_id')
                 ->get();
             
-            // Filtrer les transactions avec pricepointId = 63980 (billing) ET mnoDeliveryCode = DELIVERED
+            // Filtrer les transactions avec pricepointId = 63980, mnoDeliveryCode = DELIVERED ET totalCharged > 0
+            // CORRECTION: Ajouter la condition totalCharged > 0 pour être sûr que c'est une facturation réelle
             $billedClientIds = [];
             $totalBillings = 0;
             foreach ($transactions as $transaction) {
                 $ppid = $this->extractPricepointId($transaction->result);
                 $isDelivered = $this->isTransactionDelivered($transaction->result);
+                $totalCharged = $this->extractTotalCharged($transaction->result);
                 
-                // Seules les transactions avec pricepointId = 63980 ET mnoDeliveryCode = DELIVERED sont comptées
-                if ($ppid === $billingPpid && $isDelivered) {
+                // Seules les transactions avec pricepointId = 63980, mnoDeliveryCode = DELIVERED ET totalCharged > 0 sont comptées
+                // Logiquement totalCharged devrait être = 3000 millimes (3 TND) pour une facturation
+                if ($ppid === $billingPpid && $isDelivered && $totalCharged > 0) {
                     // Compter le client comme facturé (une seule fois par client)
                     $billedClientIds[$transaction->client_id] = true;
                     // Compter le nombre total de facturations
@@ -2359,8 +2433,10 @@ class DashboardService
             }
             
             // 4. Facturations par jour - OPTIMISÉ : Traiter par chunks pour éviter la saturation mémoire
+            // CORRECTION: Compter les NUMÉROS UNIQUES par jour (comme dans les CSV generate_timwe_daily_unique_numbers.php)
             $billingsByDay = [];
             $revenueByDay = [];
+            $billedPhonesByDay = []; // Pour tracker les numéros uniques par jour (par téléphone)
             
             // Récupérer les transactions par chunks pour éviter la saturation mémoire
             $chunkSize = 500; // Réduire la taille des chunks
@@ -2368,23 +2444,22 @@ class DashboardService
             $lastId = 0;
             
             while ($hasMore) {
+                // CORRECTION: Utiliser la même logique que generate_timwe_daily_unique_numbers.php
+                // Joindre directement avec 'client' (pas 'client_abonnement') pour récupérer le téléphone
                 $billingsChunk = DB::table('transactions_history as th')
-                    ->join('client_abonnement as ca', 'th.client_id', '=', 'ca.client_id')
-                    ->leftJoin('abonnement_tarifs as at', 'ca.tarif_id', '=', 'at.abonnement_tarifs_id')
-                    ->whereIn('ca.country_payments_methods_id', $timweOperatorIds)
+                    ->join('client as c', 'th.client_id', '=', 'c.client_id')
                     ->whereBetween('th.created_at', [$startBound, $endExclusive->copy()->subSecond()])
                     ->where('th.transaction_history_id', '>', $lastId)
                     ->where(function($q) {
                         $q->where('th.status', 'LIKE', '%TIMWE_RENEWED_NOTIF%')
-                          ->orWhere('th.status', 'LIKE', '%TIMWE_CHARGE_DELIVERED%')
-                          ->orWhere('th.status', 'LIKE', '%RENEWED%')
-                          ->orWhere('th.status', 'LIKE', '%CHARGE_DELIVERED%');
+                          ->orWhere('th.status', 'LIKE', '%TIMWE_CHARGE_DELIVERED%');
                     })
                     ->select(
                         'th.transaction_history_id',
+                        'th.client_id',
                         DB::raw('DATE(th.created_at) as date'),
                         'th.result',
-                        'at.abonnement_tarifs_prix as tarif_prix'
+                        'c.client_telephone'
                     )
                     ->orderBy('th.transaction_history_id', 'asc')
                     ->limit($chunkSize);
@@ -2407,23 +2482,46 @@ class DashboardService
                 foreach ($billingsRaw as $billing) {
                     $lastId = $billing->transaction_history_id;
                     
-                    $ppid = $this->extractPricepointId($billing->result);
-                    $isDelivered = $this->isTransactionDelivered($billing->result);
-                    
-                    // Seules les transactions avec pricepointId = 63980 ET mnoDeliveryCode = DELIVERED ET totalCharged > 0
-                    $totalCharged = $this->extractTotalCharged($billing->result);
-                    
-                    if ($ppid === $billingPpid && $isDelivered && $totalCharged > 0) {
-                        $date = Carbon::parse($billing->date)->format('Y-m-d');
-                        if (!isset($billingsByDay[$date])) {
-                            $billingsByDay[$date] = 0;
-                            $revenueByDay[$date] = 0;
-                        }
-                        $billingsByDay[$date]++;
-                        
-                        // Le montant est toujours trouvé car totalCharged > 0 est garanti
-                        $revenueByDay[$date] += $totalCharged;
+                    if (empty($billing->result)) {
+                        continue;
                     }
+                    
+                    $result = json_decode($billing->result, true);
+                    if (!is_array($result)) {
+                        continue;
+                    }
+                    
+                    $ppid = $result['pricepointId'] ?? null;
+                    $delivery = $result['mnoDeliveryCode'] ?? null;
+                    $totalCharged = isset($result['totalCharged']) ? (int)$result['totalCharged'] : 0;
+                    
+                    // Même logique que le script : pricepointId = billingPpid, mnoDeliveryCode = DELIVERED, totalCharged > 0
+                    if ((string)$ppid !== (string)$billingPpid || $delivery !== 'DELIVERED' || $totalCharged <= 0) {
+                        continue;
+                    }
+                    
+                    $date = Carbon::parse($billing->date)->format('Y-m-d');
+                    if (!isset($billingsByDay[$date])) {
+                        $billingsByDay[$date] = 0;
+                        $revenueByDay[$date] = 0;
+                        $billedPhonesByDay[$date] = []; // Initialiser le tableau pour ce jour
+                    }
+                    
+                    // CORRECTION: Utiliser le téléphone comme clé unique (comme dans le script)
+                    $phone = trim((string)($billing->client_telephone ?? ''));
+                    if ($phone === '') {
+                        $phone = 'client_id:' . $billing->client_id;
+                    }
+                    
+                    // Compter uniquement les numéros uniques (comme dans les CSV)
+                    if (!isset($billedPhonesByDay[$date][$phone])) {
+                        $billedPhonesByDay[$date][$phone] = true;
+                        $billingsByDay[$date]++;
+                    }
+                    
+                    // Le montant est toujours trouvé car totalCharged > 0 est garanti
+                    // On somme tous les totalCharged même si c'est le même client (revenu total)
+                    $revenueByDay[$date] += $totalCharged;
                 }
                 
                 // Récupérer le count avant de libérer la mémoire
@@ -2948,9 +3046,9 @@ class DashboardService
             
             $this->applyOperatorFilter($expiredBeforePeriod, $operatorFilter);
             
-            $expiredClients = $expiredBeforePeriod->distinct('ca.client_id')->pluck('ca.client_id');
+            // OPTIMISATION: Compter d'abord avant de charger tous les IDs (beaucoup plus rapide)
+            $expiredCount = $expiredBeforePeriod->distinct('ca.client_id')->count('ca.client_id');
             
-            $expiredCount = $expiredClients->count();
             // Éviter l'explosion du nombre de placeholders (erreur 1390) sur de très gros volumes
             if ($expiredCount == 0 || $expiredCount > 15000) {
                 Log::warning("calculateReactivationRate - Skipped (too many expired clients)", [
@@ -2959,6 +3057,9 @@ class DashboardService
                 ]);
                 return 0;
             }
+            
+            // Seulement maintenant charger les IDs si le count est OK
+            $expiredClients = $expiredBeforePeriod->distinct('ca.client_id')->pluck('ca.client_id');
             
             // Clients réactivés pendant la période
             $reactivatedQuery = DB::table('client_abonnement as ca')

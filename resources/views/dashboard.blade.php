@@ -3521,21 +3521,13 @@
         console.error('❌ Chart.js non chargé');
       }
 
-      // Charger les données Eklektik une seule fois au démarrage
-      try {
-        if (typeof loadEklektikData === 'function') {
-          await loadEklektikData();
-        }
-        if (typeof loadEklektikCharts === 'function') {
-          setTimeout(() => loadEklektikCharts(), 150);
-        }
-      } catch (e) {
-        console.warn('Eklektik initial load skipped:', e);
-      }
-      
       setDefaultDates();
       updateDateRange();
       initializeDashboard();
+      
+      // Charger les données Eklektik APRÈS le dashboard (non-bloquant)
+      // Ne pas charger automatiquement pour éviter les doubles chargements
+      // L'utilisateur peut charger Eklektik manuellement via l'onglet
       
       // Initialize mobile navigation
       initializeMobileNavigation();
@@ -5368,13 +5360,24 @@
       });
     }
 
-    // Load dashboard data with simple loading
+    // Variable pour éviter les chargements multiples simultanés
+    let isLoadingDashboard = false;
+    
+    // Load dashboard data with progressive loading
     async function loadDashboardData() {
+      // Empêcher les chargements multiples simultanés
+      if (isLoadingDashboard) {
+        console.log('⏸️ Chargement déjà en cours, ignoré');
+        return;
+      }
+      
+      isLoadingDashboard = true;
       let timeoutId = null;
       
       try {
         // Show simple loading
         showLoading();
+        showProgressiveLoading();
         
         // Get date values for both periods
         const startDate = document.getElementById('start-date').value;
@@ -5407,22 +5410,24 @@
           params.append('operator', selectedOperator);
         }
         
-        if (params.toString()) {
-          apiUrl += '?' + params.toString();
-        }
-        
         const startTime = performance.now();
         
-        // Add timeout to prevent hanging - Augmenté à 3 minutes pour permettre le calcul des Analyses Avancées
-        const controller = new AbortController();
-        timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout pour longues périodes
+        // OPTIMISATION: Charger directement les données complètes (avec cache Redis, c'est rapide)
+        // Si le cache est vide, on charge en mode light d'abord, sinon on charge tout
+        updateProgressiveLoading('Chargement des données...', 30);
         
-        const response = await fetch(apiUrl, {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes timeout
+        
+        // Charger les données complètes (le cache Redis devrait rendre ça rapide)
+        const response = await fetch(apiUrl + '?' + params.toString(), {
           signal: controller.signal,
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin'
         });
         
         clearTimeout(timeoutId);
@@ -5439,59 +5444,95 @@
           hasKPIs: !!data.kpis,
           hasCharts: !!data.subscriptions,
           loadTime: `${loadTime.toFixed(0)}ms`,
-          optimizationMode: data.optimization_mode || 'normal'
+          lightMode: data.light_mode || false
         });
         
-        // Debug: Vérifier les KPIs Timwe et Analyses Avancées
-        if (data.kpis) {
-          console.log('📊 KPIs Timwe:', {
-            billingRateTimwe: data.kpis.billingRateTimwe,
-            totalTimweClients: data.kpis.totalTimweClients,
-            totalTimweBillings: data.kpis.totalTimweBillings
+        // Si c'est en mode light, charger les sections manquantes
+        if (data.light_mode) {
+          updateProgressiveLoading('Chargement des sections avancées...', 60);
+          
+          const baseParams = params.toString();
+          const heavyEndpoints = [
+            { name: 'subscriptions-details', url: `/api/dashboard/subscriptions-details?${baseParams}`, key: 'subscriptions' },
+            { name: 'cohorts', url: `/api/dashboard/cohorts?${baseParams}`, key: 'cohorts' },
+            { name: 'transactions', url: `/api/dashboard/transactions-separate?${baseParams}`, key: 'transactions' }
+          ];
+          
+          // Charger en parallèle avec gestion d'erreur individuelle
+          const heavyPromises = heavyEndpoints.map(async (endpoint, index) => {
+            try {
+              updateProgressiveLoading(`Chargement ${endpoint.name}...`, 60 + (index + 1) * 10);
+              
+              const heavyResponse = await fetch(endpoint.url, {
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+              });
+              
+              if (!heavyResponse.ok) {
+                throw new Error(`HTTP ${heavyResponse.status} pour ${endpoint.name}`);
+              }
+              
+              const result = await heavyResponse.json();
+              
+              return { key: endpoint.key, data: result.data || result, success: true };
+            } catch (error) {
+              console.warn(`⚠️ Erreur chargement ${endpoint.name}:`, error);
+              return { key: endpoint.key, data: null, success: false, error: error.message };
+            }
+          });
+          
+          const heavyResults = await Promise.all(heavyPromises);
+          
+          // Fusionner les résultats
+          heavyResults.forEach(result => {
+            if (result.success && result.data) {
+              if (result.key === 'subscriptions') {
+                data.subscriptions = {
+                  ...(data.subscriptions || {}),
+                  details: result.data,
+                  ...result.data
+                };
+              } else if (result.key === 'cohorts') {
+                if (!data.subscriptions) data.subscriptions = {};
+                data.subscriptions.cohorts = result.data;
+              } else if (result.key === 'transactions') {
+                data.transactions = result.data;
+              }
+            }
           });
         }
-        if (data.subscriptions) {
-          console.log('📊 Analyses Avancées:', {
-            activations_by_channel: data.subscriptions.activations_by_channel,
-            plan_distribution: data.subscriptions.plan_distribution,
-            renewal_rate: data.subscriptions.renewal_rate,
-            average_lifespan: data.subscriptions.average_lifespan,
-            cohorts: data.subscriptions.cohorts?.length || 0
-          });
-        }
-
+        
         // Masquer le message d'optimisation
         hideOptimizationMessage();
         
-        // Show performance indicator if fast load (likely from cache)
+        // Show performance indicator
         updatePerformanceIndicator(loadTime);
         
-        // Show immediate notification
-        const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
-        
         // Update dashboard and hide loading simultaneously
+        updateProgressiveLoading('Finalisation...', 95);
         updateDashboard(data);
         hideLoading();
+        hideProgressiveLoading();
         
-        // Progress bar now working correctly
+        // Show success notification
+        const operatorLabel = selectedOperator === 'ALL' ? 'globales' : selectedOperator;
         
-        // Show success notification after everything is updated
         setTimeout(() => {
-        showNotification(`✅ Données ${operatorLabel} mises à jour!`, 'success');
+          showNotification(`✅ Données ${operatorLabel} mises à jour! (${loadTime.toFixed(0)}ms)`, 'success');
         }, 100);
 
-        // Émettre un événement global pour que les modules (ex: Eklektik) se resynchronisent
-        try {
-          const evt = new CustomEvent('dashboard:refreshed');
-          window.dispatchEvent(evt);
-        } catch (e) {
-          console.warn('CustomEvent not supported, Eklektik may not auto-refresh');
-        }
+        // NE PAS émettre l'événement dashboard:refreshed pour éviter les rechargements en cascade
+        // Les modules Eklektik se chargeront indépendamment
         
       } catch (error) {
-        clearTimeout(timeoutId); // Clean up timeout
+        clearTimeout(timeoutId);
         console.error('Error loading dashboard data:', error);
         hideLoading();
+        hideProgressiveLoading();
         
         // Try to show fallback data instead of complete failure
         if (error.name === 'AbortError') {
@@ -5500,10 +5541,49 @@
           updateDashboard(dashboardData);
         } else {
           showNotification('❌ Erreur de connexion: ' + error.message, 'error');
-          // Still try fallback
           loadFallbackData();
           updateDashboard(dashboardData);
         }
+      } finally {
+        // Toujours réinitialiser le flag à la fin
+        isLoadingDashboard = false;
+      }
+    }
+    
+    // Gestion du chargement progressif
+    let progressiveLoadingElement = null;
+    
+    function showProgressiveLoading() {
+      // Créer l'élément de progression s'il n'existe pas
+      if (!progressiveLoadingElement) {
+        progressiveLoadingElement = document.createElement('div');
+        progressiveLoadingElement.id = 'progressive-loading';
+        progressiveLoadingElement.innerHTML = `
+          <div style="position: fixed; top: 80px; right: 20px; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000; min-width: 250px;">
+            <div style="font-weight: 600; margin-bottom: 8px; color: #1f2937;">Chargement progressif</div>
+            <div id="progressive-loading-text" style="font-size: 13px; color: #6b7280; margin-bottom: 8px;">Initialisation...</div>
+            <div style="background: #e5e7eb; border-radius: 4px; height: 6px; overflow: hidden;">
+              <div id="progressive-loading-bar" style="background: linear-gradient(90deg, #3b82f6, #8b5cf6); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(progressiveLoadingElement);
+      }
+      progressiveLoadingElement.style.display = 'block';
+    }
+    
+    function updateProgressiveLoading(text, percent) {
+      if (progressiveLoadingElement) {
+        const textEl = progressiveLoadingElement.querySelector('#progressive-loading-text');
+        const barEl = progressiveLoadingElement.querySelector('#progressive-loading-bar');
+        if (textEl) textEl.textContent = text;
+        if (barEl) barEl.style.width = Math.min(100, Math.max(0, percent)) + '%';
+      }
+    }
+    
+    function hideProgressiveLoading() {
+      if (progressiveLoadingElement) {
+        progressiveLoadingElement.style.display = 'none';
       }
     }
     
